@@ -86,6 +86,7 @@ class Editor(QsciScintilla):
 		except IOError, e:
 			print e
 			return False
+		self.path = path
 		self.setModified(False)
 		self.titleChanged.emit()
 		return True
