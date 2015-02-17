@@ -30,6 +30,7 @@ class Window(QMainWindow):
 
 	def createDefaultMenuBar(self):
 		menu = self.menubar.addMenu('File')
+		menu.addAction('New').triggered.connect(self.bufferNew)
 		menu.addAction('Open...').triggered.connect(self.bufferOpenFile)
 		menu.addAction('Save').triggered.connect(self.bufferSave)
 		menu.addAction('Quit').triggered.connect(self.wantQuit)
@@ -38,6 +39,12 @@ class Window(QMainWindow):
 
 	def currentBuffer(self):
 		return self.tabs.currentBuffer()
+
+	@Slot()
+	def bufferNew(self):
+		ed = Editor()
+		self.tabs.addEditor(ed)
+		self.tabs.focusBuffer(ed)
 
 	@Slot()
 	def bufferOpenFile(self):
@@ -131,6 +138,9 @@ class TabWidget(QTabWidget):
 
 	def currentBuffer(self):
 		return self.currentWidget()
+
+	def focusBuffer(self, ed):
+		self.setCurrentWidget(ed)
 
 	@Slot(int)
 	def onTabCloseRequested(self, idx):
