@@ -40,7 +40,14 @@ class App(QApplication):
 	def run(self):
 		self.win.show()
 		self.runStartScripts()
+		self.handleArguments()
 		self.exec_()
+
+	def handleArguments(self):
+		for i in self.arguments()[1:]:
+			path = unicode(i)
+			self.win.bufferOpen(path)
+
 
 def getConfigPath(*args):
 	try:
