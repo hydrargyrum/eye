@@ -117,9 +117,14 @@ class Editor(QsciScintilla):
 		if not self.closeFile():
 			return False
 		self.path = path
-		with open(path) as f:
-			self.setText(f.read().decode('utf-8'))
+		try:
+			with open(path) as f:
+				self.setText(f.read().decode('utf-8'))
+		except IOError, e:
+			qApp.logger.exception(e)
+			return False
 		self.setModified(False)
+		return True
 
 	titleChanged = Signal()
 
