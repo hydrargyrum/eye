@@ -84,7 +84,7 @@ class Editor(QsciScintilla):
 			with open(path, 'w') as f:
 				f.write(self.text().toUtf8())
 		except IOError, e:
-			print e
+			qApp.logger.exception(e)
 			return False
 		self.path = path
 		self.setModified(False)
