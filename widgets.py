@@ -21,10 +21,12 @@ def acceptIf(ev, cond):
 class Window(QMainWindow):
 	def __init__(self, *a):
 		QMainWindow.__init__(self, *a)
-		self.editor = Editor(self)
-		self.setCentralWidget(self.editor)
+		self.tabs = TabWidget(self)
+		self.setCentralWidget(self.tabs)
 
 		self.menubar = self.menuBar()
+		ed = Editor()
+		self.tabs.addEditor(ed)
 
 	def createDefaultMenuBar(self):
 		menu = self.menubar.addMenu('File')
@@ -34,19 +36,22 @@ class Window(QMainWindow):
 
 	wantQuit = Signal()
 
+	def currentBuffer(self):
+		return self.tabs.currentBuffer()
+
 	@Slot()
 	def bufferOpenFile(self):
 		path = QFileDialog.getOpenFileName(self, self.tr('Open file'), os.path.expanduser('~'))
 		if path:
 			path = unicode(path)
-			self.editor.openFile(path)
+			self.currentBuffer().openFile(path)
 
 	@Slot()
 	def bufferSave(self):
-		self.editor.saveFile()
+		self.currentBuffer().saveFile()
 
 	def closeEvent(self, ev):
-		acceptIf(ev, self.editor.closeFile())
+		acceptIf(ev, self.tabs.requestClose())
 
 
 class Editor(QsciScintilla):
@@ -102,6 +107,47 @@ class Editor(QsciScintilla):
 	# events
 	def closeEvent(self, ev):
 		acceptIf(ev, self.closeFile())
+
+
+class TabWidget(QTabWidget):
+	def __init__(self, *args):
+		QTabWidget.__init__(self, *args)
+		self.setMovable(True)
+		self.setTabsClosable(True)
+		self.setUsesScrollButtons(True)
+		self.tabCloseRequested.connect(self.onTabCloseRequested)
+
+	def currentBuffer(self):
+		return self.currentWidget()
+
+	@Slot(int)
+	def onTabCloseRequested(self, idx):
+		widget = self.widget(idx)
+		if widget.closeFile():
+			self.removeTab(idx)
+
+	def addEditor(self, editor):
+		self.addTab(editor, '')
+		# TODO set title
+
+	def widgetSetFilename(self, widget, filename):
+		idx = self.indexOf(widget)
+		self.setTabText(idx, self.tr('%1').arg(filename))
+
+	def currentBuffer(self):
+		return self.currentWidget()
+
+	def widgets(self):
+		return [self.widget(i) for i in xrange(self.count())]
+
+	def requestClose(self):
+		for i in xrange(self.count()):
+			w = self.widget(0)
+			if w.closeFile():
+				self.removeTab(0)
+			else:
+				return False
+		return True
 
 
 class WindowRegistry(QObject):
