@@ -18,7 +18,7 @@ class App(QApplication):
 		self.win = widgets.Window()
 		widgets.windows.addWindow(self.win)
 		self.win.createDefaultMenuBar()
-		self.win.wantQuit.connect(self.quit)
+		self.win.quitRequested.connect(self.quit)
 
 	def _startupScripts(self):
 		import glob

@@ -33,9 +33,9 @@ class Window(QMainWindow):
 		menu.addAction('New').triggered.connect(self.bufferNew)
 		menu.addAction('Open...').triggered.connect(self.bufferOpenDialog)
 		menu.addAction('Save').triggered.connect(self.bufferSave)
-		menu.addAction('Quit').triggered.connect(self.wantQuit)
+		menu.addAction('Quit').triggered.connect(self.quitRequested)
 
-	wantQuit = Signal()
+	quitRequested = Signal()
 
 	def currentBuffer(self):
 		return self.tabs.currentBuffer()
@@ -78,7 +78,7 @@ class Editor(QsciScintilla):
 		self.modificationChanged.connect(self.titleChanged)
 
 	def title(self):
-		t = os.path.basename(self.path)
+		t = os.path.basename(self.path) or '<untitled>'
 		if self.isModified():
 			return '%s*' % t
 		else:
@@ -111,7 +111,7 @@ class Editor(QsciScintilla):
 		ret = True
 
 		if self.isModified():
-			file = self._getFilename() or '<unnamed>'
+			file = self._getFilename() or '<untitled>'
 
 			answer = QMessageBox.question(self, self.tr('Unsaved file'), self.tr('%1 has been modified, do you want to close it?').arg(file), QMessageBox.Discard | QMessageBox.Cancel | QMessageBox.Save)
 			if answer == QMessageBox.Discard:
@@ -148,7 +148,7 @@ class TabWidget(QTabWidget):
 		self.setMovable(True)
 		self.setTabsClosable(True)
 		self.setUsesScrollButtons(True)
-		self.tabCloseRequested.connect(self.onTabCloseRequested)
+		self.tabCloseRequested.connect(self._tabCloseRequested)
 
 	def currentBuffer(self):
 		return self.currentWidget()
@@ -164,7 +164,7 @@ class TabWidget(QTabWidget):
 			return False
 
 	@Slot(int)
-	def onTabCloseRequested(self, idx):
+	def _tabCloseRequested(self, idx):
 		widget = self.widget(idx)
 		if widget.closeFile():
 			self.removeTab(idx)
