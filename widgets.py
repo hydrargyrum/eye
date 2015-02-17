@@ -200,6 +200,17 @@ class TabWidget(QTabWidget):
 				return False
 		return True
 
+	def tabInserted(self, idx):
+		QTabWidget.tabInserted(self, idx)
+		self._changeTabBarVisibility()
+
+	def tabRemoved(self, idx):
+		QTabWidget.tabRemoved(self, idx)
+		self._changeTabBarVisibility()
+
+	def _changeTabBarVisibility(self):
+		visible = (self.count() > 1)
+		self.tabBar().setVisible(visible)
 
 class WindowRegistry(QObject):
 	def __init__(self):
