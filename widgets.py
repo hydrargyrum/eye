@@ -59,6 +59,14 @@ class Editor(QsciScintilla):
 		QsciScintilla.__init__(self, *a)
 
 		self.path = ''
+		self.modificationChanged.connect(self.titleChanged)
+
+	def title(self):
+		t = os.path.basename(self.path)
+		if self.isModified():
+			return '%s*' % t
+		else:
+			return t
 
 	def _getFilename(self):
 		if not self.path:
@@ -79,6 +87,7 @@ class Editor(QsciScintilla):
 			print e
 			return False
 		self.setModified(False)
+		self.titleChanged.emit()
 		return True
 
 	def closeFile(self):
@@ -104,6 +113,8 @@ class Editor(QsciScintilla):
 			self.setText(f.read().decode('utf-8'))
 		self.setModified(False)
 
+	titleChanged = Signal()
+
 	# events
 	def closeEvent(self, ev):
 		acceptIf(ev, self.closeFile())
@@ -126,9 +137,17 @@ class TabWidget(QTabWidget):
 		if widget.closeFile():
 			self.removeTab(idx)
 
+	@Slot()
+	def _subTitleChanged(self):
+		w = self.sender()
+		idx = self.indexOf(w)
+		if idx < 0:
+			return
+		self.setTabText(idx, w.title())
+
 	def addEditor(self, editor):
-		self.addTab(editor, '')
-		# TODO set title
+		self.addTab(editor, editor.title())
+		editor.titleChanged.connect(self._subTitleChanged)
 
 	def widgetSetFilename(self, widget, filename):
 		idx = self.indexOf(widget)
