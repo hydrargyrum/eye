@@ -96,11 +96,10 @@ class Editor(QsciScintilla):
 			if not path:
 				return False
 			path = unicode(path)
+		data = str(self.text().toUtf8())
 		try:
-			with open(path, 'w') as f:
-				f.write(self.text().toUtf8())
+			utils.writeBytesToFile(path, data)
 		except IOError, e:
-			qApp.logger.exception(e)
 			return False
 		self.path = path
 		self.setModified(False)
@@ -127,8 +126,8 @@ class Editor(QsciScintilla):
 			return False
 		self.path = path
 		try:
-			with open(path) as f:
-				self.setText(f.read().decode('utf-8'))
+			data = utils.readBytesFromFile(path)
+			self.setText(data.decode('utf-8'))
 		except IOError, e:
 			qApp.logger.exception(e)
 			return False
