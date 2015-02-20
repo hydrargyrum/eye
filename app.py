@@ -7,8 +7,13 @@ from PyQt4.QtGui import *
 Signal = pyqtSignal
 Slot = pyqtSlot
 
+qApp = lambda: QApplication.instance()
+
 import widgets
 import utils
+
+
+__all__ = 'App qApp'.split()
 
 
 class App(QApplication):
@@ -23,7 +28,7 @@ class App(QApplication):
 
 	def _startupScripts(self):
 		import glob
-		files = glob.glob(os.path.join(getConfigPath('startup'), '*.py'))
+		files = glob.glob(os.path.join(self.getConfigPath('startup'), '*.py'))
 		files.sort()
 		return files
 
@@ -41,10 +46,10 @@ class App(QApplication):
 	def run(self):
 		self.win.show()
 		self.runStartScripts()
-		self.handleArguments()
+		self._handleArguments()
 		self.exec_()
 
-	def handleArguments(self):
+	def _handleArguments(self):
 		for i in self.arguments()[1:]:
 			name = unicode(i)
 			path, row, col = utils.parseFilename(name)
@@ -52,13 +57,12 @@ class App(QApplication):
 			if row is not None:
 				ed.goto1(row, col)
 
-
-def getConfigPath(*args):
-	try:
-		import xdg.BaseDirectory
-		return xdg.BaseDirectory.save_config_path('vedit', *args)
-	except ImportError:
-		return os.path.join(os.path.expanduser('~/.config/vedit'), *args)
+	def getConfigPath(self, *args):
+		try:
+			import xdg.BaseDirectory
+			return xdg.BaseDirectory.save_config_path('vedit', *args)
+		except ImportError:
+			return os.path.join(os.path.expanduser('~/.config/vedit'), *args)
 
 
 def main():

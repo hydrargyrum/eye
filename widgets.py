@@ -7,6 +7,7 @@ from PyQt4.Qsci import *
 Signal = pyqtSignal
 Slot = pyqtSlot
 
+from app import qApp
 import utils
 
 __all__ = 'Window windows Editor'.split()
@@ -130,7 +131,7 @@ class Editor(QsciScintilla):
 			data = utils.readBytesFromFile(path)
 			self.setText(data.decode('utf-8'))
 		except IOError, e:
-			qApp.logger.exception(e)
+			qApp().logger.exception(e)
 			return False
 		self.setModified(False)
 		return True
