@@ -3,6 +3,7 @@ import os
 import app
 import contextlib
 import tempfile
+import re
 
 @contextlib.contextmanager
 def exceptionLogging():
@@ -35,3 +36,15 @@ def readBytesFromFile(filepath):
 	with exceptionLogging():
 		with open(filepath, 'rb') as f:
 			return f.read()
+
+def parseFilename(filepath):
+	row, col = None, None
+
+	mtc = re.search(r'(:\d+)?(:\d+)?$', filepath)
+	if mtc.group(1):
+		row = int(mtc.group(1)[1:])
+	if mtc.group(2):
+		col = int(mtc.group(2)[1:])
+	filepath = filepath[:mtc.start()]
+
+	return (filepath, row, col)

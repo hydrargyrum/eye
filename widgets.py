@@ -7,6 +7,7 @@ from PyQt4.Qsci import *
 Signal = pyqtSignal
 Slot = pyqtSlot
 
+import utils
 
 __all__ = 'Window windows Editor'.split()
 
@@ -133,6 +134,12 @@ class Editor(QsciScintilla):
 			return False
 		self.setModified(False)
 		return True
+
+	def goto1(self, row, col=None):
+		col = col or 0
+		row, col = row - 1, col - 1
+		self.ensureLineVisible(row)
+		self.setCursorPosition(row, col)
 
 	titleChanged = Signal()
 

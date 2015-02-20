@@ -8,6 +8,7 @@ Signal = pyqtSignal
 Slot = pyqtSlot
 
 import widgets
+import utils
 
 
 class App(QApplication):
@@ -45,8 +46,11 @@ class App(QApplication):
 
 	def handleArguments(self):
 		for i in self.arguments()[1:]:
-			path = unicode(i)
-			self.win.bufferOpen(path)
+			name = unicode(i)
+			path, row, col = utils.parseFilename(name)
+			ed = self.win.bufferOpen(path)
+			if row is not None:
+				ed.goto1(row, col)
 
 
 def getConfigPath(*args):
