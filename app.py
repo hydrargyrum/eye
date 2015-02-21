@@ -19,6 +19,8 @@ __all__ = 'App qApp'.split()
 class App(QApplication):
 	def __init__(self, argv):
 		QApplication.__init__(self, argv)
+		self.setApplicationName('vedit')
+
 		self.logger = logging.getLogger()
 		logging.basicConfig()
 		self.win = widgets.Window()
