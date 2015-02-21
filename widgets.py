@@ -20,9 +20,32 @@ def acceptIf(ev, cond):
 		ev.ignore()
 
 
-class Window(QMainWindow):
+class CategoryMixin(object):
+	def __init__(self):
+		super(CategoryMixin, self).__init__()
+		self._categories = set()
+		qApp().connector.addObject(self)
+
+	def categories(self):
+		return self._categories
+
+	def addCategory(self, c):
+		if c in self._categories:
+			return
+		self._categories.add(c)
+		qApp().connector.categoryAdded(self, c)
+
+	def removeCategory(self, c):
+		if c not in self._categories:
+			return
+		self._categories.remove(c)
+		qApp().connector.categoryRemoved(self, c)
+
+
+class Window(QMainWindow, CategoryMixin):
 	def __init__(self, *a):
 		QMainWindow.__init__(self, *a)
+		CategoryMixin.__init__(self)
 		self.tabs = TabWidget(self)
 		self.setCentralWidget(self.tabs)
 
@@ -72,9 +95,10 @@ class Window(QMainWindow):
 		acceptIf(ev, self.tabs.requestClose())
 
 
-class Editor(QsciScintilla):
+class Editor(QsciScintilla, CategoryMixin):
 	def __init__(self, *a):
 		QsciScintilla.__init__(self, *a)
+		CategoryMixin.__init__(self)
 
 		self.path = ''
 		self.modificationChanged.connect(self.titleChanged)
@@ -149,9 +173,10 @@ class Editor(QsciScintilla):
 		acceptIf(ev, self.closeFile())
 
 
-class TabWidget(QTabWidget):
+class TabWidget(QTabWidget, CategoryMixin):
 	def __init__(self, *args):
 		QTabWidget.__init__(self, *args)
+		CategoryMixin.__init__(self)
 		self.setMovable(True)
 		self.setTabsClosable(True)
 		self.setUsesScrollButtons(True)
@@ -218,6 +243,7 @@ class TabWidget(QTabWidget):
 	def _changeTabBarVisibility(self):
 		visible = (self.count() > 1)
 		self.tabBar().setVisible(visible)
+
 
 class WindowRegistry(QObject):
 	def __init__(self):
