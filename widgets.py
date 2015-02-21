@@ -101,6 +101,7 @@ class Editor(QsciScintilla, CategoryMixin):
 		CategoryMixin.__init__(self)
 
 		self.path = ''
+		self.addCategory('editor')
 		self.modificationChanged.connect(self.titleChanged)
 
 	def title(self):
