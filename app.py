@@ -2,6 +2,8 @@
 
 import sys, os
 import logging
+import argparse
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 Signal = pyqtSignal
@@ -22,9 +24,12 @@ class App(QApplication):
 		QApplication.__init__(self, argv)
 		self.setApplicationName('vedit')
 
-		self.logger = logging.getLogger()
 		logging.basicConfig()
+		self.logger = logging.getLogger()
 
+		self.argsFiles = None
+
+	def initUi(self):
 		self.connector = scripting.EventConnector()
 		self.win = widgets.Window()
 		widgets.windows.addWindow(self.win)
@@ -49,13 +54,30 @@ class App(QApplication):
 				self.logger.exception(e)
 
 	def run(self):
+		self._handleArguments()
+		self.initUi()
 		self.win.show()
 		self.runStartScripts()
-		self._handleArguments()
+		self.openCommandLineFiles()
 		self.exec_()
 
 	def _handleArguments(self):
-		for i in self.arguments()[1:]:
+		parser = argparse.ArgumentParser()
+		parser.add_argument('files', metavar='FILE', nargs='*')
+		parser.add_argument('--debug', action='store_true', default=False)
+
+		argv = [unicode(arg) for arg in self.arguments()[1:]]
+		args = parser.parse_args(argv)
+
+		if args.debug:
+			self.logger.setLevel(logging.DEBUG)
+
+		self.argsFiles = args.files
+
+	def openCommandLineFiles(self):
+		if not self.argsFiles:
+			return
+		for i in self.argsFiles:
 			name = unicode(i)
 			path, row, col = utils.parseFilename(name)
 			ed = self.win.bufferOpen(path)
