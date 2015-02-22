@@ -36,7 +36,7 @@ class EventConnector(QObject, object):
 		getattr(obj, lis.signal).connect(lis.map)
 
 	def doDisconnect(self, obj, lis, cat=''):
-		qApp().logger.debug('connecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
+		qApp().logger.debug('disconnecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
 		getattr(obj, lis.signal).disconnect(lis.map)
 
 	def addListener(self, cb, categories, signal):
