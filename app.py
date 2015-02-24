@@ -43,7 +43,7 @@ class App(QApplication):
 		return files
 
 	def _scriptDict(self):
-		return {'qApp': QApplication.instance(), 'widgets': widgets, 'connector': connector}
+		return {'qApp': QApplication.instance()}
 
 	def runStartScripts(self):
 		for f in self._startupScripts():
