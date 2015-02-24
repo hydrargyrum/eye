@@ -13,7 +13,7 @@ qApp = lambda: QApplication.instance()
 
 import widgets
 import utils
-import scripting
+import connector
 
 
 __all__ = 'App qApp'.split()
@@ -30,7 +30,7 @@ class App(QApplication):
 		self.argsFiles = None
 
 	def initUi(self):
-		self.connector = scripting.EventConnector()
+		self.connector = connector.EventConnector()
 		self.win = widgets.Window()
 		widgets.windows.addWindow(self.win)
 		self.win.createDefaultMenuBar()
@@ -43,7 +43,7 @@ class App(QApplication):
 		return files
 
 	def _scriptDict(self):
-		return {'qApp': QApplication.instance(), 'widgets': widgets, 'scripting': scripting}
+		return {'qApp': QApplication.instance(), 'widgets': widgets, 'connector': connector}
 
 	def runStartScripts(self):
 		for f in self._startupScripts():
