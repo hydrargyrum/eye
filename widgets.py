@@ -169,9 +169,14 @@ class Editor(QsciScintilla, CategoryMixin):
 		self.ensureLineVisible(row)
 		self.setCursorPosition(row, col)
 
+	def setLexer(self, lexer):
+		QsciScintilla.setLexer(self, lexer)
+		self.lexerChanged.emit(lexer)
+
 	titleChanged = Signal()
 	fileSaved = Signal()
 	fileOpened = Signal()
+	lexerChanged = Signal(QObject)
 
 	# events
 	def closeEvent(self, ev):
