@@ -95,7 +95,12 @@ def peekSet(s):
 	return next(iter(s))
 
 def registerSignal(categories, signal):
+	if isinstance(categories, (str, unicode, basestring)):
+		categories = [categories]
+
 	def deco(func):
 		qApp().connector.addListener(func, categories, signal)
 		return func
 	return deco
+
+defaultEditorConfig = registerSignal(['editor'], 'connected')
