@@ -131,6 +131,7 @@ class Editor(QsciScintilla, CategoryMixin):
 		self.path = path
 		self.setModified(False)
 		self.titleChanged.emit()
+		self.fileSaved.emit()
 		return True
 
 	def closeFile(self):
@@ -159,6 +160,7 @@ class Editor(QsciScintilla, CategoryMixin):
 			qApp().logger.exception(e)
 			return False
 		self.setModified(False)
+		self.fileOpened.emit()
 		return True
 
 	def goto1(self, row, col=None):
@@ -168,6 +170,8 @@ class Editor(QsciScintilla, CategoryMixin):
 		self.setCursorPosition(row, col)
 
 	titleChanged = Signal()
+	fileSaved = Signal()
+	fileOpened = Signal()
 
 	# events
 	def closeEvent(self, ev):
