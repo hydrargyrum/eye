@@ -19,6 +19,7 @@ class Listener(QObject):
 	@Slot(int)
 	@Slot(str)
 	@Slot(unicode)
+	@Slot(QObject)
 	@Slot()
 	def map(self, *args, **kwargs):
 		sender = kwargs.get('sender', self.sender())
