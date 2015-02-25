@@ -113,3 +113,4 @@ def disabled(func):
 	return func
 
 defaultEditorConfig = registerSignal(['editor'], 'connected')
+defaultLexerConfig = registerSignal(['editor'], 'lexerChanged')
