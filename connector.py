@@ -1,5 +1,6 @@
 
-from PyQt4.QtCore import QObject, pyqtSlot as Slot
+from PyQt4.QtCore import Qt, QObject, pyqtSlot as Slot
+from PyQt4.QtGui import QShortcut, QKeySequence
 import collections
 import weakref
 import inspect
@@ -111,6 +112,22 @@ def registerSignal(categories, signal):
 def disabled(func):
 	func.enabled = False
 	return func
+
+def registerShortcut(categories, ks, context=Qt.WidgetShortcut):
+	def deco(cb):
+		@registerSignal(categories, 'connected')
+		def action(widget):
+			shortcut = QShortcut(widget)
+			shortcut.setKey(QKeySequence(ks))
+			shortcut.setContext(context)
+
+			lis = Listener(cb, categories, 'activated', shortcut)
+			qApp().connector.doConnect(shortcut, lis, categories[0])
+
+		return cb
+
+	return deco
+
 
 defaultEditorConfig = registerSignal(['editor'], 'connected')
 defaultLexerConfig = registerSignal(['editor'], 'lexerChanged')
