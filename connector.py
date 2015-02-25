@@ -6,7 +6,7 @@ import inspect
 
 from app import qApp
 
-__all__ = 'Listener EventConnector registerSignal'.split()
+__all__ = 'Listener EventConnector registerSignal disabled'.split()
 
 
 class Listener(QObject):
@@ -22,6 +22,9 @@ class Listener(QObject):
 	@Slot(QObject)
 	@Slot()
 	def map(self, *args, **kwargs):
+		if not getattr(self.cb, 'enabled', True):
+			return
+
 		sender = kwargs.get('sender', self.sender())
 		self.cb(sender, *args)
 
@@ -102,6 +105,11 @@ def registerSignal(categories, signal):
 	def deco(func):
 		qApp().connector.addListener(func, categories, signal)
 		return func
+
 	return deco
+
+def disabled(func):
+	func.enabled = False
+	return func
 
 defaultEditorConfig = registerSignal(['editor'], 'connected')
