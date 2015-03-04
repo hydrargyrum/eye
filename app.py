@@ -11,7 +11,7 @@ Slot = pyqtSlot
 
 qApp = lambda: QApplication.instance()
 
-import widgets
+import widgets.window
 import utils
 import connector
 
@@ -31,8 +31,8 @@ class App(QApplication):
 
 	def initUi(self):
 		self.connector = connector.EventConnector()
-		self.win = widgets.Window()
-		widgets.windows.addWindow(self.win)
+		self.win = widgets.window.Window()
+		widgets.window.windows.addWindow(self.win)
 		self.win.createDefaultMenuBar()
 		self.win.quitRequested.connect(self.quit)
 
