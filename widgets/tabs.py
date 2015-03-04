@@ -11,15 +11,22 @@ from .helpers import CategoryMixin, acceptIf
 __all__ = 'TabWidget'.split()
 
 
+class TabBar(QTabBar):
+	def __init__(self, *args):
+		QTabBar.__init__(self, *args)
+		self.setTabsClosable(True)
+		self.setMovable(True)
+		self.setUsesScrollButtons(True)
+
+
 class TabWidget(QTabWidget, CategoryMixin):
 	def __init__(self, *args):
 		QTabWidget.__init__(self, *args)
 		CategoryMixin.__init__(self)
-		self.setMovable(True)
-		self.setTabsClosable(True)
-		self.setUsesScrollButtons(True)
+
 		self.tabCloseRequested.connect(self._tabCloseRequested)
 		self.currentChanged.connect(self._currentChanged)
+		self.setTabBar(TabBar())
 
 	def currentBuffer(self):
 		return self.currentWidget()
