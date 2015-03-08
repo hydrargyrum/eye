@@ -14,9 +14,59 @@ import utils
 __all__ = 'Editor'.split()
 
 
-class Editor(QsciScintilla, CategoryMixin):
+def factory_factory(default_expected_args):
+	def factory(prop, expected_args=default_expected_args):
+		def func(self, *args):
+			if len(args) != expected_args:
+				raise TypeError("this function takes %d argument(s)" % expected_args)
+			return self.SendScintilla(prop, *args)
+		return func
+	return factory
+
+sciPropSet = factory_factory(1)
+sciPropGet = factory_factory(0)
+
+
+class BaseEditor(QsciScintilla):
+	SelectionStream = QsciScintilla.SC_SEL_STREAM
+	SelectionRectangle = QsciScintilla.SC_SEL_RECTANGLE
+	SelectionLines = QsciScintilla.SC_SEL_LINES
+	SelectionThin = QsciScintilla.SC_SEL_THIN
+
+	setSelectionMode = sciPropSet(QsciScintilla.SCI_SETSELECTIONMODE)
+	selectionMode = sciPropGet(QsciScintilla.SCI_GETSELECTIONMODE)
+
+	setMultipleSelection = sciPropSet(QsciScintilla.SCI_SETMULTIPLESELECTION)
+	multipleSelection = sciPropGet(QsciScintilla.SCI_GETMULTIPLESELECTION)
+
+	setAdditionalSelectionTyping = sciPropSet(QsciScintilla.SCI_SETADDITIONALSELECTIONTYPING)
+	additionalSelectionTyping = sciPropGet(QsciScintilla.SCI_GETADDITIONALSELECTIONTYPING)
+
+	VsNone = QsciScintilla.SCVS_NONE
+	VsRectangular = QsciScintilla.SCVS_RECTANGULARSELECTION
+	VsUser = QsciScintilla.SCVS_USERACCESSIBLE
+
+	setVirtualSpaceOptions = sciPropSet(QsciScintilla.SCI_SETVIRTUALSPACEOPTIONS)
+	virtualSpaceOptions = sciPropGet(QsciScintilla.SCI_GETVIRTUALSPACEOPTIONS)
+
+	selectionsCount = sciPropGet(QsciScintilla.SCI_GETSELECTIONS)
+	selectionsEmpty = sciPropGet(QsciScintilla.SCI_GETSELECTIONEMPTY)
+	clearSelections = sciPropSet(QsciScintilla.SCI_CLEARSELECTIONS, 0)
+
+	setMainSelection = sciPropSet(QsciScintilla.SCI_SETMAINSELECTION)
+	mainSelection = sciPropGet(QsciScintilla.SCI_GETMAINSELECTION)
+
+	setRepresentation = sciPropSet(QsciScintilla.SCI_SETREPRESENTATION, 2)
+	getRepresentation = sciPropGet(QsciScintilla.SCI_GETREPRESENTATION)
+	clearRepresentation = sciPropSet(QsciScintilla.SCI_CLEARREPRESENTATION)
+
+	setFoldLevel = sciPropGet(QsciScintilla.SCI_SETFOLDLEVEL, 2)
+	getFoldLevel = sciPropGet(QsciScintilla.SCI_GETFOLDLEVEL, 1)
+
+
+class Editor(BaseEditor, CategoryMixin):
 	def __init__(self, *a):
-		QsciScintilla.__init__(self, *a)
+		BaseEditor.__init__(self, *a)
 		CategoryMixin.__init__(self)
 
 		self.path = ''
