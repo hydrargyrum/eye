@@ -3,7 +3,7 @@ from connector import registerSignal, disabled
 import lexers
 import os
 
-__all__ = 'autoLexer'
+__all__ = 'autoLexer linesMarginWidth'
 
 
 @registerSignal(['editor'], 'fileOpened')
@@ -17,4 +17,11 @@ def autoLexer(ed):
 	cls = lexers.extensionToLexer(ext)
 	if cls:
 		ed.setLexer(cls())
+
+@registerSignal(['editor'], 'linesChanged')
+@disabled
+def linesMarginWidth(ed):
+	if 'lines' in ed.margins:
+		# add one character width as it may be truncated
+		ed.margins['lines'].setWidth('0%d' % ed.lines())
 
