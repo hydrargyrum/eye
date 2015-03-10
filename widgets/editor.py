@@ -71,8 +71,8 @@ class BaseEditor(QsciScintilla):
 	setFoldLevel = sciPropGet(QsciScintilla.SCI_SETFOLDLEVEL, 2)
 	getFoldLevel = sciPropGet(QsciScintilla.SCI_GETFOLDLEVEL, 1)
 
-	startMacro = sciPropSet(QsciScintilla.SCI_STARTRECORD, 0)
-	stopMacro = sciPropSet(QsciScintilla.SCI_STOPRECORD, 0)
+	startMacroRecord = sciPropSet(QsciScintilla.SCI_STARTRECORD, 0)
+	stopMacroRecord = sciPropSet(QsciScintilla.SCI_STOPRECORD, 0)
 
 	@Slot(int, int, object)
 	def scn_macro(self, msg, lp, obj):
