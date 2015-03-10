@@ -4,6 +4,7 @@ from PyQt4.QtGui import QShortcut, QKeySequence
 import collections
 import weakref
 import inspect
+from utils import exceptionLogging
 
 from app import qApp
 
@@ -26,8 +27,9 @@ class Listener(QObject):
 		if not getattr(self.cb, 'enabled', True):
 			return
 
-		sender = kwargs.get('sender', self.sender())
-		self.cb(sender, *args)
+		with exceptionLogging(reraise=False):
+			sender = kwargs.get('sender', self.sender())
+			self.cb(sender, *args)
 
 
 class EventConnector(QObject, object):

@@ -6,12 +6,13 @@ import tempfile
 import re
 
 @contextlib.contextmanager
-def exceptionLogging():
+def exceptionLogging(reraise=True):
 	try:
 		yield
 	except BaseException, e:
 		app.qApp().logger.exception(e)
-		raise
+		if reraise:
+			raise
 
 def writeBytesToFileDirect(filepath, data):
 	with exceptionLogging():
