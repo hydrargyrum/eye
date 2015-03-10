@@ -2,6 +2,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.Qsci import *
+import sip
 Signal = pyqtSignal
 Slot = pyqtSlot
 
@@ -26,6 +27,13 @@ def factory_factory(default_expected_args):
 sciPropSet = factory_factory(1)
 sciPropGet = factory_factory(0)
 
+def sipvoid_as_str(v):
+    i = 1
+    while True:
+        s = v.asstring(i)
+        if s[-1] == '\x00':
+            return s[:-1]
+        i += 1
 
 class BaseEditor(QsciScintilla):
 	SelectionStream = QsciScintilla.SC_SEL_STREAM
@@ -62,6 +70,18 @@ class BaseEditor(QsciScintilla):
 
 	setFoldLevel = sciPropGet(QsciScintilla.SCI_SETFOLDLEVEL, 2)
 	getFoldLevel = sciPropGet(QsciScintilla.SCI_GETFOLDLEVEL, 1)
+
+	startMacro = sciPropSet(QsciScintilla.SCI_STARTRECORD, 0)
+	stopMacro = sciPropSet(QsciScintilla.SCI_STOPRECORD, 0)
+
+	@Slot(int, int, object)
+	def scn_macro(self, msg, lp, obj):
+		if isinstance(p2, sip.voidptr):
+			self.actionRecorded.emit(msg, p1, sipvoid_as_str(p2))
+		else:
+			self.actionRecorded.emit(msg, p1, p2)
+
+	actionRecorded = Signal(int, int, object)
 
 
 class Editor(BaseEditor, CategoryMixin):
