@@ -33,6 +33,8 @@ class Window(QMainWindow, CategoryMixin):
 		self.lastFocus = ed
 		qApp().focusChanged.connect(self.appFocusChanged)
 
+		self.addCategory('window')
+
 	def createDefaultMenuBar(self):
 		menu = self.menubar.addMenu('File')
 		menu.addAction('New').triggered.connect(self.bufferNew)
