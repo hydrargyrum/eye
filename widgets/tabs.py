@@ -6,7 +6,7 @@ Signal = pyqtSignal
 Slot = pyqtSlot
 
 from app import qApp
-from .helpers import CategoryMixin, acceptIf
+from .helpers import CategoryMixin, UtilsMixin, acceptIf
 
 __all__ = 'TabWidget'.split()
 
@@ -19,7 +19,7 @@ class TabBar(QTabBar):
 		self.setUsesScrollButtons(True)
 
 
-class TabWidget(QTabWidget, CategoryMixin):
+class TabWidget(QTabWidget, CategoryMixin, UtilsMixin):
 	def __init__(self, *args):
 		QTabWidget.__init__(self, *args)
 		CategoryMixin.__init__(self)

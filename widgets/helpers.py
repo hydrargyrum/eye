@@ -7,7 +7,7 @@ Slot = pyqtSlot
 
 from app import qApp
 
-__all__ = 'acceptIf CategoryMixin'
+__all__ = 'acceptIf CategoryMixin UtilsMixin'
 
 
 def acceptIf(ev, cond):
@@ -38,3 +38,10 @@ class CategoryMixin(object):
 		self._categories.remove(c)
 		qApp().connector.categoryRemoved(self, c)
 
+
+class UtilsMixin(object):
+	def parentWindow(self):
+		w = self
+		while w and not w.isWindow():
+			w = w.parent()
+		return w

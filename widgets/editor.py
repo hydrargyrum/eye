@@ -9,7 +9,7 @@ Slot = pyqtSlot
 import os
 
 from app import qApp
-from .helpers import CategoryMixin, acceptIf
+from .helpers import CategoryMixin, UtilsMixin, acceptIf
 import utils
 
 __all__ = 'Editor Marker Indicator Margin'.split()
@@ -277,7 +277,7 @@ class BaseEditor(QsciScintilla):
 	actionRecorded = Signal(int, int, object)
 
 
-class Editor(BaseEditor, CategoryMixin):
+class Editor(BaseEditor, CategoryMixin, UtilsMixin):
 	def __init__(self, *a):
 		BaseEditor.__init__(self, *a)
 		CategoryMixin.__init__(self)
