@@ -23,6 +23,9 @@ class Marker(object):
 		if editor:
 			self._create()
 
+	def toBit(self):
+		return 1 << self.id
+
 	def _create(self, editor=None):
 		if not self.editor:
 			self.editor = editor
@@ -42,6 +45,15 @@ class Marker(object):
 
 	def removeAt(self, line):
 		self.editor.markerDelete(line, self.id)
+
+	def isAt(self, line):
+		return self.toBit() & self.editor.markersAtLine(line)
+
+	def getNext(self, line):
+		return self.editor.getMarkerNext(line, self.toBit())
+
+	def getPrevious(self, line):
+		return self.editor.getMarkerPrevious(line, self.toBit())
 
 
 class Indicator(object):
@@ -118,7 +130,7 @@ class Margin(object):
 	def setMarkerTypes(self, names):
 		bits = 0
 		for name in names:
-			bits |= 1 << self.editor.markers[name].id
+			bits |= self.editor.markers[name].toBit()
 		self.editor.setMarginMarkerMask(self.id, bits)
 
 	def setAllMarkerTypes(self):
@@ -197,6 +209,9 @@ class BaseEditor(QsciScintilla):
 
 	startMacroRecord = sciPropSet(QsciScintilla.SCI_STARTRECORD, 0)
 	stopMacroRecord = sciPropSet(QsciScintilla.SCI_STOPRECORD, 0)
+
+	getMarkerPrevious = sciPropGet(QsciScintilla.SCI_MARKERPREVIOUS, 2)
+	getMarkerNext = sciPropGet(QsciScintilla.SCI_MARKERNEXT, 2)
 
 	def __init__(self, *args):
 		QsciScintilla.__init__(self, *args)
@@ -350,6 +365,9 @@ class Editor(BaseEditor, CategoryMixin, UtilsMixin):
 		row, col = row - 1, col - 1
 		self.ensureLineVisible(row)
 		self.setCursorPosition(row, col)
+
+	def getLine(self):
+		return self.getCursorPosition()[0]
 
 	def setLexer(self, lexer):
 		QsciScintilla.setLexer(self, lexer)
