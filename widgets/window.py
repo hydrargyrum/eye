@@ -9,6 +9,7 @@ from app import qApp
 from .helpers import CategoryMixin, acceptIf
 from .editor import Editor
 from .tabs import TabWidget
+from .splitter import SplitManager
 
 __all__ = 'Window windows'.split()
 
@@ -17,12 +18,20 @@ class Window(QMainWindow, CategoryMixin):
 	def __init__(self, *a):
 		QMainWindow.__init__(self, *a)
 		CategoryMixin.__init__(self)
-		self.tabs = TabWidget(self)
-		self.setCentralWidget(self.tabs)
 
 		self.menubar = self.menuBar()
 		ed = Editor()
-		self.tabs.addEditor(ed)
+
+		tabs = TabWidget()
+		tabs.addEditor(ed)
+
+		self.splitter = SplitManager()
+		self.splitter.splitAt(None, Qt.Horizontal, tabs)
+		
+		self.setCentralWidget(self.splitter)
+
+		self.lastFocus = ed
+		qApp().focusChanged.connect(self.appFocusChanged)
 
 	def createDefaultMenuBar(self):
 		menu = self.menubar.addMenu('File')
@@ -34,13 +43,21 @@ class Window(QMainWindow, CategoryMixin):
 	quitRequested = Signal()
 
 	def currentBuffer(self):
-		return self.tabs.currentBuffer()
+		#return self.tabs.currentBuffer()
+		return self.lastFocus
+
+	def parentTabBarOf(self, w):
+		while not isinstance(w, TabWidget):
+			w = w.parent()
+		return w
 
 	@Slot()
 	def bufferNew(self):
 		ed = Editor()
-		self.tabs.addEditor(ed)
-		self.tabs.focusBuffer(ed)
+		if self.lastFocus:
+			par = self.parentTabBarOf(self.lastFocus)
+			par.addEditor(ed)
+			par.focusBuffer(ed)
 		return ed
 
 	@Slot()
@@ -56,14 +73,19 @@ class Window(QMainWindow, CategoryMixin):
 		if ed.openFile(path):
 			return ed
 		else:
-			self.tabs.closeTab(ed)
+			self.parentTabBarOf(ed).closeTab(ed)
 
 	@Slot()
 	def bufferSave(self):
 		self.currentBuffer().saveFile()
 
 	def closeEvent(self, ev):
-		acceptIf(ev, self.tabs.requestClose())
+		acceptIf(ev, self.splitter.requestClose())
+
+	@Slot(QWidget, QWidget)
+	def appFocusChanged(self, old, new):
+		if self.isAncestorOf(new):
+			self.lastFocus = new
 
 
 class WindowRegistry(QObject):
