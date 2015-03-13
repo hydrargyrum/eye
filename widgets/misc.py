@@ -8,6 +8,9 @@ Slot = pyqtSlot
 import logging
 
 from app import qApp
+from .helpers import UtilsMixin
+
+__all__ = 'LogWidget PositionIndicator'.split()
 
 
 class LogWidget(QPlainTextEdit):
@@ -31,3 +34,30 @@ class LogWidget(QPlainTextEdit):
 	def uninstall(self):
 		qApp().logger.removeHandler(self.handler)
 
+
+class PositionIndicator(QLabel, UtilsMixin):
+	def __init__(self, *a):
+		QLabel.__init__(self, *a)
+		self.lastFocus = None
+
+		qApp().focusChanged.connect(self.focusChanged)
+
+	@Slot(QWidget, QWidget)
+	def focusChanged(self, _, new):
+		if not hasattr(new, 'categories'):
+			return
+		if 'editor' not in new.categories():
+			return
+		if new.parentWindow() != self.parentWindow():
+			return
+
+		if self.lastFocus:
+			self.lastFocus.cursorPositionChanged.disconnect(self.updatePos)
+
+		new.cursorPositionChanged.connect(self.updatePos)
+		self.updatePos(*new.getCursorPosition())
+		self.lastFocus = new
+
+	@Slot(int, int)
+	def updatePos(self, ln, col):
+		self.setText('%d : %d' % (ln + 1, col + 1))
