@@ -210,8 +210,8 @@ class BaseEditor(QsciScintilla):
 	startMacroRecord = sciPropSet(QsciScintilla.SCI_STARTRECORD, 0)
 	stopMacroRecord = sciPropSet(QsciScintilla.SCI_STOPRECORD, 0)
 
-	getMarkerPrevious = sciPropGet(QsciScintilla.SCI_MARKERPREVIOUS, 2)
-	getMarkerNext = sciPropGet(QsciScintilla.SCI_MARKERNEXT, 2)
+	_getMarkerPrevious = sciPropGet(QsciScintilla.SCI_MARKERPREVIOUS, 2)
+	_getMarkerNext = sciPropGet(QsciScintilla.SCI_MARKERNEXT, 2)
 
 	def __init__(self, *args):
 		QsciScintilla.__init__(self, *args)
@@ -260,27 +260,43 @@ class BaseEditor(QsciScintilla):
 
 	def fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i):
 		if isinstance(i, (str, unicode)):
-			return self.indicators[i].putAt(lineFrom, indexFrom, lineTo, indexTo)
-		else:
-			return QsciScintilla.fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i)
+			i = self.indicators[i].id
+		return QsciScintilla.fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i)
 
 	def clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i):
 		if isinstance(i, (str, unicode)):
-			return self.indicators[i].removeAt(lineFrom, indexFrom, lineTo, indexTo)
-		else:
-			return QsciScintilla.clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i)
+			i = self.indicators[i].id
+		return QsciScintilla.clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i)
 
 	def markerAdd(self, ln, i):
 		if isinstance(i, (str, unicode)):
-			return self.markers[i].putAt(ln)
-		else:
-			return QsciScintilla.markerAdd(self, ln, i)
+			i = self.markers[i].id
+		return QsciScintilla.markerAdd(self, ln, i)
 
 	def markerDelete(self, ln, i):
 		if isinstance(i, (str, unicode)):
-			return self.markers[i].removeAt(ln)
-		else:
-			return QsciScintilla.markerDelete(self, ln, i)
+			i = self.markers[i].id
+		return QsciScintilla.markerDelete(self, ln, i)
+
+	def setMarkerBackgroundColor(self, c, i):
+		if isinstance(i, (str, unicode)):
+			i = self.markers[i].id
+		return QsciScintilla.setMarkerBackgroundColor(self, c, i)
+
+	def setMarkerForegroundColor(self, c, i):
+		if isinstance(i, (str, unicode)):
+			i = self.markers[i].id
+		return QsciScintilla.setMarkerForegroundColor(self, c, i)
+
+	def getMarkerPrevious(self, ln, i):
+		if isinstance(i, (str, unicode)):
+			i = self.markers[i].id
+		return self._getMarkerPrevious(ln, i)
+
+	def getMarkerNext(self, ln, i):
+		if isinstance(i, (str, unicode)):
+			i = self.markers[i].id
+		return self._getMarkerNext(ln, i)
 
 	@Slot(int, int, object)
 	def scn_macro(self, msg, lp, obj):
