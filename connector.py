@@ -22,6 +22,7 @@ class Listener(QObject):
 	@Slot(str)
 	@Slot(unicode)
 	@Slot(QObject)
+	@Slot(object)
 	@Slot()
 	def map(self, *args, **kwargs):
 		if not getattr(self.cb, 'enabled', True):

@@ -207,14 +207,16 @@ class BaseEditor(QsciScintilla):
 	setFoldLevel = sciPropGet(QsciScintilla.SCI_SETFOLDLEVEL, 2)
 	getFoldLevel = sciPropGet(QsciScintilla.SCI_GETFOLDLEVEL, 1)
 
-	startMacroRecord = sciPropSet(QsciScintilla.SCI_STARTRECORD, 0)
-	stopMacroRecord = sciPropSet(QsciScintilla.SCI_STOPRECORD, 0)
+	_startMacroRecord = sciPropSet(QsciScintilla.SCI_STARTRECORD, 0)
+	_stopMacroRecord = sciPropSet(QsciScintilla.SCI_STOPRECORD, 0)
 
 	_getMarkerPrevious = sciPropGet(QsciScintilla.SCI_MARKERPREVIOUS, 2)
 	_getMarkerNext = sciPropGet(QsciScintilla.SCI_MARKERNEXT, 2)
 
 	def __init__(self, *args):
 		QsciScintilla.__init__(self, *args)
+
+		self.SCN_MACRORECORD.connect(self.scn_macro)
 
 		self.freeMarkers = []
 		self.markers = {}
@@ -299,13 +301,27 @@ class BaseEditor(QsciScintilla):
 		return self._getMarkerNext(ln, i)
 
 	@Slot(int, int, object)
-	def scn_macro(self, msg, lp, obj):
-		if isinstance(p2, sip.voidptr):
-			self.actionRecorded.emit(msg, p1, sipvoid_as_str(p2))
+	def scn_macro(self, msg, lp, wp):
+		if isinstance(wp, sip.voidptr):
+			self.actionRecorded.emit([msg, lp, sipvoid_as_str(wp)])
 		else:
-			self.actionRecorded.emit(msg, p1, p2)
+			self.actionRecorded.emit([msg, lp, wp])
 
-	actionRecorded = Signal(int, int, object)
+	def startMacroRecord(self):
+		self._startMacroRecord()
+		self.macroRecordStarted.emit()
+
+	def stopMacroRecord(self):
+		self._stopMacroRecord()
+		self.macroRecordStopped.emit()
+
+	def replayMacroAction(self, action):
+		msg, lp, wp = action
+		return self.SendScintilla(msg, lp, wp)
+
+	macroRecordStarted = Signal()
+	macroRecordStopped = Signal()
+	actionRecorded = Signal(object)
 
 
 class Editor(BaseEditor, CategoryMixin, UtilsMixin):
