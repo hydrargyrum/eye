@@ -8,7 +8,8 @@ from utils import exceptionLogging
 
 from app import qApp
 
-__all__ = 'Listener EventConnector registerSignal disabled'.split()
+__all__ = ('Listener', 'EventConnector', 'registerSignal', 'disabled',
+           'defaultEditorConfig', 'defaultWindowConfig')
 
 
 class Listener(QObject):
@@ -133,4 +134,5 @@ def registerShortcut(categories, ks, context=Qt.WidgetShortcut):
 
 
 defaultEditorConfig = registerSignal(['editor'], 'connected')
+defaultWindowConfig = registerSignal(['window'], 'connected')
 defaultLexerConfig = registerSignal(['editor'], 'lexerChanged')
