@@ -119,13 +119,16 @@ def disabled(func):
 
 def registerShortcut(categories, ks, context=Qt.WidgetShortcut):
 	def deco(cb):
+		def cbWidget(sh):
+			return cb(sh.parentWidget())
+
 		@registerSignal(categories, 'connected')
 		def action(widget):
 			shortcut = QShortcut(widget)
 			shortcut.setKey(QKeySequence(ks))
 			shortcut.setContext(context)
 
-			lis = Listener(cb, categories, 'activated', shortcut)
+			lis = Listener(cbWidget, categories, 'activated', shortcut)
 			qApp().connector.doConnect(shortcut, lis, categories[0])
 
 		return cb
