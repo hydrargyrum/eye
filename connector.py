@@ -122,6 +122,12 @@ class EventConnector(QObject, object):
 				else:
 					self.doDisconnect(obj, lis, cat)
 
+	def objectsMatching(self, categories):
+		if isinstance(categories, (str, unicode, basestring)):
+			categories = (categories,)
+		categories = frozenset(categories)
+		return [obj for obj in self.allObjects if categories <= obj.categories()]
+
 
 def peekSet(s):
 	return next(iter(s))
