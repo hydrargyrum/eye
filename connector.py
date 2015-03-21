@@ -8,8 +8,8 @@ from utils import exceptionLogging
 
 from app import qApp
 
-__all__ = ('SignalListener',
-           'EventConnector', 'registerSignal', 'disabled',
+__all__ = ('SignalListener', 'EventListener', 'EventConnector',
+           'registerSignal', 'registerEventFilter', 'disabled',
            'defaultEditorConfig', 'defaultWindowConfig')
 
 
@@ -47,6 +47,27 @@ class SignalListener(QObject):
 			getattr(obj, self.signal).disconnect(self.map)
 
 
+class EventFilter(QObject):
+	def __init__(self, cb, categories, eventTypes, parent=None):
+		QObject.__init__(self, parent)
+		self.cb = cb
+		self.categories = categories
+		self.eventTypes = eventTypes
+
+	def eventFilter(self, obj, ev):
+		ret = False
+		if ev.type() in self.eventTypes:
+			with exceptionLogging(reraise=False):
+				ret = bool(self.cb(obj, ev))
+		return ret
+
+	def doConnect(self, obj):
+		obj.installEventFilter(self)
+
+	def doDisconnect(self, obj):
+		obj.removeEventFilter(self)
+
+
 class EventConnector(QObject, object):
 	def __init__(self):
 		QObject.__init__(self)
@@ -61,10 +82,7 @@ class EventConnector(QObject, object):
 		qApp().logger.debug('disconnecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
 		lis.doDisconnect(obj)
 
-	def addSignalListener(self, cb, categories, signal):
-		categories = frozenset(categories)
-		lis = SignalListener(cb, categories, signal, self)
-
+	def addListener(self, categories, lis):
 		self.allListeners.append(lis)
 
 		for obj in self.allObjects:
@@ -108,19 +126,39 @@ class EventConnector(QObject, object):
 def peekSet(s):
 	return next(iter(s))
 
+
 def registerSignal(categories, signal):
 	if isinstance(categories, (str, unicode, basestring)):
 		categories = [categories]
+	categories = frozenset(categories)
 
 	def deco(func):
-		qApp().connector.addSignalListener(func, categories, signal)
+		connector = qApp().connector
+		lis = SignalListener(func, categories, signal, connector)
+		connector.addListener(categories, lis)
 		return func
 
 	return deco
 
+
+def registerEventFilter(categories, eventTypes):
+	if isinstance(categories, (str, unicode, basestring)):
+		categories = [categories]
+	categories = frozenset(categories)
+
+	def deco(func):
+		connector = qApp().connector
+		lis = EventFilter(func, categories, eventTypes, connector)
+		connector.addListener(categories, lis)
+		return func
+
+	return deco
+
+
 def disabled(func):
 	func.enabled = False
 	return func
+
 
 def registerShortcut(categories, ks, context=Qt.WidgetShortcut):
 	def deco(cb):
