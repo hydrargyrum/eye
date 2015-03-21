@@ -8,11 +8,12 @@ from utils import exceptionLogging
 
 from app import qApp
 
-__all__ = ('Listener', 'EventConnector', 'registerSignal', 'disabled',
+__all__ = ('SignalListener',
+           'EventConnector', 'registerSignal', 'disabled',
            'defaultEditorConfig', 'defaultWindowConfig')
 
 
-class Listener(QObject):
+class SignalListener(QObject):
 	def __init__(self, cb, categories, signal, parent=None):
 		QObject.__init__(self, parent)
 		self.cb = cb
@@ -33,6 +34,18 @@ class Listener(QObject):
 			sender = kwargs.get('sender', self.sender())
 			self.cb(sender, *args)
 
+	def doConnect(self, obj):
+		if self.signal == 'connected':
+			self.map(sender=obj)
+		else:
+			getattr(obj, self.signal).connect(self.map)
+
+	def doDisconnect(self, obj):
+		if self.signal == 'disconnected':
+			self.map(sender=obj)
+		else:
+			getattr(obj, self.signal).disconnect(self.map)
+
 
 class EventConnector(QObject, object):
 	def __init__(self):
@@ -42,15 +55,15 @@ class EventConnector(QObject, object):
 
 	def doConnect(self, obj, lis, cat=''):
 		qApp().logger.debug('connecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
-		getattr(obj, lis.signal).connect(lis.map)
+		lis.doConnect(obj)
 
 	def doDisconnect(self, obj, lis, cat=''):
 		qApp().logger.debug('disconnecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
-		getattr(obj, lis.signal).disconnect(lis.map)
+		lis.doDisconnect(obj)
 
-	def addListener(self, cb, categories, signal):
+	def addSignalListener(self, cb, categories, signal):
 		categories = frozenset(categories)
-		lis = Listener(cb, categories, signal, self)
+		lis = SignalListener(cb, categories, signal, self)
 
 		self.allListeners.append(lis)
 
@@ -58,8 +71,6 @@ class EventConnector(QObject, object):
 			matches = categories & obj.categories()
 			if not matches:
 				continue
-			elif lis.signal == 'connected':
-				lis.map(sender=obj)
 			else:
 				self.doConnect(obj, lis, peekSet(matches))
 
@@ -71,8 +82,6 @@ class EventConnector(QObject, object):
 			matches = lis.categories & oc
 			if not matches:
 				continue
-			elif lis.signal == 'connected':
-				lis.map(sender=obj)
 			else:
 				self.doConnect(obj, lis, peekSet(matches))
 
@@ -84,8 +93,6 @@ class EventConnector(QObject, object):
 			if cat in lis.categories:
 				if prev & lis.categories:
 					continue # object is already connected
-				elif lis.signal == 'connected':
-					lis.map(sender=obj)
 				else:
 					self.doConnect(obj, lis, cat)
 
@@ -94,8 +101,6 @@ class EventConnector(QObject, object):
 			if cat in lis.categories:
 				if obj.categories() & lis.categories:
 					continue # object is still connected
-				elif lis.signal == 'disconnected':
-					lis.map(sender=obj)
 				else:
 					self.doDisconnect(obj, lis, cat)
 
@@ -108,7 +113,7 @@ def registerSignal(categories, signal):
 		categories = [categories]
 
 	def deco(func):
-		qApp().connector.addListener(func, categories, signal)
+		qApp().connector.addSignalListener(func, categories, signal)
 		return func
 
 	return deco
@@ -128,7 +133,7 @@ def registerShortcut(categories, ks, context=Qt.WidgetShortcut):
 			shortcut.setKey(QKeySequence(ks))
 			shortcut.setContext(context)
 
-			lis = Listener(cbWidget, categories, 'activated', shortcut)
+			lis = SignalListener(cbWidget, categories, 'activated', shortcut)
 			qApp().connector.doConnect(shortcut, lis, categories[0])
 
 		return cb
