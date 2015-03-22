@@ -242,7 +242,7 @@ class BaseEditor(QsciScintilla):
 
 	def createIndicator(self, name, indicator):
 		if not isinstance(indicator, Indicator):
-			marker = Indicator(indicator)
+			indicator = Indicator(indicator)
 		return self._createMI(self.indicators, name, indicator)
 
 	def createMargin(self, name, margin):
