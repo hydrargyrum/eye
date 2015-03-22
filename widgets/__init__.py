@@ -1,1 +1,1 @@
-__all__ = 'editor tabs window misc helpers'
+__all__ = ('editor', 'tabs', 'window', 'misc', 'helpers')
