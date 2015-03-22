@@ -1,16 +1,18 @@
 
 from PyQt4.QtCore import Qt, QObject, pyqtSlot as Slot
-from PyQt4.QtGui import QShortcut, QKeySequence
+from PyQt4.QtGui import QApplication, QShortcut, QKeySequence
 import collections
 import weakref
 import inspect
 from utils import exceptionLogging
 
-from app import qApp
-
 __all__ = ('SignalListener', 'EventListener', 'EventConnector',
            'registerSignal', 'registerEventFilter', 'disabled',
            'defaultEditorConfig', 'defaultWindowConfig')
+
+
+def qApp():
+	return QApplication.instance()
 
 
 class SignalListener(QObject):

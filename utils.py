@@ -1,11 +1,10 @@
 
 import os
-import app
 import contextlib
 import tempfile
 import re
 
-from PyQt4.QtGui import QColor
+from PyQt4.QtGui import QApplication, QColor
 
 __all__ = ('exceptionLogging', 'writeBytesToFile', 'readBytesFromFile',
            'parseFilename', 'PropDict', 'QColorAlpha')
@@ -15,7 +14,7 @@ def exceptionLogging(reraise=True):
 	try:
 		yield
 	except BaseException, e:
-		app.qApp().logger.exception(e)
+		QApplication.instance().logger.exception(e)
 		if reraise:
 			raise
 

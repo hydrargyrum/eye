@@ -11,9 +11,7 @@ Slot = pyqtSlot
 
 qApp = lambda: QApplication.instance()
 
-import widgets.window
 import utils
-import connector
 
 
 __all__ = 'App qApp'.split()
@@ -24,13 +22,17 @@ class App(QApplication):
 		QApplication.__init__(self, argv)
 		self.setApplicationName('vedit')
 
+		import connector
+		self.connector = connector.EventConnector()
+
 		logging.basicConfig()
 		self.logger = logging.getLogger()
 
 		self.argsFiles = None
 
 	def initUi(self):
-		self.connector = connector.EventConnector()
+		import widgets.window
+
 		self.win = widgets.window.Window()
 		widgets.window.windows.addWindow(self.win)
 		self.win.createDefaultMenuBar()
