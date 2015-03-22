@@ -330,8 +330,9 @@ class Editor(BaseEditor, CategoryMixin, UtilsMixin):
 		CategoryMixin.__init__(self)
 
 		self.path = ''
-		self.addCategory('editor')
 		self.modificationChanged.connect(self.titleChanged)
+
+		self.addCategory('editor')
 
 	def title(self):
 		t = os.path.basename(self.path) or '<untitled>'
