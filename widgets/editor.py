@@ -7,6 +7,7 @@ Signal = pyqtSignal
 Slot = pyqtSlot
 
 import os
+import re
 
 from app import qApp
 from .helpers import CategoryMixin, UtilsMixin, acceptIf
@@ -325,12 +326,22 @@ class BaseEditor(QsciScintilla):
 
 
 class Editor(BaseEditor, CategoryMixin, UtilsMixin):
+	SmartCaseSensitive = object()
+
 	def __init__(self, *a):
 		BaseEditor.__init__(self, *a)
 		CategoryMixin.__init__(self)
 
 		self.path = ''
 		self.modificationChanged.connect(self.titleChanged)
+
+		self.search = utils.PropDict()
+		self.search.incremental = True
+		self.search.highlight = False
+		self.search.isRe = False
+		self.search.caseSensitive = False
+		self.search.wrap = True
+		self.search.whole = False
 
 		self.addCategory('editor')
 
@@ -405,6 +416,65 @@ class Editor(BaseEditor, CategoryMixin, UtilsMixin):
 	def setLexer(self, lexer):
 		QsciScintilla.setLexer(self, lexer)
 		self.lexerChanged.emit(lexer)
+
+	@classmethod
+	def _smartCase(cls, txt, cs):
+		if cs is cls.SmartCaseSensitive:
+			return (txt.lower() != txt)
+		else:
+			return cs
+
+	def _searchOptionsToRe(self):
+		expr = self.search.expr if self.search.isRe else re.escape(self.search.expr)
+		if self.search.whole:
+			expr = '\b%s\b' % expr
+		caseSensitive = self._smartCase(expr, self.search.caseSensitive)
+		flags = 0 if caseSensitive else re.I
+		return re.compile(expr, flags)
+
+	def _highlightSearch(self):
+		txt = unicode(self.text())
+		reobj = self._searchOptionsToRe()
+		for mtc in reobj.finditer(txt):
+			self.indicators['searchHighlight'].putAtPos(mtc.start(), mtc.end())
+
+	def clearSearchHighlight(self):
+		self.indicators['searchHighlight'].removeAtPos(0, self.length())
+
+	def find(self, expr, caseSensitive=None, isRe=None, whole=None, wrap=None):
+		if self.search.highlight:
+			self.clearSearchHighlight()
+		self.search.expr = expr
+		if caseSensitive is not None:
+			self.search.caseSensitive = caseSensitive
+		if isRe is not None:
+			self.search.isRe = isRe
+		if whole is not None:
+			self.search.whole = whole
+		if wrap is not None:
+			self.search.wrap = wrap
+		self.search.forward = True
+
+		caseSensitive = self._smartCase(expr, self.search.caseSensitive)
+
+		if self.search.highlight:
+			self._highlightSearch()
+
+		self.findFirst(self.search.expr, self.search.isRe, caseSensitive, self.search.whole, self.search.wrap, True)
+
+	def _findInDirection(self, forward):
+		if self.search.get('forward') == forward:
+			return self.findNext()
+		else:
+			self.search.forward = forward
+			caseSensitive = self._smartCase(self.search.expr, self.search.caseSensitive)
+			return self.findFirst(self.search.expr, self.search.isRe, caseSensitive, self.search.whole, self.search.wrap, self.search.forward)
+
+	def findForward(self):
+		return self._findInDirection(True)
+
+	def findBackward(self):
+		return self._findInDirection(False)
 
 	titleChanged = Signal()
 	fileSaved = Signal()
