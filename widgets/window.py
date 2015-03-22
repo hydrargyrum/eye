@@ -86,7 +86,7 @@ class Window(QMainWindow, CategoryMixin):
 
 	@Slot(QWidget, QWidget)
 	def appFocusChanged(self, old, new):
-		if self.isAncestorOf(new):
+		if self.centralWidget().isAncestorOf(new):
 			self.lastFocus = new
 
 
