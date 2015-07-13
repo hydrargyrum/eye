@@ -5,6 +5,8 @@ from PyQt4.Qsci import *
 Signal = pyqtSignal
 Slot = pyqtSlot
 
+import os
+
 from app import qApp
 from .helpers import CategoryMixin, acceptIf
 from .editor import Editor
