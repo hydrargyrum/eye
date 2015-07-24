@@ -8,6 +8,7 @@ Slot = pyqtSlot
 
 import os
 import re
+import contextlib
 
 from app import qApp
 from .helpers import CategoryMixin, UtilsMixin, acceptIf
@@ -402,6 +403,28 @@ class Editor(BaseEditor, CategoryMixin, UtilsMixin):
 			return False
 		self.setModified(False)
 		self.fileOpened.emit()
+		return True
+
+
+	@contextlib.contextmanager
+	def undoGroup(self):
+		self.beginUndoAction()
+		try:
+			yield
+		finally:
+			self.endUndoAction()
+
+	def reloadFile(self):
+		try:
+			data = utils.readBytesFromFile(self.path)
+			with self.undoGroup():
+				# XXX setText would clear the history
+				self.clear()
+				self.insert(data.decode('utf-8'))
+		except IOError, e:
+			qApp().logger.exception(e)
+			return False
+		self.setModified(False)
 		return True
 
 	def goto1(self, row, col=None):
