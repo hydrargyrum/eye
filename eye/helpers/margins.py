@@ -1,5 +1,5 @@
 
-from connector import registerSignal, disabled
+from ..connector import registerSignal, disabled
 
 __all__ = ('linesMarginWidth',)
 

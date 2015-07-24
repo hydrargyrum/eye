@@ -5,7 +5,7 @@ from PyQt4.Qsci import *
 Signal = pyqtSignal
 Slot = pyqtSlot
 
-from app import qApp
+from ..app import qApp
 
 __all__ = 'acceptIf CategoryMixin UtilsMixin'
 

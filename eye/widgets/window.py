@@ -7,7 +7,7 @@ Slot = pyqtSlot
 
 import os
 
-from app import qApp
+from ..app import qApp
 from .helpers import CategoryMixin, acceptIf
 from .editor import Editor
 from .tabs import TabWidget

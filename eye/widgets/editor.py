@@ -10,9 +10,9 @@ import os
 import re
 import contextlib
 
-from app import qApp
+from ..app import qApp
 from .helpers import CategoryMixin, UtilsMixin, acceptIf
-import utils
+from .. import utils
 
 __all__ = 'Editor Marker Indicator Margin'.split()
 

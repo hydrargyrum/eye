@@ -5,7 +5,7 @@ from PyQt4.Qsci import *
 Signal = pyqtSignal
 Slot = pyqtSlot
 
-from app import qApp
+from ..app import qApp
 from .helpers import CategoryMixin, UtilsMixin, acceptIf
 
 __all__ = 'TabWidget'.split()

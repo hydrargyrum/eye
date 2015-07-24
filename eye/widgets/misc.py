@@ -7,7 +7,7 @@ Slot = pyqtSlot
 
 import logging
 
-from app import qApp
+from ..app import qApp
 from .helpers import UtilsMixin
 
 __all__ = 'LogWidget PositionIndicator'.split()

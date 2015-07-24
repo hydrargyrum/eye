@@ -1,6 +1,7 @@
 
-from connector import registerSignal, disabled
-import lexers
+from ..connector import registerSignal, disabled
+from .. import lexers
+
 import os
 
 __all__ = ('autoLexer',)
