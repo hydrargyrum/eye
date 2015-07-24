@@ -20,7 +20,7 @@ __all__ = 'App qApp'.split()
 class App(QApplication):
 	def __init__(self, argv):
 		QApplication.__init__(self, argv)
-		self.setApplicationName('vedit')
+		self.setApplicationName('eye')
 
 		from . import connector
 		self.connector = connector.EventConnector()
@@ -89,9 +89,9 @@ class App(QApplication):
 	def getConfigPath(self, *args):
 		try:
 			import xdg.BaseDirectory
-			return xdg.BaseDirectory.save_config_path('vedit', *args)
+			return xdg.BaseDirectory.save_config_path('eyeditor', *args)
 		except ImportError:
-			return os.path.join(os.path.expanduser('~/.config/vedit'), *args)
+			return os.path.join(os.path.expanduser('~/.config/eyeditor'), *args)
 
 
 def main():
