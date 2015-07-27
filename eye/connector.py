@@ -6,14 +6,11 @@ import weakref
 import inspect
 
 from .utils import exceptionLogging
+from .app import qApp
 
 __all__ = ('SignalListener', 'EventListener', 'EventConnector',
            'registerSignal', 'registerEventFilter', 'disabled',
            'defaultEditorConfig', 'defaultWindowConfig')
-
-
-def qApp():
-	return QApplication.instance()
 
 
 class SignalListener(QObject):
