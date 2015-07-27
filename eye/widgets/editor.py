@@ -415,6 +415,7 @@ class Editor(BaseEditor, CategoryMixin, UtilsMixin):
 			self.endUndoAction()
 
 	def reloadFile(self):
+		oldPos = self.getCursorPosition()
 		try:
 			data = utils.readBytesFromFile(self.path)
 			with self.undoGroup():
@@ -425,6 +426,7 @@ class Editor(BaseEditor, CategoryMixin, UtilsMixin):
 			qApp().logger.exception(e)
 			return False
 		self.setModified(False)
+		self.setCursorPosition(*oldPos)
 		return True
 
 	def goto1(self, row, col=None):
