@@ -4,7 +4,8 @@ from PyQt4.QtGui import QApplication, QShortcut, QKeySequence
 import collections
 import weakref
 import inspect
-from utils import exceptionLogging
+
+from .utils import exceptionLogging
 
 __all__ = ('SignalListener', 'EventListener', 'EventConnector',
            'registerSignal', 'registerEventFilter', 'disabled',
