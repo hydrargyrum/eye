@@ -6,8 +6,7 @@ import re
 
 from PyQt4.QtGui import QApplication, QColor
 
-__all__ = ('exceptionLogging', 'writeBytesToFile', 'readBytesFromFile',
-           'parseFilename', 'PropDict', 'QColorAlpha')
+__all__ = ('exceptionLogging', 'parseFilename', 'PropDict', 'QColorAlpha')
 
 @contextlib.contextmanager
 def exceptionLogging(reraise=True):
@@ -17,30 +16,6 @@ def exceptionLogging(reraise=True):
 		QApplication.instance().logger.exception(e)
 		if reraise:
 			raise
-
-def writeBytesToFileDirect(filepath, data):
-	with exceptionLogging():
-		with open(filepath, 'wb') as f:
-			filepath.write(data)
-			return True
-
-def writeBytesToFile(filepath, data):
-	if os.name == 'nt':
-		return writeBytesToFileDirect(filepath, data)
-
-	dir = os.path.dirname(filepath)
-	with exceptionLogging():
-		fd, tmpfile = tempfile.mkstemp(dir=dir)
-		os.close(fd)
-		with open(tmpfile, 'wb') as f:
-			f.write(data)
-		os.rename(tmpfile, filepath)
-		return True
-
-def readBytesFromFile(filepath):
-	with exceptionLogging():
-		with open(filepath, 'rb') as f:
-			return f.read()
 
 def parseFilename(filepath):
 	row, col = None, None

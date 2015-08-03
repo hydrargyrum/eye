@@ -13,6 +13,7 @@ import contextlib
 from ..app import qApp
 from .helpers import CategoryMixin, UtilsMixin, acceptIf
 from .. import utils
+from .. import io
 
 __all__ = 'Editor Marker Indicator Margin'.split()
 
@@ -367,7 +368,7 @@ class Editor(BaseEditor, CategoryMixin, UtilsMixin):
 			path = unicode(path)
 		data = str(self.text().toUtf8())
 		try:
-			utils.writeBytesToFile(path, data)
+			io.writeBytesToFile(path, data)
 		except IOError, e:
 			return False
 		self.path = path
@@ -396,7 +397,7 @@ class Editor(BaseEditor, CategoryMixin, UtilsMixin):
 			return False
 		self.path = path
 		try:
-			data = utils.readBytesFromFile(path)
+			data = io.readBytesFromFile(path)
 			self.setText(data.decode('utf-8'))
 		except IOError, e:
 			qApp().logger.exception(e)
@@ -417,7 +418,7 @@ class Editor(BaseEditor, CategoryMixin, UtilsMixin):
 	def reloadFile(self):
 		oldPos = self.getCursorPosition()
 		try:
-			data = utils.readBytesFromFile(self.path)
+			data = io.readBytesFromFile(self.path)
 			with self.undoGroup():
 				# XXX setText would clear the history
 				self.clear()
