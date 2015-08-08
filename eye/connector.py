@@ -9,8 +9,9 @@ from .utils import exceptionLogging
 from .app import qApp
 
 __all__ = ('SignalListener', 'EventListener', 'EventConnector',
-           'registerSignal', 'registerEventFilter', 'disabled',
-           'defaultEditorConfig', 'defaultWindowConfig')
+           'registerSignal', 'registerEventFilter', 'registerShortcut', 'disabled',
+           'defaultEditorConfig', 'defaultWindowConfig', 'defaultLexerConfig',
+           'categoryObjects')
 
 
 class SignalListener(QObject):
