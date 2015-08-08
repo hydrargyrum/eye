@@ -87,6 +87,18 @@ class TabWidget(QTabWidget, WidgetMixin):
 		QTabWidget.tabRemoved(self, idx)
 		self._changeTabBarVisibility()
 
+		w = self._findRemovedWidget()
+		w.setParent(None)
+
+	def _findRemovedWidget(self):
+		# implementation detail, but no access to the removed widget
+		base = self.findChild(QStackedWidget)
+		for c in base.children():
+			if not c.isWidgetType():
+				continue
+			if self.indexOf(c) < 0:
+				return c
+
 	def _changeTabBarVisibility(self):
 		visible = (self.count() > 1)
 		self.tabBar().setVisible(visible)
