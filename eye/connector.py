@@ -141,6 +141,10 @@ def peekSet(s):
 	return next(iter(s))
 
 
+def categoryObjects(cats):
+	return qApp().connector.objectsMatching(cats)
+
+
 def registerSignal(categories, signal):
 	if isinstance(categories, (str, unicode, basestring)):
 		categories = [categories]

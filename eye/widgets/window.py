@@ -13,7 +13,7 @@ from .editor import Editor
 from .tabs import TabWidget
 from .splitter import SplitManager
 
-__all__ = 'Window windows'.split()
+__all__ = ('Window',)
 
 
 class Window(QMainWindow, CategoryMixin):
@@ -50,18 +50,13 @@ class Window(QMainWindow, CategoryMixin):
 		#return self.tabs.currentBuffer()
 		return self.lastFocus
 
-	def parentTabBarOf(self, w):
-		while not isinstance(w, TabWidget):
-			w = w.parent()
-		return w
-
 	@Slot()
 	def bufferNew(self):
 		ed = Editor()
 		if self.lastFocus:
-			par = self.parentTabBarOf(self.lastFocus)
-			par.addEditor(ed)
-			par.focusBuffer(ed)
+			parent = self.lastFocus.parentTabBar()
+			parent.addEditor(ed)
+			ed.giveFocus()
 		return ed
 
 	@Slot()
@@ -77,7 +72,7 @@ class Window(QMainWindow, CategoryMixin):
 		if ed.openFile(path):
 			return ed
 		else:
-			self.parentTabBarOf(ed).closeTab(ed)
+			ed.parentTabBar().closeTab(ed)
 
 	@Slot()
 	def bufferSave(self):
@@ -90,23 +85,3 @@ class Window(QMainWindow, CategoryMixin):
 	def appFocusChanged(self, old, new):
 		if self.centralWidget().isAncestorOf(new):
 			self.lastFocus = new
-
-
-class WindowRegistry(QObject):
-	def __init__(self):
-		QObject.__init__(self)
-		self.windows = []
-
-	def addWindow(self, window):
-		self.windows.append(window)
-		self.windowOpened.emit(window)
-
-	def delWindow(self, window):
-		self.windows.remove(window)
-		self.windowClosed(window)
-
-	windowOpened = Signal(Window)
-	windowClosed = Signal(Window)
-
-
-windows = WindowRegistry()

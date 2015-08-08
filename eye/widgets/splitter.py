@@ -5,17 +5,17 @@ from PyQt4.Qsci import *
 Signal = pyqtSignal
 Slot = pyqtSlot
 
-from .helpers import CategoryMixin, UtilsMixin
+from .helpers import WidgetMixin
 
 __all__ = 'SplitManager Splitter'.split()
 
 
-class Splitter(QSplitter, CategoryMixin, UtilsMixin):
+class Splitter(QSplitter, WidgetMixin):
 	HandleBar = 42
 
 	def __init__(self, *a):
 		QSplitter.__init__(self, *a)
-		CategoryMixin.__init__(self)
+		WidgetMixin.__init__(self)
 
 		self.addCategory('splitter')
 
@@ -35,7 +35,7 @@ class Splitter(QSplitter, CategoryMixin, UtilsMixin):
 		return w
 
 
-class SplitManager(QWidget, CategoryMixin, UtilsMixin):
+class SplitManager(QWidget, WidgetMixin):
 	North = 0
 	South = 1
 	West = 2
@@ -45,7 +45,7 @@ class SplitManager(QWidget, CategoryMixin, UtilsMixin):
 
 	def __init__(self, *args):
 		QWidget.__init__(self, *args)
-		CategoryMixin.__init__(self)
+		WidgetMixin.__init__(self)
 
 		self.root = self.SplitterClass(Qt.Horizontal)
 

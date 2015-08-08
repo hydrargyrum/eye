@@ -12,6 +12,7 @@ Slot = pyqtSlot
 qApp = lambda: QApplication.instance()
 
 from . import utils
+from .widgets import window
 
 
 __all__ = 'App qApp'.split()
@@ -31,12 +32,10 @@ class App(QApplication):
 		self.argsFiles = None
 
 	def initUi(self):
-		from .widgets import window
-
-		self.win = window.Window()
-		window.windows.addWindow(self.win)
-		self.win.createDefaultMenuBar()
-		self.win.quitRequested.connect(self.quit)
+		win = window.Window()
+		win.createDefaultMenuBar()
+		win.quitRequested.connect(self.quit)
+		return win
 
 	def _startupScripts(self):
 		import glob
@@ -57,8 +56,8 @@ class App(QApplication):
 
 	def run(self):
 		self._handleArguments()
-		self.initUi()
-		self.win.show()
+		win = self.initUi()
+		win.show()
 		self.runStartScripts()
 		self.openCommandLineFiles()
 		self.exec_()
@@ -77,12 +76,14 @@ class App(QApplication):
 		self.argsFiles = args.files
 
 	def openCommandLineFiles(self):
+		import connector
 		if not self.argsFiles:
 			return
 		for i in self.argsFiles:
 			name = unicode(i)
 			path, row, col = utils.parseFilename(name)
-			ed = self.win.bufferOpen(path)
+			win = connector.categoryObjects('window')[0]
+			ed = win.bufferOpen(path)
 			if row is not None:
 				ed.goto1(row, col)
 

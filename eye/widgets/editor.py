@@ -11,7 +11,7 @@ import re
 import contextlib
 
 from ..app import qApp
-from .helpers import CategoryMixin, UtilsMixin, acceptIf
+from .helpers import CentralWidgetMixin, acceptIf
 from .. import utils
 from .. import io
 
@@ -327,12 +327,12 @@ class BaseEditor(QsciScintilla):
 	actionRecorded = Signal(object)
 
 
-class Editor(BaseEditor, CategoryMixin, UtilsMixin):
+class Editor(BaseEditor, CentralWidgetMixin):
 	SmartCaseSensitive = object()
 
 	def __init__(self, *a):
 		BaseEditor.__init__(self, *a)
-		CategoryMixin.__init__(self)
+		CentralWidgetMixin.__init__(self)
 
 		self.path = ''
 		self.modificationChanged.connect(self.titleChanged)

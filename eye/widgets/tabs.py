@@ -6,9 +6,9 @@ Signal = pyqtSignal
 Slot = pyqtSlot
 
 from ..app import qApp
-from .helpers import CategoryMixin, UtilsMixin, acceptIf
+from .helpers import WidgetMixin, acceptIf
 
-__all__ = 'TabWidget'.split()
+__all__ = ('TabWidget',)
 
 
 class TabBar(QTabBar):
@@ -19,20 +19,19 @@ class TabBar(QTabBar):
 		self.setUsesScrollButtons(True)
 
 
-class TabWidget(QTabWidget, CategoryMixin, UtilsMixin):
+class TabWidget(QTabWidget, WidgetMixin):
 	def __init__(self, *args):
 		QTabWidget.__init__(self, *args)
-		CategoryMixin.__init__(self)
+		WidgetMixin.__init__(self)
 
 		self.tabCloseRequested.connect(self._tabCloseRequested)
 		self.currentChanged.connect(self._currentChanged)
 		self.setTabBar(TabBar())
 
+		self.addCategory('tabwidget')
+
 	def currentBuffer(self):
 		return self.currentWidget()
-
-	def focusBuffer(self, ed):
-		self.setCurrentWidget(ed)
 
 	def closeTab(self, ed):
 		if ed.closeFile():
@@ -67,9 +66,6 @@ class TabWidget(QTabWidget, CategoryMixin, UtilsMixin):
 	def widgetSetFilename(self, widget, filename):
 		idx = self.indexOf(widget)
 		self.setTabText(idx, self.tr('%1').arg(filename))
-
-	def currentBuffer(self):
-		return self.currentWidget()
 
 	def widgets(self):
 		return [self.widget(i) for i in xrange(self.count())]

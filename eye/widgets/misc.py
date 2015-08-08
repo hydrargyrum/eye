@@ -8,7 +8,7 @@ Slot = pyqtSlot
 import logging
 
 from ..app import qApp
-from .helpers import UtilsMixin
+from .helpers import WidgetMixin
 
 __all__ = 'LogWidget PositionIndicator'.split()
 
@@ -35,9 +35,10 @@ class LogWidget(QPlainTextEdit):
 		qApp().logger.removeHandler(self.handler)
 
 
-class PositionIndicator(QLabel, UtilsMixin):
+class PositionIndicator(QLabel, WidgetMixin):
 	def __init__(self, *a):
 		QLabel.__init__(self, *a)
+		WidgetMixin.__init__(self)
 		self.lastFocus = None
 
 		qApp().focusChanged.connect(self.focusChanged)

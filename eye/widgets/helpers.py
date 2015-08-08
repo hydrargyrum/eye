@@ -7,7 +7,7 @@ Slot = pyqtSlot
 
 from ..app import qApp
 
-__all__ = 'acceptIf CategoryMixin UtilsMixin'
+__all__ = ('acceptIf', 'CategoryMixin', 'WidgetMixin', 'CentralWidgetMixin')
 
 
 def acceptIf(ev, cond):
@@ -39,9 +39,35 @@ class CategoryMixin(object):
 		qApp().connector.categoryRemoved(self, c)
 
 
-class UtilsMixin(object):
+class WidgetMixin(CategoryMixin):
+	def __init__(self):
+		CategoryMixin.__init__(self)
+
 	def parentWindow(self):
 		w = self
 		while w and not w.isWindow():
 			w = w.parent()
 		return w
+
+
+class CentralWidgetMixin(WidgetMixin):
+	def __init__(self):
+		WidgetMixin.__init__(self)
+
+	def parentTabBar(self):
+		w = self
+		while True:
+			if hasattr(w, 'categories') and 'tabwidget' in w.categories():
+				break
+			w = w.parent()
+		return w
+
+	def giveFocus(self, reason=Qt.OtherFocusReason):
+		if not self.isActiveWindow():
+			self.activateWindow()
+
+		tabBar = self.parentTabBar()
+		if tabBar:
+			tabBar.setCurrentWidget(self)
+
+		return self.setFocus(reason)
