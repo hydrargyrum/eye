@@ -9,6 +9,7 @@ Slot = pyqtSlot
 import os
 import re
 import contextlib
+from weakref import ref
 
 from ..app import qApp
 from .helpers import CentralWidgetMixin, acceptIf
@@ -18,7 +19,21 @@ from .. import io
 __all__ = 'Editor Marker Indicator Margin'.split()
 
 
-class Marker(object):
+class HasWeakEditorMixin(object):
+	@property
+	def editor(self):
+		if self._editor is not None:
+			return self._editor()
+
+	@editor.setter
+	def editor(self, value):
+		if value is None:
+			self._editor = None
+		else:
+			self._editor = ref(value)
+
+
+class Marker(HasWeakEditorMixin):
 	def __init__(self, sym, editor=None, id=-1):
 		self.editor = editor
 		self.sym = sym
@@ -59,7 +74,7 @@ class Marker(object):
 		return self.editor.getMarkerPrevious(line, self.toBit())
 
 
-class Indicator(object):
+class Indicator(HasWeakEditorMixin):
 	def __init__(self, style, editor=None, id=-1):
 		self.editor = editor
 		self.style = style
@@ -100,7 +115,7 @@ class Indicator(object):
 		self.editor.setIndicatorOutlineColor(col, self.id)
 
 
-class Margin(object):
+class Margin(HasWeakEditorMixin):
 	@staticmethod
 	def NumbersMargin(editor=None):
 		return Margin(editor, id=0)
