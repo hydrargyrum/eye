@@ -1,5 +1,7 @@
 
 from .utils import exceptionLogging
+import os
+import tempfile
 
 __all__ = ('writeBytesToFile', 'readBytesFromFile')
 
@@ -26,4 +28,3 @@ def readBytesFromFile(filepath):
 	with exceptionLogging():
 		with open(filepath, 'rb') as f:
 			return f.read()
-
