@@ -65,7 +65,7 @@ class TabWidget(QTabWidget, WidgetMixin):
 
 	def widgetSetFilename(self, widget, filename):
 		idx = self.indexOf(widget)
-		self.setTabText(idx, self.tr('%1').arg(filename))
+		self.setTabText(idx, self.tr('%s') % filename)
 
 	def widgets(self):
 		return [self.widget(i) for i in xrange(self.count())]

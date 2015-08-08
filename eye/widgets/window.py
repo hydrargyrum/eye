@@ -63,7 +63,6 @@ class Window(QMainWindow, CategoryMixin):
 	def bufferOpenDialog(self):
 		path = QFileDialog.getOpenFileName(self, self.tr('Open file'), os.path.expanduser('~'))
 		if path:
-			path = unicode(path)
 			self.currentBuffer().openFile(path)
 
 	@Slot()

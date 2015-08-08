@@ -365,8 +365,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			path = QFileDialog.getSaveFileName(self, self.tr('Save file'), os.path.expanduser('~'))
 			if not path:
 				return False
-			path = unicode(path)
-		data = str(self.text().toUtf8())
+			path = path
+		data = self.text().encode('utf-8')
 		try:
 			io.writeBytesToFile(path, data)
 		except IOError, e:
@@ -383,7 +383,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		if self.isModified():
 			file = self._getFilename() or '<untitled>'
 
-			answer = QMessageBox.question(self, self.tr('Unsaved file'), self.tr('%1 has been modified, do you want to close it?').arg(file), QMessageBox.Discard | QMessageBox.Cancel | QMessageBox.Save)
+			answer = QMessageBox.question(self, self.tr('Unsaved file'), self.tr('%s has been modified, do you want to close it?') % file, QMessageBox.Discard | QMessageBox.Cancel | QMessageBox.Save)
 			if answer == QMessageBox.Discard:
 				ret = True
 			elif answer == QMessageBox.Cancel:
@@ -459,7 +459,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		return re.compile(expr, flags)
 
 	def _highlightSearch(self):
-		txt = unicode(self.text())
+		txt = self.text()
 		reobj = self._searchOptionsToRe()
 		for mtc in reobj.finditer(txt):
 			self.indicators['searchHighlight'].putAtPos(mtc.start(), mtc.end())

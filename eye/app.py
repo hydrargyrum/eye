@@ -4,6 +4,9 @@ import sys, os
 import logging
 import argparse
 
+import sip
+sip.setapi('QString', 2)
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 Signal = pyqtSignal
@@ -65,7 +68,7 @@ class App(QApplication):
 		parser.add_argument('files', metavar='FILE', nargs='*')
 		parser.add_argument('--debug', action='store_true', default=False)
 
-		argv = [unicode(arg) for arg in self.arguments()[1:]]
+		argv = self.arguments()[1:]
 		args = parser.parse_args(argv)
 
 		if args.debug:
@@ -76,8 +79,7 @@ class App(QApplication):
 	def openCommandLineFiles(self):
 		if not self.argsFiles:
 			return
-		for i in self.argsFiles:
-			name = unicode(i)
+		for name in self.argsFiles:
 			path, row, col = utils.parseFilename(name)
 			win = connector.categoryObjects('window')[0]
 			ed = win.bufferOpen(path)

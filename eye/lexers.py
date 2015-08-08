@@ -11,7 +11,7 @@ __all__ = 'applyStyles extensionToLexer mimeToLexer'.split()
 def stylesFromLexer(lexer):
 	styles = {}
 	for i in xrange(i << lexer.styleBitsNeeded()):
-		name = unicode(obj.description(i))
+		name = obj.description(i)
 		if not n:
 			break
 		styles[name] = i
