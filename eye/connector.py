@@ -1,6 +1,6 @@
 
 from PyQt4.QtCore import Qt, QObject, pyqtSlot as Slot
-from PyQt4.QtGui import QApplication, QShortcut, QKeySequence
+from PyQt4.QtGui import QShortcut, QKeySequence
 import collections
 import weakref
 import inspect
@@ -142,7 +142,7 @@ def peekSet(s):
 
 
 def categoryObjects(cats):
-	return qApp().connector.objectsMatching(cats)
+	return CONNECTOR.objectsMatching(cats)
 
 
 def registerSignal(categories, signal):
@@ -151,9 +151,8 @@ def registerSignal(categories, signal):
 	categories = frozenset(categories)
 
 	def deco(func):
-		connector = qApp().connector
-		lis = SignalListener(func, categories, signal, connector)
-		connector.addListener(categories, lis)
+		lis = SignalListener(func, categories, signal, CONNECTOR)
+		CONNECTOR.addListener(categories, lis)
 		return func
 
 	return deco
@@ -165,9 +164,8 @@ def registerEventFilter(categories, eventTypes):
 	categories = frozenset(categories)
 
 	def deco(func):
-		connector = qApp().connector
-		lis = EventFilter(func, categories, eventTypes, connector)
-		connector.addListener(categories, lis)
+		lis = EventFilter(func, categories, eventTypes, CONNECTOR)
+		CONNECTOR.addListener(categories, lis)
 		return func
 
 	return deco
@@ -190,7 +188,7 @@ def registerShortcut(categories, ks, context=Qt.WidgetShortcut):
 			shortcut.setContext(context)
 
 			lis = SignalListener(cbWidget, categories, 'activated', shortcut)
-			qApp().connector.doConnect(shortcut, lis, categories[0])
+			CONNECTOR.doConnect(shortcut, lis, categories[0])
 
 		return cb
 
@@ -200,3 +198,6 @@ def registerShortcut(categories, ks, context=Qt.WidgetShortcut):
 defaultEditorConfig = registerSignal(['editor'], 'connected')
 defaultWindowConfig = registerSignal(['window'], 'connected')
 defaultLexerConfig = registerSignal(['editor'], 'lexerChanged')
+
+
+CONNECTOR = EventConnector()

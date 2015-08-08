@@ -12,6 +12,7 @@ Slot = pyqtSlot
 qApp = lambda: QApplication.instance()
 
 from . import utils
+from . import connector
 from .widgets import window
 
 
@@ -22,9 +23,6 @@ class App(QApplication):
 	def __init__(self, argv):
 		QApplication.__init__(self, argv)
 		self.setApplicationName('eye')
-
-		from . import connector
-		self.connector = connector.EventConnector()
 
 		logging.basicConfig()
 		self.logger = logging.getLogger()
@@ -76,7 +74,6 @@ class App(QApplication):
 		self.argsFiles = args.files
 
 	def openCommandLineFiles(self):
-		import connector
 		if not self.argsFiles:
 			return
 		for i in self.argsFiles:
