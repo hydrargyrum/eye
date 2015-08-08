@@ -44,12 +44,6 @@ class WidgetMixin(CategoryMixin):
 	def __init__(self):
 		CategoryMixin.__init__(self)
 
-	def parentWindow(self):
-		w = self
-		while w and not w.isWindow():
-			w = w.parent()
-		return w
-
 
 class CentralWidgetMixin(WidgetMixin):
 	def __init__(self):

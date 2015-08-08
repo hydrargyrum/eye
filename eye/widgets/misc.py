@@ -49,7 +49,7 @@ class PositionIndicator(QLabel, WidgetMixin):
 			return
 		if 'editor' not in new.categories():
 			return
-		if new.parentWindow() != self.parentWindow():
+		if new.window() != self.window():
 			return
 
 		if self.lastFocus:
