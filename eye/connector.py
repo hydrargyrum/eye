@@ -26,6 +26,12 @@ class SignalListener(QObject):
 	@Slot(unicode)
 	@Slot(QObject)
 	@Slot(object)
+	@Slot(int, int)
+	@Slot(unicode, unicode)
+	@Slot(int, unicode)
+	@Slot(unicode, int)
+	@Slot(unicode, object)
+	@Slot(object, object)
 	@Slot()
 	def map(self, *args, **kwargs):
 		if not getattr(self.cb, 'enabled', True):
