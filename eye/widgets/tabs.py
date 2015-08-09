@@ -40,9 +40,12 @@ class TabWidget(QTabWidget, WidgetMixin):
 		else:
 			return False
 
-	def addEditor(self, editor):
-		self.addTab(editor, editor.title())
-		editor.titleChanged.connect(self._subTitleChanged)
+	def addWidget(self, widget):
+		self.addTab(widget, widget.icon(), widget.title())
+		if hasattr(widget, 'titleChanged'):
+			widget.titleChanged.connect(self._subTitleChanged)
+		if hasattr(widget, 'iconChanged'):
+			widget.iconChanged.connect(self._subIconChanged)
 
 	def widgetSetFilename(self, widget, filename):
 		idx = self.indexOf(widget)
@@ -79,6 +82,14 @@ class TabWidget(QTabWidget, WidgetMixin):
 		if idx < 0:
 			return
 		self.setTabText(idx, w.title())
+
+	@Slot()
+	def _subIconChanged(self):
+		w = self.sender()
+		idx = self.indexOf(w)
+		if idx < 0:
+			return
+		self.setTabIcon(idx, w.icon())
 
 	def tabInserted(self, idx):
 		QTabWidget.tabInserted(self, idx)

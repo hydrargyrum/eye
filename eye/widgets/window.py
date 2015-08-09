@@ -25,7 +25,7 @@ class Window(QMainWindow, CategoryMixin):
 		ed = Editor()
 
 		tabs = TabWidget()
-		tabs.addEditor(ed)
+		tabs.addWidget(ed)
 
 		self.splitter = SplitManager()
 		self.splitter.splitAt(None, Qt.Horizontal, tabs)
@@ -53,7 +53,7 @@ class Window(QMainWindow, CategoryMixin):
 		ed = Editor()
 		if self.lastFocus:
 			parent = self.lastFocus.parentTabBar()
-			parent.addEditor(ed)
+			parent.addWidget(ed)
 			ed.giveFocus()
 		return ed
 
