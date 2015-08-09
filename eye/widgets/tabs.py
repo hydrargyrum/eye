@@ -40,25 +40,6 @@ class TabWidget(QTabWidget, WidgetMixin):
 		else:
 			return False
 
-	@Slot(int)
-	def _tabCloseRequested(self, idx):
-		widget = self.widget(idx)
-		if widget.closeFile():
-			self.removeTab(idx)
-
-	@Slot(int)
-	def _currentChanged(self, idx):
-		if self.hasFocus():
-			self.widget(idx).setFocus(Qt.OtherFocusReason)
-
-	@Slot()
-	def _subTitleChanged(self):
-		w = self.sender()
-		idx = self.indexOf(w)
-		if idx < 0:
-			return
-		self.setTabText(idx, w.title())
-
 	def addEditor(self, editor):
 		self.addTab(editor, editor.title())
 		editor.titleChanged.connect(self._subTitleChanged)
@@ -78,6 +59,26 @@ class TabWidget(QTabWidget, WidgetMixin):
 			else:
 				return False
 		return True
+
+	## private
+	@Slot(int)
+	def _tabCloseRequested(self, idx):
+		widget = self.widget(idx)
+		if widget.closeFile():
+			self.removeTab(idx)
+
+	@Slot(int)
+	def _currentChanged(self, idx):
+		if self.hasFocus():
+			self.widget(idx).setFocus(Qt.OtherFocusReason)
+
+	@Slot()
+	def _subTitleChanged(self):
+		w = self.sender()
+		idx = self.indexOf(w)
+		if idx < 0:
+			return
+		self.setTabText(idx, w.title())
 
 	def tabInserted(self, idx):
 		QTabWidget.tabInserted(self, idx)

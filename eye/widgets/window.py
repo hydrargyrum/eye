@@ -33,7 +33,7 @@ class Window(QMainWindow, CategoryMixin):
 		self.setCentralWidget(self.splitter)
 
 		self.lastFocus = ed
-		qApp().focusChanged.connect(self.appFocusChanged)
+		qApp().focusChanged.connect(self._appFocusChanged)
 
 		self.addCategory('window')
 
@@ -44,10 +44,8 @@ class Window(QMainWindow, CategoryMixin):
 		menu.addAction('Save').triggered.connect(self.bufferSave)
 		menu.addAction('Quit').triggered.connect(self.quitRequested)
 
-	quitRequested = Signal()
-
+	## buffers
 	def currentBuffer(self):
-		#return self.tabs.currentBuffer()
 		return self.lastFocus
 
 	@Slot()
@@ -77,10 +75,14 @@ class Window(QMainWindow, CategoryMixin):
 	def bufferSave(self):
 		self.currentBuffer().saveFile()
 
+	## signals
+	quitRequested = Signal()
+
+	## events
 	def closeEvent(self, ev):
 		acceptIf(ev, self.splitter.requestClose())
 
 	@Slot(QWidget, QWidget)
-	def appFocusChanged(self, old, new):
+	def _appFocusChanged(self, old, new):
 		if self.centralWidget().isAncestorOf(new):
 			self.lastFocus = new

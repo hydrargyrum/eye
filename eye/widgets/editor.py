@@ -246,6 +246,7 @@ class BaseEditor(QsciScintilla):
 		self.createMargin('folding', Margin.FoldMargin())
 		self.createMargin('symbols', Margin.SymbolMargin())
 
+	## markers, indicators, margins
 	def _createMI(self, d, name, obj):
 		if name in d:
 			return d[name]
@@ -318,6 +319,7 @@ class BaseEditor(QsciScintilla):
 			i = self.markers[i].id
 		return self._getMarkerNext(ln, i)
 
+	## macros
 	@Slot(int, int, object)
 	def scn_macro(self, msg, lp, wp):
 		if isinstance(wp, sip.voidptr):
@@ -369,6 +371,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		else:
 			return t
 
+	## file management
 	def _getFilename(self):
 		if not self.path:
 			return ''
@@ -421,15 +424,6 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.fileOpened.emit()
 		return True
 
-
-	@contextlib.contextmanager
-	def undoGroup(self):
-		self.beginUndoAction()
-		try:
-			yield
-		finally:
-			self.endUndoAction()
-
 	def reloadFile(self):
 		oldPos = self.getCursorPosition()
 		try:
@@ -445,11 +439,20 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.setCursorPosition(*oldPos)
 		return True
 
-	def goto1(self, row, col=None):
-		col = col or 0
-		row, col = row - 1, col - 1
-		self.ensureLineVisible(row)
-		self.setCursorPosition(row, col)
+	## misc
+	@contextlib.contextmanager
+	def undoGroup(self):
+		self.beginUndoAction()
+		try:
+			yield
+		finally:
+			self.endUndoAction()
+
+	def goto1(self, line, col=None):
+		col = col or 1
+		line, col = line - 1, col - 1
+		self.ensureLineVisible(line)
+		self.setCursorPosition(line, col)
 
 	def getLine(self):
 		return self.getCursorPosition()[0]
@@ -458,6 +461,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		QsciScintilla.setLexer(self, lexer)
 		self.lexerChanged.emit(lexer)
 
+	## search
 	@classmethod
 	def _smartCase(cls, txt, cs):
 		if cs is cls.SmartCaseSensitive:
@@ -517,11 +521,15 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	def findBackward(self):
 		return self._findInDirection(False)
 
+	def wordAtCursor(self):
+		return self.wordAtLineIndex(*self.getCursorPosition())
+
+	## signals
 	titleChanged = Signal()
 	fileSaved = Signal()
 	fileOpened = Signal()
 	lexerChanged = Signal(QObject)
 
-	# events
+	## events
 	def closeEvent(self, ev):
 		acceptIf(ev, self.closeFile())
