@@ -32,6 +32,9 @@ class App(QApplication):
 
 		self.argsFiles = None
 
+		self.lastWindow = None
+		self.focusChanged.connect(self._appFocusChanged)
+
 	def initUi(self):
 		win = window.Window()
 		win.createDefaultMenuBar()
@@ -92,6 +95,14 @@ class App(QApplication):
 			return xdg.BaseDirectory.save_config_path('eyeditor', *args)
 		except ImportError:
 			return os.path.join(os.path.expanduser('~/.config/eyeditor'), *args)
+
+	@Slot(QWidget, QWidget)
+	def _appFocusChanged(self, old, new):
+		while new and not new.isWindow():
+			new = new.parentWidget()
+		if not new:
+			return
+		self.lastWindow = new
 
 
 def main():
