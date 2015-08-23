@@ -92,7 +92,8 @@ class EventConnector(QObject, object):
 	def addListener(self, categories, lis):
 		self.allListeners.append(lis)
 
-		for obj in self.allObjects:
+		# iterate on list copy to avoid concurrent access
+		for obj in list(self.allObjects):
 			matches = categories & obj.categories()
 			if not matches:
 				continue
