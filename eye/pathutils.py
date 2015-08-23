@@ -1,7 +1,10 @@
 
+import glob
+import os
 import re
 
-__all__ = ('parseFilename',)
+
+__all__ = ('parseFilename', 'getParentContaining')
 
 
 def parseFilename(filepath):
@@ -15,3 +18,17 @@ def parseFilename(filepath):
 	filepath = filepath[:mtc.start()]
 
 	return (filepath, row, col)
+
+
+def getParentContaining(path, patterns):
+	path = os.path.abspath(path)
+
+	while True:
+		for pattern in patterns:
+			matches = glob.glob(os.path.join(path, pattern))
+			if matches:
+				return path
+
+		if path == '/':
+			return
+		path = os.path.dirname(path)
