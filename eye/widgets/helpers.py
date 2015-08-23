@@ -44,6 +44,12 @@ class WidgetMixin(CategoryMixin):
 	def __init__(self):
 		CategoryMixin.__init__(self)
 
+	def giveFocus(self, reason=Qt.OtherFocusReason):
+		if not self.isActiveWindow():
+			self.activateWindow()
+
+		return self.setFocus(reason)
+
 
 class CentralWidgetMixin(WidgetMixin):
 	def __init__(self):
