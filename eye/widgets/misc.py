@@ -10,7 +10,7 @@ import logging
 from ..app import qApp
 from .helpers import WidgetMixin
 
-__all__ = 'LogWidget PositionIndicator'.split()
+__all__ = ('LogWidget', 'PositionIndicator')
 
 
 class LogWidget(QPlainTextEdit):

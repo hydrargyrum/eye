@@ -19,7 +19,7 @@ from . import connector
 from .widgets import window
 
 
-__all__ = 'App qApp'.split()
+__all__ = ('App', 'qApp', 'main')
 
 
 class App(QApplication):

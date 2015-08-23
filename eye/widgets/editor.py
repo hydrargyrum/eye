@@ -16,7 +16,7 @@ from .helpers import CentralWidgetMixin, acceptIf
 from .. import utils
 from .. import io
 
-__all__ = 'Editor Marker Indicator Margin'.split()
+__all__ = ('Editor', 'Marker', 'Indicator', 'Margin')
 
 
 class HasWeakEditorMixin(object):

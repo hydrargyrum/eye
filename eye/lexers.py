@@ -6,7 +6,7 @@ from PyQt4.Qsci import *
 import re
 import mimetypes
 
-__all__ = 'applyStyles extensionToLexer mimeToLexer'.split()
+__all__ = ('applyStyles', 'extensionToLexer', 'mimeToLexer')
 
 def stylesFromLexer(lexer):
 	styles = {}

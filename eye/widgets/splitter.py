@@ -7,7 +7,7 @@ Slot = pyqtSlot
 
 from .helpers import WidgetMixin
 
-__all__ = 'SplitManager Splitter'.split()
+__all__ = ('SplitManager', 'Splitter')
 
 
 class Splitter(QSplitter, WidgetMixin):
