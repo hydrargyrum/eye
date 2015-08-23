@@ -36,6 +36,8 @@ class LogWidget(QPlainTextEdit):
 
 
 class PositionIndicator(QLabel, WidgetMixin):
+	format = '%(percent)3d%% %(line)5d:%(col)3d'
+
 	def __init__(self, *a):
 		QLabel.__init__(self, *a)
 		WidgetMixin.__init__(self)
@@ -53,12 +55,27 @@ class PositionIndicator(QLabel, WidgetMixin):
 			return
 
 		if self.lastFocus:
-			self.lastFocus.cursorPositionChanged.disconnect(self.updatePos)
+			self.lastFocus.cursorPositionChanged.disconnect(self.onPosChanged)
+			self.lastFocus.linesChanged.disconnect(self.onLinesChanged)
 
-		new.cursorPositionChanged.connect(self.updatePos)
-		self.updatePos(*new.getCursorPosition())
 		self.lastFocus = new
+		new.cursorPositionChanged.connect(self.onPosChanged)
+		new.linesChanged.connect(self.onLinesChanged)
+		self.updateLabel()
+
+	@Slot()
+	def onLinesChanged(self):
+		self.updateLabel()
 
 	@Slot(int, int)
-	def updatePos(self, ln, col):
-		self.setText('%d : %d' % (ln + 1, col + 1))
+	def onPosChanged(self, ln, col):
+		self.updateLabel()
+
+	@Slot()
+	def updateLabel(self):
+		line, col = self.lastFocus.getCursorPosition()
+		line, col = line + 1, col + 1
+		lines = self.lastFocus.lines()
+
+		d = dict(line=line, col=col, percent=line * 100. / lines)
+		self.setText(self.format % d)
