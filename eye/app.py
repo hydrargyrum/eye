@@ -14,7 +14,7 @@ Slot = pyqtSlot
 
 qApp = lambda: QApplication.instance()
 
-from . import utils
+from . import pathutils
 from . import connector
 from .widgets import window
 
@@ -83,7 +83,7 @@ class App(QApplication):
 		if not self.argsFiles:
 			return
 		for name in self.argsFiles:
-			path, row, col = utils.parseFilename(name)
+			path, row, col = pathutils.parseFilename(name)
 			win = connector.categoryObjects('window')[0]
 			ed = win.bufferOpen(path)
 			if row is not None:

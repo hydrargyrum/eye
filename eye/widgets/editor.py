@@ -13,7 +13,7 @@ from weakref import ref
 
 from ..app import qApp
 from .helpers import CentralWidgetMixin, acceptIf
-from .. import utils
+from .. import structs
 from .. import io
 
 __all__ = ('Editor', 'Marker', 'Indicator', 'Margin')
@@ -354,7 +354,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.path = ''
 		self.modificationChanged.connect(self.titleChanged)
 
-		self.search = utils.PropDict()
+		self.search = structs.PropDict()
 		self.search.incremental = True
 		self.search.highlight = False
 		self.search.isRe = False
