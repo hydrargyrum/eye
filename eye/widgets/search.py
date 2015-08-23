@@ -6,6 +6,8 @@ Slot = pyqtSlot
 
 from .helpers import WidgetMixin
 from .. import consts
+from ..helpers import file_search
+from ..reutils import csToQtEnum
 
 
 __all__ = ('absolutePathRole', 'lineRole', 'columnRole', 'ResultsWidget')
@@ -62,3 +64,93 @@ class ResultsWidget(QTreeWidget, WidgetMixin):
 
 	resultActivated = Signal(unicode, object)
 
+
+class SearchOptionsButton(QPushButton):
+	def __init__(self):
+		QPushButton.__init__(self)
+
+		self.setText(self.tr('Options'))
+
+		menu = QMenu()
+		self.actionCi = menu.addAction(self.tr('Case insensitive'))
+
+		menu.addSeparator()
+		self.actionFormat = QActionGroup(self)
+		self.actionPlain = menu.addAction(self.tr('Plain text'))
+		self.actionRe = menu.addAction(self.tr('Regular expression'))
+		self.actionGlob = menu.addAction(self.tr('Glob pattern'))
+		self.actionFormat.addAction(self.actionPlain)
+		self.actionFormat.addAction(self.actionRe)
+		self.actionFormat.addAction(self.actionGlob)
+
+		self.actionRoot = menu.addAction(self.tr('Search in best root dir'))
+
+		for act in [self.actionCi, self.actionRe, self.actionPlain, self.actionGlob]:
+			act.setCheckable(True)
+		self.actionPlain.setChecked(True)
+
+		self.setMenu(menu)
+
+	def shouldFindRoot(self):
+		return self.actionRoot.isChecked()
+
+	def caseSensitive(self):
+		return not self.actionCi.isChecked()
+
+	def reFormat(self):
+		if self.actionPlain.isChecked():
+			return QRegExp.FixedString
+		elif self.actionRe.isChecked():
+			return QRegExp.RegExp
+		elif self.actionGlob.isChecked():
+			return QRegExp.WildcardUnix
+
+
+class SearchWidget(QWidget, WidgetMixin):
+	def __init__(self):
+		QWidget.__init__(self)
+		WidgetMixin.__init__(self)
+
+		layout = QGridLayout()
+		self.setLayout(layout)
+
+		self.exprEdit = QLineEdit()
+		self.exprEdit.returnPressed.connect(self.returnPressed)
+
+		self.optionsButton = SearchOptionsButton()
+
+		self.pluginChoice = QComboBox()
+		plugins = sorted(file_search.enabledPlugins(), key=lambda p: p.name())
+		for plugin in plugins:
+			self.pluginChoice.addItem(plugin.name(), plugin.id)
+
+		self.results = ResultsWidget()
+
+		layout.addWidget(self.exprEdit, 0, 0)
+		layout.addWidget(self.optionsButton, 0, 1)
+		layout.addWidget(self.pluginChoice, 0, 2)
+		layout.addWidget(self.results, 1, 0, 1, -1)
+
+		self.addCategory('file_search_widget')
+
+	def setPlugin(self, id):
+		index = self.pluginChoice.findData(id)
+		if index >= 0:
+			self.pluginChoice.setCurrentIndex(index)
+
+	def setText(self, text):
+		self.exprEdit.setText(text)
+
+	def selectedPlugin(self):
+		return self.pluginChoice.itemData(self.pluginChoice.currentIndex()).toString()
+
+	def regexp(self):
+		re = QRegExp(self.exprEdit.text())
+		re.setCaseSensitivity(csToQtEnum(self.optionsButton.caseSensitive()))
+		re.setPatternSyntax(self.optionsButton.reFormat())
+		return re
+
+	def shouldFindRoot(self):
+		return self.optionsButton.shouldFindRoot()
+
+	returnPressed = Signal()
