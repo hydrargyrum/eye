@@ -86,3 +86,8 @@ class Window(QMainWindow, CategoryMixin):
 	def _appFocusChanged(self, old, new):
 		if self.centralWidget().isAncestorOf(new):
 			self.lastFocus = new
+
+	def addDockable(self, area, widget):
+		dw = QDockWidget()
+		self.addDockWidget(area, dw)
+		dw.setWidget(widget)
