@@ -8,8 +8,7 @@ import inspect
 from .utils import exceptionLogging
 from .app import qApp
 
-__all__ = ('SignalListener', 'EventListener', 'EventConnector',
-           'registerSignal', 'registerEventFilter', 'registerShortcut', 'disabled',
+__all__ = ('registerSignal', 'registerEventFilter', 'registerShortcut', 'disabled',
            'defaultEditorConfig', 'defaultWindowConfig', 'defaultLexerConfig',
            'categoryObjects')
 
