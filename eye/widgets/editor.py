@@ -362,6 +362,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.search.wrap = True
 		self.search.whole = False
 
+		self._lexer = None
+
 		self.addCategory('editor')
 
 	def title(self):
@@ -459,7 +461,14 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 	def setLexer(self, lexer):
 		QsciScintilla.setLexer(self, lexer)
+		self._lexer = lexer
 		self.lexerChanged.emit(lexer)
+
+	def lexer(self):
+		lexer = QsciScintilla.lexer(self)
+		if lexer is None:
+			lexer = self._lexer
+		return lexer
 
 	## search
 	@classmethod
