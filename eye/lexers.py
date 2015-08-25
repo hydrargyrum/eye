@@ -10,9 +10,9 @@ __all__ = ('applyStyles', 'extensionToLexer', 'mimeToLexer')
 
 def stylesFromLexer(lexer):
 	styles = {}
-	for i in xrange(i << lexer.styleBitsNeeded()):
-		name = obj.description(i)
-		if not n:
+	for i in xrange(1 << lexer.styleBitsNeeded()):
+		name = lexer.description(i)
+		if not name:
 			break
 		styles[name] = i
 	return styles
