@@ -1,7 +1,7 @@
 
 from PyQt4.QtGui import QColor
 
-__all__ = ('QColorAlpha',)
+__all__ = ('QColorAlpha', 'QColor')
 
 def QColorAlpha(*args):
 	if len(args) == 2:
