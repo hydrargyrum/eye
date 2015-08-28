@@ -381,7 +381,9 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 	def saveFile(self):
 		path = self.path
-		if not path:
+
+		newFile = not path
+		if newFile:
 			path = QFileDialog.getSaveFileName(self, self.tr('Save file'), os.path.expanduser('~'))
 			if not path:
 				return False
@@ -391,10 +393,15 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			io.writeBytesToFile(path, data)
 		except IOError, e:
 			return False
+
 		self.path = path
 		self.setModified(False)
 		self.titleChanged.emit()
-		self.fileSaved.emit()
+		if newFile:
+			self.fileSavedAs.emit(path)
+		else:
+			self.fileSaved.emit(path)
+
 		return True
 
 	def closeFile(self):
@@ -423,7 +430,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			qApp().logger.exception(e)
 			return False
 		self.setModified(False)
-		self.fileOpened.emit()
+		self.fileOpened.emit(path)
 		return True
 
 	def reloadFile(self):
@@ -535,8 +542,9 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 	## signals
 	titleChanged = Signal()
-	fileSaved = Signal()
-	fileOpened = Signal()
+	fileSaved = Signal(unicode)
+	fileSavedAs = Signal(unicode)
+	fileOpened = Signal(unicode)
 	lexerChanged = Signal(QObject)
 
 	## events
