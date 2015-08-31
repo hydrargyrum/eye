@@ -5,10 +5,13 @@ from PyQt4.QtGui import QApplication
 __all__ = ('exceptionLogging',)
 
 @contextmanager
-def exceptionLogging(reraise=True):
+def exceptionLogging(reraise=True, logger=None):
 	try:
 		yield
 	except BaseException, e:
-		QApplication.instance().logger.exception(e)
+		# could guess logger by inspecting traceback
+		if logger is None:
+			logger = QApplication.instance().logger
+		logger.exception(e)
 		if reraise:
 			raise

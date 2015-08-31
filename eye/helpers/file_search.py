@@ -1,7 +1,6 @@
 
 import os
 
-from ..app import qApp
 from ..connector import registerSignal, disabled, categoryObjects
 from . import buffers
 

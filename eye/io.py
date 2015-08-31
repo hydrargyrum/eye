@@ -1,12 +1,16 @@
 
-from .utils import exceptionLogging
 import os
 import tempfile
+from logging import getLogger
+
+from .utils import exceptionLogging
 
 __all__ = ('writeBytesToFile', 'readBytesFromFile')
 
+LOGGER = getLogger(__name__)
+
 def writeBytesToFileDirect(filepath, data):
-	with exceptionLogging():
+	with exceptionLogging(logger=LOGGER):
 		with open(filepath, 'wb') as f:
 			filepath.write(data)
 			return True
@@ -16,7 +20,7 @@ def writeBytesToFile(filepath, data):
 		return writeBytesToFileDirect(filepath, data)
 
 	dir = os.path.dirname(filepath)
-	with exceptionLogging():
+	with exceptionLogging(logger=LOGGER):
 		fd, tmpfile = tempfile.mkstemp(dir=dir)
 		os.close(fd)
 		with open(tmpfile, 'wb') as f:
@@ -25,6 +29,6 @@ def writeBytesToFile(filepath, data):
 		return True
 
 def readBytesFromFile(filepath):
-	with exceptionLogging():
+	with exceptionLogging(logger=LOGGER):
 		with open(filepath, 'rb') as f:
 			return f.read()

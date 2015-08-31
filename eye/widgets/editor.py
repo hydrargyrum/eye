@@ -10,6 +10,7 @@ import os
 import re
 import contextlib
 from weakref import ref
+from logging import getLogger
 
 from ..app import qApp
 from .helpers import CentralWidgetMixin, acceptIf
@@ -18,6 +19,8 @@ from .. import io
 
 __all__ = ('Editor', 'Marker', 'Indicator', 'Margin')
 
+
+LOGGER = getLogger(__name__)
 
 class HasWeakEditorMixin(object):
 	@property
@@ -427,7 +430,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			data = io.readBytesFromFile(path)
 			self.setText(data.decode('utf-8'))
 		except IOError, e:
-			qApp().logger.exception(e)
+			LOGGER.exception(e)
 			return False
 		self.setModified(False)
 		self.fileOpened.emit(path)
@@ -442,7 +445,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 				self.clear()
 				self.insert(data.decode('utf-8'))
 		except IOError, e:
-			qApp().logger.exception(e)
+			LOGGER.exception(e)
 			return False
 		self.setModified(False)
 		self.setCursorPosition(*oldPos)

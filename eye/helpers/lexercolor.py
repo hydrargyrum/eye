@@ -3,8 +3,8 @@ from PyQt4.QtGui import QFont
 from PyQt4.Qsci import QsciScintilla
 
 from ConfigParser import SafeConfigParser
+from logging import getLogger
 
-from ..app import qApp
 from ..connector import categoryObjects, registerSignal, disabled
 from ..utils import ignoreExceptions
 from ..colorutils import QColorAlpha
@@ -13,6 +13,8 @@ from ._lexercolorgroups import getIdAndAliases
 
 __all__ = ('readScheme', 'applySchemeToEditor', 'applySchemeOnLexerChange', 'useSchemeFile')
 
+
+LOGGER = getLogger(__name__)
 
 FG_ATTRS = frozenset(['fg', 'foreground', 'color'])
 BG_ATTRS = frozenset(['bg', 'background'])
@@ -85,7 +87,7 @@ class EditorModificator(object):
 		self.prop = prop
 
 	def unsupported(self, attr):
-		qApp().logger.warning('%s.%s is not supported', self.prop, attr)
+		LOGGER.warning('%s.%s is not supported', self.prop, attr)
 
 	def applyCaret(self, attr, strvalue):
 		if attr in FG_ATTRS:
@@ -156,12 +158,12 @@ def applySchemeToEditor(parser, editor):
 	lexer_name = lexer.language() if lexer else 'None'
 	for section in ('*', lexer_name):
 		if parser.has_section(section):
-			qApp().logger.debug('using section %r', section)
+			LOGGER.debug('using section %r', section)
 			for key in parser.options(section):
 				try:
 					stylename, attr = key.split('.')
 				except ValueError as e:
-					qApp().logger.info('ignoring style key %r', key)
+					LOGGER.info('ignoring style key %r', key)
 					continue
 				value = parser.get(section, key)
 

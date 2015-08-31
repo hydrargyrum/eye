@@ -4,6 +4,7 @@ from PyQt4.QtGui import QShortcut, QKeySequence
 import collections
 import weakref
 import inspect
+from logging import getLogger
 
 from .utils import exceptionLogging
 from .app import qApp
@@ -11,6 +12,9 @@ from .app import qApp
 __all__ = ('registerSignal', 'registerEventFilter', 'registerShortcut', 'disabled',
            'defaultEditorConfig', 'defaultWindowConfig', 'defaultLexerConfig',
            'categoryObjects')
+
+
+LOGGER = getLogger(__name__)
 
 
 class SignalListener(QObject):
@@ -36,7 +40,7 @@ class SignalListener(QObject):
 		if not getattr(self.cb, 'enabled', True):
 			return
 
-		with exceptionLogging(reraise=False):
+		with exceptionLogging(reraise=False, logger=LOGGER):
 			sender = kwargs.get('sender', self.sender())
 			self.cb(sender, *args)
 
@@ -63,7 +67,7 @@ class EventFilter(QObject):
 	def eventFilter(self, obj, ev):
 		ret = False
 		if ev.type() in self.eventTypes:
-			with exceptionLogging(reraise=False):
+			with exceptionLogging(reraise=False, logger=LOGGER):
 				ret = bool(self.cb(obj, ev))
 		return ret
 
@@ -81,11 +85,11 @@ class EventConnector(QObject, object):
 		self.allListeners = []
 
 	def doConnect(self, obj, lis, cat=''):
-		qApp().logger.debug('connecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
+		LOGGER.debug('connecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
 		lis.doConnect(obj)
 
 	def doDisconnect(self, obj, lis, cat=''):
-		qApp().logger.debug('disconnecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
+		LOGGER.debug('disconnecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
 		lis.doDisconnect(obj)
 
 	def addListener(self, categories, lis):

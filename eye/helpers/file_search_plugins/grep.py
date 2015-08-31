@@ -2,6 +2,7 @@
 import errno
 import os
 import subprocess
+from logging import getLogger
 
 from .base import registerPlugin, SearchPlugin
 from ...procutils import findCommand
@@ -9,6 +10,8 @@ from ...procutils import findCommand
 
 __all__ = ('AckGrep', 'AgGrep', 'BasicGrep')
 
+
+LOGGER = getLogger(__name__)
 
 class GrepLike(SearchPlugin):
 	cmd_base = None
@@ -37,7 +40,7 @@ class GrepLike(SearchPlugin):
 			try:
 				f, line, snippet = line.split(':', 2)
 			except ValueError, e:
-				qApp().logger.exception(e)
+				LOGGER.exception(e)
 				continue
 
 			snippet = snippet.strip()

@@ -2,12 +2,15 @@
 import errno
 import os
 import subprocess
+from logging import getLogger
 
 from .base import registerPlugin, SearchPlugin
 
 
 __all__ = ('GitGrep',)
 
+
+LOGGER = getLogger(__name__)
 
 @registerPlugin
 class GitGrep(SearchPlugin):
@@ -46,7 +49,7 @@ class GitGrep(SearchPlugin):
 			try:
 				f, line, snippet = line.split('\x00')
 			except ValueError, e:
-				qApp().logger.exception(e)
+				LOGGER.exception(e)
 				continue
 
 			snippet = snippet.strip()
