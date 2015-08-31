@@ -77,7 +77,7 @@ class EventFilter(QObject):
 class EventConnector(QObject, object):
 	def __init__(self):
 		QObject.__init__(self)
-		self.allObjects = WeakSet()
+		self.allObjects = weakref.WeakSet()
 		self.allListeners = []
 
 	def doConnect(self, obj, lis, cat=''):
@@ -134,14 +134,6 @@ class EventConnector(QObject, object):
 			categories = (categories,)
 		categories = frozenset(categories)
 		return [obj for obj in self.allObjects if categories <= obj.categories()]
-
-
-class WeakSet(weakref.WeakKeyDictionary):
-	def add(self, obj):
-		self[obj] = None
-
-	def remove(self, obj):
-		del self[obj]
 
 
 def peekSet(s):
