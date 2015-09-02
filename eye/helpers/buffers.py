@@ -31,6 +31,8 @@ def openEditor(path, loc=None):
 	if loc:
 		ed.goto1(*loc)
 	ed.giveFocus()
+
+	ed.positionJumped.emit(*ed.getCursorPosition())
 	return ed
 
 

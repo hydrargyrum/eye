@@ -549,6 +549,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	fileSavedAs = Signal(unicode)
 	fileOpened = Signal(unicode)
 	lexerChanged = Signal(QObject)
+	positionJumped = Signal(int, int)
 
 	## events
 	def closeEvent(self, ev):
