@@ -82,9 +82,13 @@ class App(QApplication):
 	def openCommandLineFiles(self):
 		if not self.argsFiles:
 			return
+
+		win = connector.categoryObjects('window')[0]
+
 		for name in self.argsFiles:
 			path, row, col = pathutils.parseFilename(name)
-			win = connector.categoryObjects('window')[0]
+			path = os.path.abspath(path)
+
 			ed = win.bufferOpen(path)
 			if row is not None:
 				ed.goto1(row, col)
