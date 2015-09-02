@@ -11,7 +11,8 @@ from ..colorutils import QColorAlpha
 from ..lexers import stylesFromLexer
 from ._lexercolorgroups import getIdAndAliases
 
-__all__ = ('readScheme', 'applySchemeToEditor', 'applySchemeOnLexerChange', 'useSchemeFile')
+__all__ = ('readScheme', 'applySchemeToEditor', 'applySchemeDictToEditor',
+           'applySchemeOnLexerChange', 'useSchemeFile')
 
 
 LOGGER = getLogger(__name__)
@@ -152,23 +153,30 @@ def matchingStyles(lexer, name):
 		return LexerModificator(lexer, getIdAndAliases(type(lexer), name))
 
 
+def applySchemeDictToEditor(dct, editor):
+	lexer = editor.lexer()
+
+	for key, value in dct.items():
+		try:
+			stylename, attr = key.split('.')
+		except ValueError as e:
+			LOGGER.info('ignoring style key %r', key)
+			continue
+
+		modificator = matchingStyles(lexer, stylename)
+		modificator.apply(attr, value)
+
+
 def applySchemeToEditor(parser, editor):
 	lexer = editor.lexer()
 
 	lexer_name = lexer.language() if lexer else 'None'
 	for section in ('*', lexer_name):
 		if parser.has_section(section):
-			LOGGER.debug('using section %r', section)
-			for key in parser.options(section):
-				try:
-					stylename, attr = key.split('.')
-				except ValueError as e:
-					LOGGER.info('ignoring style key %r', key)
-					continue
-				value = parser.get(section, key)
+			LOGGER.debug('using section %r for file %r', section, editor.path)
 
-				modificator = matchingStyles(lexer, stylename)
-				modificator.apply(attr, value)
+			dict_scheme = dict(parser.items(section))
+			applySchemeDictToEditor(dict_scheme, editor)
 
 
 def useSchemeFile(path, applyToAll=True):
@@ -176,9 +184,11 @@ def useSchemeFile(path, applyToAll=True):
 
 	if path is None:
 		SCHEME = None
+		LOGGER.info('unsetting scheme file')
 		return
 	else:
 		SCHEME = readScheme(path)
+		LOGGER.info('using scheme file %r', path)
 
 	if applyToAll:
 		for ed in categoryObjects('editor'):
