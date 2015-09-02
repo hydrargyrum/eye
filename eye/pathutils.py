@@ -4,7 +4,8 @@ import os
 import re
 
 
-__all__ = ('parseFilename', 'findAncestorContaining', 'findInAncestors', 'getCommonPrefix')
+__all__ = ('parseFilename', 'findAncestorContaining', 'findInAncestors',
+           'getCommonPrefix', 'getConfigPath')
 
 
 def parseFilename(filepath):
@@ -70,3 +71,11 @@ def getRelativePathIn(a, b):
 		if aparts[n] != bpart:
 			return
 	return '/'.join(aparts[n + 1:])
+
+
+def getConfigPath(*parts):
+	try:
+		import xdg.BaseDirectory
+		return xdg.BaseDirectory.save_config_path('eyeditor', *args)
+	except ImportError:
+		return os.path.join(os.path.expanduser('~/.config/eyeditor'), *args)

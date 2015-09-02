@@ -43,7 +43,7 @@ class App(QApplication):
 
 	def _startupScripts(self):
 		import glob
-		files = glob.glob(os.path.join(self.getConfigPath('startup'), '*.py'))
+		files = glob.glob(os.path.join(pathutils.getConfigPath('startup'), '*.py'))
 		files.sort()
 		return files
 
@@ -92,13 +92,6 @@ class App(QApplication):
 			ed = win.bufferOpen(path)
 			if row is not None:
 				ed.goto1(row, col)
-
-	def getConfigPath(self, *args):
-		try:
-			import xdg.BaseDirectory
-			return xdg.BaseDirectory.save_config_path('eyeditor', *args)
-		except ImportError:
-			return os.path.join(os.path.expanduser('~/.config/eyeditor'), *args)
 
 	@Slot(QWidget, QWidget)
 	def _appFocusChanged(self, old, new):
