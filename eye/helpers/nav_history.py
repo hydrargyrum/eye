@@ -1,42 +1,77 @@
 
 from weakref import ref
+from logging import getLogger
 
 from ..app import qApp
 from ..connector import registerSignal, disabled
 
 
-__all__ = ('pushHistory', 'popHistory', 'peekHistory',
-           'pushHistoryOnEditorChange')
+__all__ = ('pushHistory', 'goBack', 'goForward', 'peekHistory',
+           'pushHistoryOnEditorChange', 'pushHistoryOnJump')
 
 
-HISTORY = []
+LOGGER = getLogger(__name__)
+BACKWARD = []
+FORWARD = []
+POPPING = ()
+
 
 def pushHistory(editor, line, col):
-	HISTORY.append((ref(editor), line, col))
+	LOGGER.debug('pushing entry')
+
+	BACKWARD.append((ref(editor), line, col))
+	del FORWARD[:]
 
 
-def popHistory():
-	# TODO: pop again if we didn't move
-	current = qApp().win.lastFocus
+def goBack():
+	global POPPING
+
+	current = qApp().lastWindow.lastFocus
 
 	try:
-		reditor, line, col = HISTORY.pop()
+		rneweditor, newline, newcol = BACKWARD.pop()
 	except IndexError:
-		return
-	if not reditor:
-		return popHistory()
+		LOGGER.debug('cannot go back, stack is empty')
+		return False
+	if not rneweditor:
+		LOGGER.debug('skipping entry, editor was closed')
+		return goBack()
 
-	if ref(current) == reditor:
-		return popHistory()
+	POPPING = (rneweditor, newline, newcol)
+	FORWARD.append(makeEntry(current))
 
-	editor = reditor()
-	editor.setCursorPosition(line, col)
+	LOGGER.debug('going back')
+	editor = rneweditor()
+	editor.setCursorPosition(newline, newcol)
 	editor.giveFocus()
+	return True
+
+
+def goForward():
+	global POPPING
+
+	try:
+		rneweditor, newline, newcol = FORWARD.pop()
+	except IndexError:
+		LOGGER.debug('cannot go forward, stack is empty')
+		return False
+	if not rneweditor:
+		LOGGER.debug('skipping entry, editor was closed')
+		return goForward()
+
+	POPPING = (rneweditor, newline, newcol)
+	BACKWARD.append(makeEntry(qApp().lastWindow.lastFocus))
+
+	LOGGER.debug('going forward')
+	editor = rneweditor()
+	editor.setCursorPosition(newline, newcol)
+	editor.giveFocus()
+	return True
 
 
 def peekHistory():
-	if HISTORY:
-		reditor, line, col = HISTORY[-1]
+	if BACKWARD:
+		reditor, line, col = BACKWARD[-1]
 		if reditor:
 			return reditor(), line, col
 
@@ -44,7 +79,39 @@ def peekHistory():
 @registerSignal('editor', 'cursorPositionChanged')
 @disabled
 def pushHistoryOnEditorChange(editor, line, col):
-	entry = peekHistory()
-	if entry and entry[0] == ref(editor):
-		HISTORY.pop()
+	try:
+		heditor, _, __ = FORWARD[-1]
+	except IndexError:
+		pass
+	else:
+		if editor is heditor():
+			return
+
+	try:
+		heditor, _, __ = BACKWARD[-1]
+	except IndexError:
+		pass
+	else:
+		if editor is heditor():
+			return
+
+	try:
+		heditor, hline, hcol = POPPING
+	except ValueError:
+		pass
+	else:
+		if editor is heditor() and line == hline and col == hcol:
+			return
+
 	pushHistory(editor, line, col)
+
+
+@registerSignal('editor', 'positionJumped')
+@disabled
+def pushHistoryOnJump(editor, line, col):
+	pushHistory(editor, line, col)
+
+
+def makeEntry(editor):
+	line, col = editor.getCursorPosition()
+	return (ref(editor), line, col)
