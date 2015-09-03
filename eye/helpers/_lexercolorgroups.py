@@ -1,3 +1,4 @@
+# this project is licensed under the WTFPLv2, see COPYING.txt for details
 
 from PyQt4.Qsci import *
 

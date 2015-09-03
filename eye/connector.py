@@ -1,3 +1,4 @@
+# this project is licensed under the WTFPLv2, see COPYING.txt for details
 
 from PyQt4.QtCore import Qt, QObject, pyqtSlot as Slot
 from PyQt4.QtGui import QShortcut, QKeySequence

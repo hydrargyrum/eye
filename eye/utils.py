@@ -1,3 +1,4 @@
+# this project is licensed under the WTFPLv2, see COPYING.txt for details
 
 from contextlib import contextmanager
 from PyQt4.QtGui import QApplication
