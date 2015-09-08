@@ -17,11 +17,21 @@ def qtEnumToCs(enum):
 	return enum == Qt.CaseSensitive
 
 
-def glob2re(globstr, can_escape=False, explicit_slash=True, explicit_dot=True,
-            exact=False):
+DOTSLASH_GENERIC = 0
+DOTSLASH_NO_SLASH = 1
+DOTSLASH_NO_SLASH_AND_HIDDEN = 2
+
+def glob2re(globstr, can_escape=False, dotslash=DOTSLASH_NO_SLASH_AND_HIDDEN,
+            exact=False, double_star=False):
 	# fnmatch.translate uses python-specific syntax
-	dot = '[^/]' if explicit_slash else '.'
-	first_dot = '[^/.]' if explicit_slash else '[^.]'
+
+	if dotslash == 0:
+		dot = first_dot = '.'
+	elif dotslash == 1:
+		dot = first_dot = '[^/]'
+	elif dotslash == 2:
+		dot = '[^/]'
+		first_dot = '[^/.]'
 
 	def is_first_component(mtc):
 		return (mtc.start() == 0
@@ -32,23 +42,49 @@ def glob2re(globstr, can_escape=False, explicit_slash=True, explicit_dot=True,
 		if s == '?':
 			return first_dot if is_first_component(mtc) else dot
 		elif s == '*':
-			p = first_dot if is_first_component(mtc) else dot
-			return p + '*'
-		elif s.startswith('['):
-			return s
+			if is_first_component(mtc) and dotslash == 2:
+				return '(?:%s%s*)?' % (first_dot, dot)
+			else:
+				return dot + '*'
+		elif s.startswith('[') and s.endswith(']'):
+			if s == '[]':
+				return '(?:$FAIL^)' # can never match
+			elif s == '[!]':
+				return dot
+			elif s[1] == '!':
+				mid = s[2:-1]
+				return '[^%s]' % mid
+			else:
+				return s
 		elif can_escape and s == '\\\\':
 			return s
 		elif can_escape and s.startswith('\\'):
 			return s
+		elif '**' in s:
+			assert double_star
+			if s == '**':
+				return '.*'
+			elif s == '/**/':
+				return '/(?:.*/)?'
+			elif s == '/**':
+				return '(?:/.*)?'
+			elif s == '**/':
+				return '(?:.*/)?'
+			else:
+				assert False
 		elif s in '()[]{}.^$+\\':
 			return r'\%s' % s
 		else:
 			return s
 
+	reparts = []
 	if can_escape:
-		r = re.sub(r'\?|\*|\[[^]]*\]|\\\\|\\.|.', replace, globstr)
-	else:
-		r = re.sub(r'\?|\*|\[[^]]*\]|.', replace, globstr)
+		reparts.append(r'\\\\|\\.') # warning: headaches
+	if double_star:
+		reparts.append(r'(?:^|/)\*\*(?:/|$)')
+
+	reparts.append(r'\?|\*|\[[^]]*\]|.')
+	r = re.sub('|'.join(reparts), replace, globstr)
 	if exact:
 		r = '^%s$' % r
 	return r
@@ -62,7 +98,8 @@ def qreToPattern(qre):
 	elif qre.patternSyntax() in (qre.RegExp, qre.RegExp2):
 		return s
 	elif qre.patternSyntax() == qre.Wildcard:
-		return glob2re(s)
+		return glob2re(s, dotslash=DOTSLASH_GENERIC)
 	elif qre.patternSyntax() == qre.WildcardUnix:
-		return glob2re(can_escape=True)
+		return glob2re(s, dotslash=DOTSLASH_NO_SLASH_AND_HIDDEN,
+		               can_escape=True)
 	raise NotImplementedError()
