@@ -74,7 +74,7 @@ def getRelativePathIn(a, b):
 	return '/'.join(aparts[n + 1:])
 
 
-def getConfigPath(*parts):
+def getConfigPath(*args):
 	try:
 		import xdg.BaseDirectory
 		return xdg.BaseDirectory.save_config_path('eyeditor', *args)
