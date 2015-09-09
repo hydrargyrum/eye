@@ -35,7 +35,6 @@ class Project(QObject):
 		#self.monitor = None
 
 	def load(self, cfgpath):
-		print 'load', cfgpath, os.path.dirname(cfgpath)
 		assert not self.cfgpath
 
 		cfg = RawConfigParser()
@@ -65,7 +64,6 @@ class Project(QObject):
 		return bool(pathutils.getCommonPrefix(self.root, path))
 
 	def pathRelativeToRoot(self, path):
-		print path, self.root, pathutils.getRelativePathIn(path, self.root)
 		return pathutils.getRelativePathIn(path, self.root)
 
 	def applyOptions(self, editor):
@@ -80,7 +78,6 @@ class Project(QObject):
 
 
 def applyOptionsDict(editor, dct):
-	print dct
 	k = 'indent.tabs'
 	if k in dct:
 		b = bool(int(dct[k]))
@@ -103,7 +100,6 @@ def applyOptionsDict(editor, dct):
 
 
 def findProjectForFile(path):
-	print 'found====', path, pathutils.findInAncestors(path, [PROJECT_FILENAME])
 	return pathutils.findInAncestors(path, [PROJECT_FILENAME])
 
 
