@@ -6,9 +6,10 @@ Slot = pyqtSlot
 
 import fnmatch
 import os
-from ConfigParser import RawConfigParser
+from ConfigParser import RawConfigParser, NoOptionError
 from logging import getLogger
 from weakref import WeakValueDictionary, ref
+from StringIO import StringIO
 
 from ..connector import registerSignal, disabled
 from ..utils import exceptionLogging
@@ -16,8 +17,10 @@ from .. import pathutils
 from .. import lexers
 
 
-__all__ = ('Project', 'findProjectForFile', 'getProjectForFile', 'onOpenSave')
+__all__ = ('Project', 'findProjectForFile', 'getProjectForFile', 'onOpenSave',
+           'mergedOptionsForFile', 'applyOptionsDict')
 
+# uses .editorconfig format http://editorconfig.org/
 
 # TODO: use inotify/whatever to monitor changes to project file
 # TODO: add a signal so plugins know when to apply options
@@ -26,26 +29,56 @@ __all__ = ('Project', 'findProjectForFile', 'getProjectForFile', 'onOpenSave')
 
 LOGGER = getLogger(__name__)
 PROJECT_CACHE = WeakValueDictionary()
-PROJECT_FILENAME = '.eyeproject.ini'
+PROJECT_FILENAME = '.editorconfig'
 
 class Project(QObject):
 	def __init__(self):
 		QObject.__init__(self)
-		self.root = self.cfgpath = self.cfg = None
-		#self.monitor = None
+		self.dir = None
+		self.cfgpath = None
+		self.cfg = None
+		self.parentProject = None
+
+	def _parseFile(self, cfgpath):
+		# add a starting section so it becomes INI format
+		with open(cfgpath) as fp:
+			contents = fp.read()
+		fp = StringIO('[_ROOT_]\n%s' % contents)
+
+		cfg = RawConfigParser()
+		with exceptionLogging(logger=LOGGER):
+			cfg.readfp(fp, cfgpath)
+
+		return cfg
 
 	def load(self, cfgpath):
 		assert not self.cfgpath
 
-		cfg = RawConfigParser()
-		with exceptionLogging(logger=LOGGER):
-			cfg.read([cfgpath])
-		self.cfg = cfg
-		self.root = os.path.dirname(cfgpath)
+		self.cfg = self._parseFile(cfgpath)
+		self.dir = os.path.dirname(cfgpath)
 		self.cfgpath = cfgpath
+		LOGGER.debug('loaded config %r', self.cfgpath)
 
-		#self.monitor = QFileSystemWatcher([path])
-		#self.monitor.fileChanged.connect(self.onFileChanged)
+		try:
+			opt = self.cfg.get('_ROOT_', 'root')
+		except NoOptionError:
+			isroot = True
+		else:
+			isroot = parseBool(opt, default=True)
+
+		if not isroot:
+			LOGGER.debug('searching parent project of %r', self.cfgpath)
+			parent = os.path.dirname(self.dir)
+			self.parentProject = findProjectForFile(parent)
+
+	def _projectHierarchy(self):
+		items = []
+		current = self
+		while current is not None:
+			items.append(current)
+			current = current.parentProject
+		items.reverse()
+		return items
 
 	def _applySectionOptions(self, editor, section):
 		dct = dict(self.cfg.items(section))
@@ -53,6 +86,7 @@ class Project(QObject):
 
 	def _sectionsForFile(self, relpath):
 		sections = []
+		# TODO: use glob2re to support "**" and "{}"
 		for section in self.cfg.sections():
 			if fnmatch.filter([relpath, os.path.basename(relpath)], section):
 				sections.append(section)
@@ -61,38 +95,73 @@ class Project(QObject):
 
 	def appliesTo(self, path):
 		# TODO: support excludes
-		return bool(pathutils.getCommonPrefix(self.root, path))
+		return bool(pathutils.getCommonPrefix(self.dir, path))
 
-	def pathRelativeToRoot(self, path):
-		return pathutils.getRelativePathIn(path, self.root)
+	def pathRelativeToProject(self, path):
+		return pathutils.getRelativePathIn(path, self.dir)
 
 	def applyOptions(self, editor):
-		fullpath = editor.path
-		relpath = self.pathRelativeToRoot(fullpath)
-		sections = self._sectionsForFile(relpath)
+		options = mergedOptionsForFile(self, editor.path)
+		applyOptionsDict(editor, options)
 
-		LOGGER.debug('for %r, applying project %r sections %r', fullpath, self.cfgpath, sections)
 
-		for section in sections:
-			self._applySectionOptions(editor, section)
+def parseBool(s, default=False):
+	s = (s or '').lower()
+	if s in ['true', 'yes', 'on', '1']:
+		return True
+	elif s in ['false', 'no', 'off', '0']:
+		return False
+	else:
+		return default
+
+
+def mergedOptionsForFile(project, filepath):
+	projects = project._projectHierarchy()
+	options = {}
+	for project in projects:
+		relpath = project.pathRelativeToProject(filepath)
+		for section in project._sectionsForFile(relpath):
+			options.update(project.cfg.items(section))
+	return options
 
 
 def applyOptionsDict(editor, dct):
-	k = 'indent.tabs'
-	if k in dct:
-		b = bool(int(dct[k]))
-		editor.setIndentationsUseTabs(b)
-	k = 'indent.width'
-	if k in dct:
-		i = int(dct[k])
-		editor.setTabWidth(i)
-		editor.setIndentationWidth(i)
-	k = 'indent.tab_width'
-	if k in dct:
-		i = int(dct[k])
-		editor.setTabWidth(i)
+	val = dct.get('indent_style')
+	if val == 'space':
+		editor.setIndentationsUseTabs(False)
+	elif val == 'tab':
+		editor.setIndentationsUseTabs(True)
+	elif val is not None:
+		LOGGER.info('unknown indent_style: %r', val)
 
-	k = 'lexer.extension'
+	val = dct.get('indent_size')
+	try:
+		val = int(val)
+	except (ValueError, TypeError):
+		LOGGER.info('indent_size is not a number:: %r', val)
+	else:
+		editor.setTabWidth(val)
+		editor.setIndentationWidth(val)
+
+	val = dct.get('end_of_line')
+	if val == 'lf':
+		editor.setEolMode(editor.SC_EOL_LF)
+	elif val == 'cr':
+		editor.setEolMode(editor.SC_EOL_CR)
+	elif val == 'crlf':
+		editor.setEolMode(editor.SC_EOL_CRLF)
+	elif val is not None:
+		LOGGER.info('unknown end_of_line: %r', val)
+
+	val = dct.get('insert_final_newline')
+	if val == 'true':
+		editor.saving.final_newline = False
+	elif val == 'false':
+		editor.saving.final_newline = False
+	elif val is not None:
+		LOGGER.info('unknown insert_final_newline: %r', val)
+
+	k = 'eye.lexer_extension'
 	if k in dct:
 		lexer_type = lexers.extensionToLexer(dct[k])
 		if lexer_type:
