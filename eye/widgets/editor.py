@@ -430,15 +430,20 @@ class Editor(BaseEditor, CentralWidgetMixin):
 				ret = self.saveFile()
 		return ret
 
+	def _newlineString(self):
+		modes = {QsciScintilla.SC_EOL_LF: '\n', QsciScintilla.SC_EOL_CRLF: '\r\n',
+		         QsciScintilla.SC_EOL_CR: '\r'}
+		return modes.get(self.eolMode(), '\n')
+
 	def _readText(self, data):
 		text = data.decode(self.saving.encoding)
-		if self.saving.final_newline and text.endswith('\n'):
+		if self.saving.final_newline and text.endswith(self._newlineString()):
 			text = text[:-1]
 		return text
 
 	def _writeText(self, text):
 		if self.saving.final_newline:
-			text += '\n'
+			text += self._newlineString()
 		return text.encode(self.saving.encoding)
 
 	def openFile(self, path):
