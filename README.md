@@ -27,7 +27,7 @@ All of this is doable through the full Python API, the EYE API and the Qt compon
 * syntax coloring based on file extension
 * theming
 * macro recording/replay
-* "project"-wide indentation style (TODO support for [`.editorconfig`](http://editorconfig.org/))
+* "project"-wide indentation style (with support for [`.editorconfig`](http://editorconfig.org/))
 * file-line bookmarks (not saved on quit though)
 
 ## What plugins are planned?
