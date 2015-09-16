@@ -141,6 +141,14 @@ def applyPreOptionsDict(editor, dct):
 		else:
 			editor.saving.encoding = val
 
+	val = dct.get('insert_final_newline')
+	if val == 'true':
+		editor.saving.final_newline = True
+	elif val == 'false':
+		editor.saving.final_newline = False
+	elif val is not None:
+		LOGGER.info('unknown insert_final_newline: %r', val)
+
 
 def applyOptionsDict(editor, dct):
 	val = dct.get('indent_style')
@@ -170,13 +178,6 @@ def applyOptionsDict(editor, dct):
 	elif val is not None:
 		LOGGER.info('unknown end_of_line: %r', val)
 
-	val = dct.get('insert_final_newline')
-	if val == 'true':
-		editor.saving.final_newline = False
-	elif val == 'false':
-		editor.saving.final_newline = False
-	elif val is not None:
-		LOGGER.info('unknown insert_final_newline: %r', val)
 
 	k = 'eye.lexer_extension'
 	if k in dct:
