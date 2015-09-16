@@ -111,11 +111,14 @@ class Project(QObject):
 		applyPreOptionsDict(editor, options)
 
 
+TRUE_STRINGS = ['true', 'yes', 'on', '1']
+FALSE_STRINGS = ['false', 'no', 'off', '0']
+
 def parseBool(s, default=False):
 	s = (s or '').lower()
-	if s in ['true', 'yes', 'on', '1']:
+	if s in TRUE_STRINGS:
 		return True
-	elif s in ['false', 'no', 'off', '0']:
+	elif s in FALSE_STRINGS:
 		return False
 	else:
 		return default
@@ -160,13 +163,14 @@ def applyOptionsDict(editor, dct):
 		LOGGER.info('unknown indent_style: %r', val)
 
 	val = dct.get('indent_size')
-	try:
-		val = int(val)
-	except (ValueError, TypeError):
-		LOGGER.info('indent_size is not a number:: %r', val)
-	else:
-		editor.setTabWidth(val)
-		editor.setIndentationWidth(val)
+	if val is not None:
+		try:
+			val = int(val)
+		except ValueError:
+			LOGGER.info('indent_size is not a number: %r', val)
+		else:
+			editor.setTabWidth(val)
+			editor.setIndentationWidth(val)
 
 	val = dct.get('end_of_line')
 	if val == 'lf':
