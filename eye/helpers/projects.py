@@ -182,6 +182,14 @@ def applyOptionsDict(editor, dct):
 	elif val is not None:
 		LOGGER.info('unknown end_of_line: %r', val)
 
+	val = dct.get('max_line_length')
+	if val is not None:
+		try:
+			val = int(val)
+		except ValueError:
+			LOGGER.info('max_line_length is not a number: %r', val)
+		else:
+			editor.setEdgeColumn(val)
 
 	k = 'eye.lexer_extension'
 	if k in dct:
