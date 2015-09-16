@@ -17,8 +17,10 @@ from .. import pathutils
 from .. import lexers
 
 
-__all__ = ('Project', 'findProjectForFile', 'getProjectForFile', 'onOpenSave',
-           'mergedOptionsForFile', 'applyOptionsDict')
+__all__ = ('Project', 'findProjectForFile', 'getProjectForFile',
+           'mergedOptionsForFile',
+           'applyPreOptionsDict', 'applyOptionsDict',
+           'onPreOpen', 'onOpenSave')
 
 # uses .editorconfig format http://editorconfig.org/
 
@@ -104,6 +106,10 @@ class Project(QObject):
 		options = mergedOptionsForFile(self, editor.path)
 		applyOptionsDict(editor, options)
 
+	def applyPreOptions(self, editor):
+		options = mergedOptionsForFile(self, editor.path)
+		applyPreOptionsDict(editor, options)
+
 
 def parseBool(s, default=False):
 	s = (s or '').lower()
@@ -123,6 +129,17 @@ def mergedOptionsForFile(project, filepath):
 		for section in project._sectionsForFile(relpath):
 			options.update(project.cfg.items(section))
 	return options
+
+
+def applyPreOptionsDict(editor, dct):
+	val = dct.get('charset')
+	if val is not None:
+		try:
+			''.encode(val)
+		except LookupError:
+			LOGGER.info('unknown charset: %r', val)
+		else:
+			editor.saving.encoding = val
 
 
 def applyOptionsDict(editor, dct):
@@ -201,6 +218,17 @@ def openProjectFile(filepath):
 	PROJECT_CACHE[filepath] = project
 
 	return project
+
+
+@registerSignal('editor', 'fileAboutToBeOpened')
+@disabled
+def onPreOpen(editor, path):
+	project = getProjectForFile(path)
+	if not project:
+		return
+
+	editor.project = project
+	project.applyPreOptions(editor)
 
 
 @registerSignal('editor', 'fileOpened')

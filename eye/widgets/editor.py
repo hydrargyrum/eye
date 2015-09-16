@@ -451,8 +451,9 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		except IOError, e:
 			LOGGER.exception(e)
 			return False
-		text = self._readText(data)
+		self.fileAboutToBeOpened.emit(path)
 
+		text = self._readText(data)
 		self.setText(text)
 		self.setModified(False)
 		self.fileOpened.emit(path)
@@ -572,6 +573,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	titleChanged = Signal()
 	fileSaved = Signal(unicode)
 	fileSavedAs = Signal(unicode)
+	fileAboutToBeOpened = Signal(unicode)
 	fileOpened = Signal(unicode)
 	lexerChanged = Signal(QObject)
 	positionJumped = Signal(int, int)
