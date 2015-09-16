@@ -358,6 +358,12 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.path = ''
 		self.modificationChanged.connect(self.titleChanged)
 
+		self.saving = structs.PropDict()
+		self.saving.final_newline = True
+		self.saving.encoding = 'utf-8'
+		self.setUtf8(True)
+		# the editor is in utf-8 internally, encoding is done when saving
+
 		self.search = structs.PropDict()
 		self.search.incremental = True
 		self.search.highlight = False
@@ -392,7 +398,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			if not path:
 				return False
 			path = path
-		data = self.text().encode('utf-8')
+
+		data = self._writeText(self.text())
 		try:
 			io.writeBytesToFile(path, data)
 		except IOError, e:
@@ -423,31 +430,48 @@ class Editor(BaseEditor, CentralWidgetMixin):
 				ret = self.saveFile()
 		return ret
 
+	def _readText(self, data):
+		text = data.decode(self.saving.encoding)
+		if self.saving.final_newline and text.endswith('\n'):
+			text = text[:-1]
+		return text
+
+	def _writeText(self, text):
+		if self.saving.final_newline:
+			text += '\n'
+		return text.encode(self.saving.encoding)
+
 	def openFile(self, path):
 		if not self.closeFile():
 			return False
 		self.path = path
+
 		try:
 			data = io.readBytesFromFile(path)
-			self.setText(data.decode('utf-8'))
 		except IOError, e:
 			LOGGER.exception(e)
 			return False
+		text = self._readText(data)
+
+		self.setText(text)
 		self.setModified(False)
 		self.fileOpened.emit(path)
 		return True
 
 	def reloadFile(self):
 		oldPos = self.getCursorPosition()
+
 		try:
 			data = io.readBytesFromFile(self.path)
-			with self.undoGroup():
-				# XXX setText would clear the history
-				self.clear()
-				self.insert(data.decode('utf-8'))
 		except IOError, e:
 			LOGGER.exception(e)
 			return False
+		text = self._readText(data)
+
+		with self.undoGroup():
+			# XXX setText would clear the history
+			self.clear()
+			self.insert(text)
 		self.setModified(False)
 		self.setCursorPosition(*oldPos)
 		return True
