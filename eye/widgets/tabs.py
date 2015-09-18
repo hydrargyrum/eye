@@ -19,6 +19,12 @@ class TabBar(QTabBar):
 		self.setMovable(True)
 		self.setUsesScrollButtons(True)
 
+	def focusInEvent(self, ev):
+		QTabBar.focusInEvent(self, ev)
+		self.focused.emit()
+
+	focused = Signal()
+
 
 class TabWidget(QTabWidget, WidgetMixin):
 	def __init__(self, *args):
@@ -27,7 +33,10 @@ class TabWidget(QTabWidget, WidgetMixin):
 
 		self.tabCloseRequested.connect(self._tabCloseRequested)
 		self.currentChanged.connect(self._currentChanged)
-		self.setTabBar(TabBar())
+
+		bar = TabBar()
+		self.setTabBar(bar)
+		bar.focused.connect(self.refocus)
 
 		self.addCategory('tabwidget')
 
@@ -115,3 +124,7 @@ class TabWidget(QTabWidget, WidgetMixin):
 	def _changeTabBarVisibility(self):
 		visible = (self.count() > 1)
 		self.tabBar().setVisible(visible)
+
+	@Slot()
+	def refocus(self):
+		self.currentWidget().setFocus(Qt.OtherFocusReason)
