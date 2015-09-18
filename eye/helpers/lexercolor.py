@@ -193,9 +193,8 @@ def useSchemeFile(path, applyToAll=True):
 
 	if applyToAll:
 		for ed in categoryObjects('editor'):
-			lexer = ed.lexer()
-			if lexer is not None:
-				applySchemeToLexer(SCHEME, ed.lexer())
+			if ed.lexer() is not None:
+				applySchemeToEditor(SCHEME, ed)
 
 
 @registerSignal('editor', 'lexerChanged')
