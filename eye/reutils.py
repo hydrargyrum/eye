@@ -265,12 +265,22 @@ class ReTests(unittest.TestCase):
 		self.check_pattern(
 			'[',
 			'['.split(),
-			'x xa *'.split(),
+			'x xa * ]'.split(),
+			**options)
+		self.check_pattern(
+			']',
+			']'.split(),
+			'x xa * ['.split(),
 			**options)
 		self.check_pattern(
 			'[]',
 			[],
 			'x xa *'.split(),
+			**options)
+		self.check_pattern(
+			'[!]',
+			'x ] ! [ *'.split(),
+			'xa [!]'.split(),
 			**options)
 
 
