@@ -23,7 +23,7 @@ DOTSLASH_NO_SLASH = 1
 DOTSLASH_NO_SLASH_AND_HIDDEN = 2
 
 def glob2re(globstr, can_escape=False, dotslash=DOTSLASH_NO_SLASH_AND_HIDDEN,
-            exact=False, double_star=False):
+            exact=False, double_star=False, sets=False):
 	# fnmatch.translate uses python-specific syntax
 
 	if dotslash == 0:
@@ -57,6 +57,9 @@ def glob2re(globstr, can_escape=False, dotslash=DOTSLASH_NO_SLASH_AND_HIDDEN,
 				return '[^%s]' % mid
 			else:
 				return s
+		elif sets and s.startswith('{') and s.endswith('}'):
+			parts = [re.escape(p) for p in s[1:-1].split(',')]
+			return '(?:%s)' % '|'.join(parts)
 		elif can_escape and s == '\\\\':
 			return s
 		elif can_escape and s.startswith('\\'):
@@ -83,6 +86,8 @@ def glob2re(globstr, can_escape=False, dotslash=DOTSLASH_NO_SLASH_AND_HIDDEN,
 		reparts.append(r'\\\\|\\.') # warning: headaches
 	if double_star:
 		reparts.append(r'(?:^|/)\*\*(?:/|$)')
+	if sets:
+		reparts.append(r'\{[^}]*\}')
 
 	reparts.append(r'\?|\*|\[[^]]*\]|.')
 	r = re.sub('|'.join(reparts), replace, globstr)
@@ -241,6 +246,12 @@ class ReTests(unittest.TestCase):
 			r'foo\\bar foobar'.split(),
 			**options)
 
+		self.check_pattern(
+			'\{foo\}',
+			'{foo}'.split(),
+			'foo'.split(),
+			sets=True, **options)
+
 	def test_glob2re_charset(self):
 		options = dict()
 		self.check_pattern(
@@ -281,6 +292,33 @@ class ReTests(unittest.TestCase):
 			'[!]',
 			'x ] ! [ *'.split(),
 			'xa [!]'.split(),
+			**options)
+
+	def test_glob2re_sets(self):
+		options = dict(sets=True)
+		self.check_pattern(
+			'{foo}',
+			'{foo}'.split(),
+			'foo bar {bar}'.split())
+		self.check_pattern(
+			'{foo}',
+			'foo'.split(),
+			'{foo} bar {bar}'.split(),
+			**options)
+		self.check_pattern(
+			'{foo,bar}',
+			'foo bar'.split(),
+			'{foo} {bar}'.split(),
+			**options)
+		self.check_pattern(
+			'{f{oo,bar}',
+			'f{oo bar'.split(),
+			'{foo} {bar} {f{oo,bar} foo'.split(),
+			**options)
+		self.check_pattern(
+			'{{foo}}', # ({foo)}
+			'{foo}'.split(),
+			'foo {foo foo} {bar}'.split(),
 			**options)
 
 
