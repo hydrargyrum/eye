@@ -539,6 +539,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	def find(self, expr, caseSensitive=None, isRe=None, whole=None, wrap=None):
 		if self.search.highlight:
 			self.clearSearchHighlight()
+
 		self.search.expr = expr
 		if caseSensitive is not None:
 			self.search.caseSensitive = caseSensitive
@@ -555,7 +556,10 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		if self.search.highlight:
 			self._highlightSearch()
 
-		self.findFirst(self.search.expr, self.search.isRe, caseSensitive, self.search.whole, self.search.wrap, True)
+		lfrom, ifrom, lto, ito = self.getSelection()
+		self.setCursorPosition(*min([(lfrom, ifrom), (lto, ito)]))
+
+		return self.findFirst(self.search.expr, self.search.isRe, caseSensitive, self.search.whole, self.search.wrap, True)
 
 	def _findInDirection(self, forward):
 		if self.search.get('forward') == forward:
@@ -563,7 +567,11 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		else:
 			self.search.forward = forward
 			caseSensitive = self._smartCase(self.search.expr, self.search.caseSensitive)
-			return self.findFirst(self.search.expr, self.search.isRe, caseSensitive, self.search.whole, self.search.wrap, self.search.forward)
+			b = self.findFirst(self.search.expr, self.search.isRe, caseSensitive, self.search.whole, self.search.wrap, self.search.forward)
+			if b and not forward:
+				# weird behavior when switching from forward to backward
+				return self.findNext()
+			return b
 
 	def findForward(self):
 		return self._findInDirection(True)
