@@ -49,109 +49,128 @@ def parseBool(s):
 	raise ValueError('%r is not a boolean value' % s)
 
 
-class LexerModificator(object):
-	def __init__(self, lexer, ids):
-		self.lexer = lexer
-		self.ids = ids
-
-	def apply(self, attr, strvalue):
-		for id in self.ids:
-			self.applyOne(id, attr, strvalue)
-
-	def applyOne(self, styleId, attr, strvalue):
+def lexerModificator(tokenname, attr, strvalue, editor):
+	def applyOne(styleId, attr, strvalue):
 		if attr == 'font':
-			font = self.lexer.font(styleId)
+			font = lexer.font(styleId)
 			font.setFamily(strvalue)
-			self.lexer.setFont(font, styleId)
+			lexer.setFont(font, styleId)
 		elif attr == 'bold':
-			font = self.lexer.font(styleId)
+			font = lexer.font(styleId)
 			font.setBold(parseBool(strvalue))
-			self.lexer.setFont(font, styleId)
+			lexer.setFont(font, styleId)
 		elif attr == 'italic':
-			font = self.lexer.font(styleId)
+			font = lexer.font(styleId)
 			font.setItalic(parseBool(strvalue))
-			self.lexer.setFont(font, styleId)
+			lexer.setFont(font, styleId)
 		elif attr == 'underline':
-			font = self.lexer.font(styleId)
+			font = lexer.font(styleId)
 			font.setUnderline(parseBool(strvalue))
-			self.lexer.setFont(font, styleId)
+			lexer.setFont(font, styleId)
 		elif attr in FG_ATTRS:
-			self.lexer.setColor(QColorAlpha(strvalue), styleId)
+			lexer.setColor(QColorAlpha(strvalue), styleId)
 		elif attr in BG_ATTRS:
-			self.lexer.setPaper(QColorAlpha(strvalue), styleId)
+			lexer.setPaper(QColorAlpha(strvalue), styleId)
+
+	lexer = editor.lexer()
+	if not lexer:
+		return
+	if tokenname == '*':
+		ids = stylesFromLexer(lexer).values()
+	elif tokenname == '_default':
+		ids = [editor.STYLE_DEFAULT]
+	else:
+		ids = getIdAndAliases(type(lexer), tokenname)
+
+	for id in ids:
+		applyOne(id, attr, strvalue)
 
 
-class EditorModificator(object):
-	PROPS = ['_caret', '_selection', '_matchedbrace', '_unmatchedbrace', '_whitespace', '_hotspot']
+def editorModificator(element, attr, strvalue, editor):
+	def unsupported(attr):
+		LOGGER.warning('%s.%s is not supported', element, attr)
 
-	def __init__(self, editor, prop):
-		self.editor = editor
-		self.prop = prop
-
-	def unsupported(self, attr):
-		LOGGER.warning('%s.%s is not supported', self.prop, attr)
-
-	def applyCaret(self, attr, strvalue):
+	def applyCaret(attr, strvalue):
 		if attr in FG_ATTRS:
 			qc = QColorAlpha(strvalue)
-			self.editor.setCaretForegroundColor(qc)
+			editor.setCaretForegroundColor(qc)
 		elif attr in BG_ATTRS:
 			qc = QColorAlpha(strvalue)
-			self.editor.setCaretLineBackgroundColor(qc)
+			editor.setCaretLineBackgroundColor(qc)
 		else:
-			self.unsupported(attr)
+			unsupported(attr)
 
-	def applySelection(self, attr, strvalue):
-		self.applyBasic('Selection', attr, strvalue)
+	def applySelection(attr, strvalue):
+		applyBasic('Selection', attr, strvalue)
 
-	def applyMB(self, attr, strvalue):
-		self.applyBasic('MatchedBrace', attr, strvalue)
+	def applyMB(attr, strvalue):
+		applyBasic('MatchedBrace', attr, strvalue)
 
-	def applyUB(self, attr, strvalue):
-		self.applyBasic('UnmatchedBrace', attr, strvalue)
+	def applyUB(attr, strvalue):
+		applyBasic('UnmatchedBrace', attr, strvalue)
 
-	def applyWS(self, attr, strvalue):
-		self.applyBasic('Whitespace', attr, strvalue)
+	def applyWS(attr, strvalue):
+		applyBasic('Whitespace', attr, strvalue)
 
-	def applyHotspot(self, attr, strvalue):
-		self.applyBasic('Hotspot', attr, strvalue)
+	def applyHotspot(attr, strvalue):
+		applyBasic('Hotspot', attr, strvalue)
 
-	def applyBasic(self, edAttr, attr, strvalue):
+	def applyBasic(edAttr, attr, strvalue):
 		if attr in FG_ATTRS:
 			edAttr = 'set%sForegroundColor' % edAttr
 			qc = QColorAlpha(strvalue)
-			getattr(self.editor, edAttr)(qc)
+			getattr(editor, edAttr)(qc)
 		elif attr in BG_ATTRS:
 			edAttr = 'set%sBackgroundColor' % edAttr
 			qc = QColorAlpha(strvalue)
-			getattr(self.editor, edAttr)(qc)
+			getattr(editor, edAttr)(qc)
 		else:
-			self.unsupported(attr)
+			unsupported(attr)
+
+	def applyText(attr, strvalue):
+		if attr in FG_ATTRS:
+			qc = QColorAlpha(strvalue)
+			editor.setColor(qc)
+		elif attr in BG_ATTRS:
+			qc = QColorAlpha(strvalue)
+			editor.setPaper(qc)
+		elif attr == 'font':
+			font = editor.font()
+			font.setFamily(strvalue)
+			editor.setFont(font)
+		elif attr == 'bold':
+			font = editor.font()
+			font.setBold(parseBool(strvalue))
+			editor.setFont(font)
+		elif attr == 'italic':
+			font = editor.font()
+			font.setItalic(parseBool(strvalue))
+			editor.setFont(font)
+		elif attr == 'underline':
+			font = editor.font()
+			font.setUnderline(parseBool(strvalue))
+			editor.setFont(font)
+
+	d = {
+		'caret': applyCaret, 'selection': applySelection,
+		'matchedbrace': applyMB, 'hotspot': applyHotspot,
+		'unmatchedbrace': applyUB,
+		'whitespace': applyWS, 'text': applyText
+	}
+	d[element](attr, strvalue)
 
 
-	def apply(self, attr, strvalue):
-		d = {
-			'_caret': self.applyCaret, '_selection': self.applySelection,
-			'_matchedbrace': self.applyMB, '_hotspot': self.applyHotspot,
-			'_unmatchedbrace': self.applyUB,
-			'_whitespace': self.applyWS
-		}
-		d[self.prop](attr, strvalue)
+def indicatorModificator(name, attr, strvalue, editor):
+	pass
 
 
-def matchingStyles(lexer, name):
-	base_style = 'STYLE%s' % name.upper()
-
-	if name in EditorModificator.PROPS:
-		return EditorModificator(lexer.editor(), name)
-	elif name == '*':
-		return LexerModificator(lexer, stylesFromLexer(lexer).values())
-	elif hasattr(QsciScintilla, base_style):
-		return LexerModificator(lexer, [getattr(QsciScintilla, base_style)])
-	elif name.isdigit():
-		return LexerModificator(lexer, [int(name)])
-	else:
-		return LexerModificator(lexer, getIdAndAliases(type(lexer), name))
+def getModificator(name):
+	if name == 'token':
+		return lexerModificator
+	elif name == 'indicator':
+		return indicatorModificator
+	elif name == 'base':
+		return editorModificator
 
 
 def applySchemeDictToEditor(dct, editor):
@@ -159,13 +178,13 @@ def applySchemeDictToEditor(dct, editor):
 
 	for key, value in dct.items():
 		try:
-			stylename, attr = key.split('.')
+			styletype, stylename, attr = key.split('.')
 		except ValueError as e:
 			LOGGER.info('ignoring style key %r', key)
 			continue
 
-		modificator = matchingStyles(lexer, stylename)
-		modificator.apply(attr, value)
+		modificator = getModificator(styletype)
+		modificator(stylename, attr, value, editor)
 
 
 def applySchemeToEditor(parser, editor):
@@ -193,14 +212,18 @@ def useSchemeFile(path, applyToAll=True):
 
 	if applyToAll:
 		for ed in categoryObjects('editor'):
-			if ed.lexer() is not None:
-				applySchemeToEditor(SCHEME, ed)
+			applySchemeToEditor(SCHEME, ed)
+
+
+@registerSignal('editor', 'connected')
+@disabled
+def applySchemeOnCreate(editor):
+	if SCHEME:
+		applySchemeToEditor(SCHEME, editor)
 
 
 @registerSignal('editor', 'lexerChanged')
 @disabled
 def applySchemeOnLexerChange(editor, lexer):
-	if not lexer:
-		return
 	if SCHEME:
 		applySchemeToEditor(SCHEME, editor)
