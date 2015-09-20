@@ -400,6 +400,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			path = path
 
 		data = self._writeText(self.text())
+		self.fileAboutToBeSaved.emit(path)
 		try:
 			io.writeBytesToFile(path, data)
 		except IOError, e:
@@ -584,11 +585,13 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 	## signals
 	titleChanged = Signal()
+	fileAboutToBeSaved = Signal(unicode)
 	fileSaved = Signal(unicode)
 	fileSavedAs = Signal(unicode)
 	fileAboutToBeOpened = Signal(unicode)
 	fileOpened = Signal(unicode)
 	lexerChanged = Signal(QObject)
+	fileModifiedExternally = Signal()
 	positionJumped = Signal(int, int)
 
 	## events
