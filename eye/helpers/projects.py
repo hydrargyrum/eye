@@ -202,6 +202,10 @@ def applyOptionsDict(editor, dct):
 		else:
 			editor.setEdgeColumn(val)
 
+	val = dct.get('trim_trailing_whitespace')
+	if val is not None:
+		editor.saving.trim_whitespace = parseBool(val)
+
 	k = 'eye.lexer_extension'
 	if k in dct:
 		lexer_type = lexers.extensionToLexer(dct[k])

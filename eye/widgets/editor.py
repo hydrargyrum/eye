@@ -359,6 +359,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.modificationChanged.connect(self.titleChanged)
 
 		self.saving = structs.PropDict()
+		self.saving.trim_whitespace = False
 		self.saving.final_newline = True
 		self.saving.encoding = 'utf-8'
 		self.setUtf8(True)
@@ -443,7 +444,12 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			text = text[:-1]
 		return text
 
+	def _removeTrailingWhitespace(self, text):
+		return re.sub(r'[ \t]+$', '', text, flags=re.MULTILINE)
+
 	def _writeText(self, text):
+		if self.saving.trim_whitespace:
+			text = self._removeTrailingWhitespace(text)
 		if self.saving.final_newline:
 			text += self._newlineString()
 		return text.encode(self.saving.encoding)
