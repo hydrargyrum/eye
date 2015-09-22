@@ -49,8 +49,8 @@ class GitGrep(SearchPlugin):
 				continue
 			try:
 				f, line, snippet = line.split('\x00')
-			except ValueError, e:
-				LOGGER.exception(e)
+			except ValueError:
+				LOGGER.warning('cannot parse output line %r when searching %r', line, expr, exc_info=True)
 				continue
 
 			snippet = snippet.strip()

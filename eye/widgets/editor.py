@@ -403,7 +403,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.fileAboutToBeSaved.emit(path)
 		try:
 			io.writeBytesToFile(path, data)
-		except IOError, e:
+		except IOError:
+			LOGGER.error('cannot write file %r', path, exc_info=True)
 			return False
 
 		self.path = path
@@ -454,8 +455,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		try:
 			data = io.readBytesFromFile(path)
-		except IOError, e:
-			LOGGER.exception(e)
+		except IOError:
+			LOGGER.error('cannot read file %r', path, exc_info=True)
 			return False
 		self.fileAboutToBeOpened.emit(path)
 
@@ -470,8 +471,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		try:
 			data = io.readBytesFromFile(self.path)
-		except IOError, e:
-			LOGGER.exception(e)
+		except IOError:
+			LOGGER.error('cannot reload file %r', self.path, exc_info=True)
 			return False
 		text = self._readText(data)
 

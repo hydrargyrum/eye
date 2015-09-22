@@ -40,8 +40,8 @@ class GrepLike(SearchPlugin):
 				continue
 			try:
 				f, line, snippet = line.split(':', 2)
-			except ValueError, e:
-				LOGGER.exception(e)
+			except ValueError:
+				LOGGER.warning('cannot parse line %r when searching %r', line, expr, exc_info=True)
 				continue
 
 			snippet = snippet.strip()

@@ -53,11 +53,11 @@ class App(QApplication):
 
 	def runStartScripts(self):
 		for f in self._startupScripts():
-			self.logger.info('execing startup script %s' % f)
+			self.logger.debug('execing startup script %s', f)
 			try:
 				execfile(f, self._scriptDict())
-			except Exception, e:
-				self.logger.exception(e)
+			except Exception:
+				self.logger.error('cannot execute startup script %r', f, exc_info=True)
 
 	def run(self):
 		self._handleArguments()
