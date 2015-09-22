@@ -106,6 +106,12 @@ class Project(QObject):
 		sections.sort(key=len)
 		return sections
 
+	def rootProject(self):
+		current = self
+		while current.parentProject is not None:
+			current = current.parentProject
+		return current
+
 	def appliesTo(self, path):
 		# TODO: support excludes
 		return bool(pathutils.getCommonPrefix(self.dir, path))
