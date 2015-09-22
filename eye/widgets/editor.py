@@ -490,6 +490,26 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.setCursorPosition(*oldPos)
 		return True
 
+	## various props
+	def setUseFinalNewline(self, b):
+		self.saving.final_newline = b
+
+	def useFinalNewline(self):
+		return self.saving.final_newline
+
+	def setRemoveTrailingWhitespace(self, b):
+		self.saving.trim_whitespace = b
+
+	def doesRemoveTrailingWhitespace(self):
+		return self.saving.trim_whitespace
+
+	def setEncoding(self, s):
+		u''.encode(s) # ensure it's usable
+		self.saving.encoding = s
+
+	def encoding(self):
+		return self.saving.encoding
+
 	## misc
 	@contextlib.contextmanager
 	def undoGroup(self):

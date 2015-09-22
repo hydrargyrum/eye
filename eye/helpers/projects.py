@@ -153,13 +153,13 @@ def applyPreOptionsDict(editor, dct):
 		except LookupError:
 			LOGGER.info('unknown charset: %r', val)
 		else:
-			editor.saving.encoding = val
+			editor.setEncoding(val)
 
 	val = dct.get('insert_final_newline')
 	if val == 'true':
-		editor.saving.final_newline = True
+		editor.setUseFinalNewline(True)
 	elif val == 'false':
-		editor.saving.final_newline = False
+		editor.setUseFinalNewline(False)
 	elif val is not None:
 		LOGGER.info('unknown insert_final_newline: %r', val)
 
@@ -204,7 +204,7 @@ def applyOptionsDict(editor, dct):
 
 	val = dct.get('trim_trailing_whitespace')
 	if val is not None:
-		editor.saving.trim_whitespace = parseBool(val)
+		editor.setRemoveTrailingWhitespace(parseBool(val))
 
 	k = 'eye.lexer_extension'
 	if k in dct:
