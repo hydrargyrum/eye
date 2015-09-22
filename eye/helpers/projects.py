@@ -6,7 +6,7 @@ Slot = pyqtSlot
 
 import fnmatch
 import os
-from ConfigParser import RawConfigParser, NoOptionError
+from ConfigParser import RawConfigParser, NoOptionError, Error
 from logging import getLogger
 from weakref import WeakValueDictionary, ref
 from StringIO import StringIO
@@ -43,13 +43,20 @@ class Project(QObject):
 
 	def _parseFile(self, cfgpath):
 		# add a starting section so it becomes INI format
-		with open(cfgpath) as fp:
-			contents = fp.read()
+		try:
+			with open(cfgpath) as fp:
+				contents = fp.read()
+		except IOError:
+			LOGGER.error('cannot read %r', cfgpath, exc_info=True)
+			return None
 		fp = StringIO('[_ROOT_]\n%s' % contents)
 
 		cfg = RawConfigParser()
-		with exceptionLogging(logger=LOGGER):
+		try:
 			cfg.readfp(fp, cfgpath)
+		except Error:
+			LOGGER.error('cannot parse %r', cfgpath, exc_info=True)
+			return None
 
 		return cfg
 
@@ -57,6 +64,9 @@ class Project(QObject):
 		assert not self.cfgpath
 
 		self.cfg = self._parseFile(cfgpath)
+		if not self.cfg:
+			return False
+
 		self.dir = os.path.dirname(cfgpath)
 		self.cfgpath = cfgpath
 		LOGGER.debug('loaded config %r', self.cfgpath)
@@ -72,6 +82,7 @@ class Project(QObject):
 			LOGGER.debug('searching parent project of %r', self.cfgpath)
 			parent = os.path.dirname(self.dir)
 			self.parentProject = findProjectForFile(parent)
+		return True
 
 	def _projectHierarchy(self):
 		items = []
@@ -227,7 +238,8 @@ def openProjectFile(filepath):
 	LOGGER.info('loading project file %r', filepath)
 
 	project = Project()
-	project.load(filepath)
+	if not project.load(filepath):
+		return None
 	PROJECT_CACHE[filepath] = project
 
 	return project
