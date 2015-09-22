@@ -1,14 +1,19 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-import os
-from weakref import ref, WeakValueDictionary
-
 from PyQt4.QtCore import QFileSystemWatcher, pyqtSignal, pyqtSlot
 Signal = pyqtSignal
 Slot = pyqtSlot
 
+from logging import getLogger
+import os
+from weakref import ref, WeakValueDictionary
+
 from ..connector import registerSignal, disabled
 
+__all__ = ('Monitor', 'onOpen', 'onBeforeSave')
+
+
+LOGGER = getLogger(__name__)
 
 class Monitor(QFileSystemWatcher):
 	def __init__(self):
@@ -18,11 +23,13 @@ class Monitor(QFileSystemWatcher):
 		self.watched = {}
 
 	def addFile(self, path, cb):
+		LOGGER.debug('start monitoring %r', path)
 		self.addPath(path)
 		self.watched[path] = cb
 		# FIXME removePath when editor is closed
 
 	def delFile(self, path):
+		LOGGER.debug('stop monitoring %r', path)
 		self.removePath(path)
 		del self.watched[path]
 
