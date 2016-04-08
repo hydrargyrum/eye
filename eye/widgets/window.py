@@ -76,6 +76,24 @@ class Window(QMainWindow, CategoryMixin):
 	def bufferSave(self):
 		self.currentBuffer().saveFile()
 
+	def _bufferNewSplit(self, orientation):
+		parent = self.currentBuffer().parentTabBar()
+		spl, idx = self.splitter.childId(parent)
+
+		ed = Editor()
+		tabs = TabWidget()
+		tabs.addWidget(ed)
+
+		self.splitter.splitAt(parent, orientation, tabs)
+
+	@Slot()
+	def bufferSplitHorizontal(self):
+		self._bufferNewSplit(Qt.Horizontal)
+
+	@Slot()
+	def bufferSplitVertical(self):
+		self._bufferNewSplit(Qt.Vertical)
+
 	## signals
 	quitRequested = Signal()
 
