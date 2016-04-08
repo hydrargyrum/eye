@@ -27,6 +27,8 @@ class TabBar(QTabBar):
 
 
 class TabWidget(QTabWidget, WidgetMixin):
+	lastTabClosed = Signal()
+
 	def __init__(self, *args):
 		QTabWidget.__init__(self, *args)
 		WidgetMixin.__init__(self)
@@ -111,6 +113,9 @@ class TabWidget(QTabWidget, WidgetMixin):
 
 		w = self._findRemovedWidget()
 		w.setParent(None)
+
+		if self.count() == 0:
+			self.lastTabClosed.emit()
 
 	def _findRemovedWidget(self):
 		# implementation detail, but no access to the removed widget

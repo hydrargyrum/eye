@@ -23,13 +23,15 @@ class Window(QMainWindow, CategoryMixin):
 		CategoryMixin.__init__(self)
 
 		self.menubar = self.menuBar()
-		ed = Editor()
 
+		self.splitter = SplitManager()
+
+		ed = Editor()
 		tabs = TabWidget()
 		tabs.addWidget(ed)
 
-		self.splitter = SplitManager()
 		self.splitter.splitAt(None, Qt.Horizontal, tabs)
+		tabs.lastTabClosed.connect(self._tabbarLastClosed)
 		
 		self.setCentralWidget(self.splitter)
 
@@ -73,6 +75,12 @@ class Window(QMainWindow, CategoryMixin):
 			ed.parentTabBar().closeTab(ed)
 
 	@Slot()
+	def bufferClose(self):
+		ed = self.currentBuffer()
+		parent = ed.parentTabBar()
+		parent.closeTab(ed)
+
+	@Slot()
 	def bufferSave(self):
 		self.currentBuffer().saveFile()
 
@@ -85,6 +93,7 @@ class Window(QMainWindow, CategoryMixin):
 		tabs.addWidget(ed)
 
 		self.splitter.splitAt(parent, orientation, tabs)
+		tabs.lastTabClosed.connect(self._tabbarLastClosed)
 
 	@Slot()
 	def bufferSplitHorizontal(self):
@@ -100,6 +109,10 @@ class Window(QMainWindow, CategoryMixin):
 	## events
 	def closeEvent(self, ev):
 		acceptIf(ev, self.splitter.requestClose())
+
+	@Slot()
+	def _tabbarLastClosed(self):
+		self.splitter.removeWidget(self.sender())
 
 	@Slot(QWidget, QWidget)
 	def _appFocusChanged(self, old, new):
