@@ -1,12 +1,10 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt4.QtCore import QFileSystemWatcher, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QFileSystemWatcher, pyqtSignal, pyqtSlot
 Signal = pyqtSignal
 Slot = pyqtSlot
 
 from logging import getLogger
-import os
-from weakref import ref, WeakValueDictionary
 
 from ..connector import registerSignal, disabled
 

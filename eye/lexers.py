@@ -1,8 +1,15 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.Qsci import *
+from PyQt5.QtGui import QColor, QFont
+from PyQt5.Qsci import QsciLexerBash, QsciLexerBatch, QsciLexerCPP
+from PyQt5.Qsci import QsciLexerCSharp, QsciLexerJava, QsciLexerJavaScript
+from PyQt5.Qsci import QsciLexerCSS, QsciLexerD, QsciLexerFortran
+from PyQt5.Qsci import QsciLexerHTML, QsciLexerXML, QsciLexerLua
+from PyQt5.Qsci import QsciLexerMakefile, QsciLexerPascal, QsciLexerPerl
+from PyQt5.Qsci import QsciLexerPO, QsciLexerPostScript, QsciLexerPOV
+from PyQt5.Qsci import QsciLexerProperties, QsciLexerPython, QsciLexerRuby
+from PyQt5.Qsci import QsciLexerSQL, QsciLexerTCL, QsciLexerTeX
+from PyQt5.Qsci import QsciLexerYAML
 
 import re
 import mimetypes

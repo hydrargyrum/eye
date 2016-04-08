@@ -1,8 +1,8 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.Qsci import *
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.Qsci import QsciScintilla
 import sip
 Signal = pyqtSignal
 Slot = pyqtSlot
@@ -13,7 +13,6 @@ import contextlib
 from weakref import ref
 from logging import getLogger
 
-from ..app import qApp
 from .helpers import CentralWidgetMixin, acceptIf
 from .. import structs
 from .. import io
@@ -395,7 +394,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		newFile = not path
 		if newFile:
-			path = QFileDialog.getSaveFileName(self, self.tr('Save file'), os.path.expanduser('~'))
+			path, qfilter = QFileDialog.getSaveFileName(self, self.tr('Save file'), os.path.expanduser('~'))
 			if not path:
 				return False
 			path = path

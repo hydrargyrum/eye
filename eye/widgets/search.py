@@ -1,7 +1,8 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QModelIndex, QRegExp
+from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem, QPushButton, QMenu
+from PyQt5.QtWidgets import QWidget, QActionGroup, QGridLayout, QLineEdit, QComboBox
 Signal = pyqtSignal
 Slot = pyqtSlot
 

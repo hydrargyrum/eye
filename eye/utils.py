@@ -3,7 +3,7 @@
 from contextlib import contextmanager
 from functools import wraps
 import logging
-from PyQt4.QtGui import QApplication
+from PyQt5.QtWidgets import QApplication
 
 __all__ = ('exceptionLogging', 'ignoreExceptions')
 

@@ -1,18 +1,13 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.Qsci import *
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 Signal = pyqtSignal
 Slot = pyqtSlot
 
-import re
 from weakref import ref
 
-from ..app import qApp
-from ..widgets.helpers import WidgetMixin
-from ..widgets.minibuffer import openMiniBuffer, getMiniBuffer
-from ..connector import registerSignal, disabled
+from ..widgets.minibuffer import openMiniBuffer
+from ..connector import registerSignal
 from ..connector import registerShortcut
 from ..colorutils import QColorAlpha
 

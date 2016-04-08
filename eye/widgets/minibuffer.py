@@ -1,13 +1,13 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.Qsci import *
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QLineEdit, QShortcut
 Signal = pyqtSignal
 Slot = pyqtSlot
 
 from ..app import qApp
-from ..connector import registerSignal, registerShortcut, disabled, categoryObjects
+from ..connector import categoryObjects
 from .helpers import WidgetMixin
 
 

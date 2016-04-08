@@ -1,6 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt4.QtGui import QColor
+from PyQt5.QtGui import QColor
 
 __all__ = ('QColorAlpha', 'QColor')
 

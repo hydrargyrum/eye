@@ -38,10 +38,6 @@ All of this is doable through the full Python API, the EYE API and the Qt compon
 * controlling a debugger
 * more features for easing navigation and search
 
-## Why is Qt4 used instead of Qt5?
-
-The project was started on Qt4 out of convenience, it is not an aim. It will be ported to Qt5 at some point, but help is welcome.
-
 ## Where is the documentation?
 
 For now, there's only the plugins code, no documentation yet.

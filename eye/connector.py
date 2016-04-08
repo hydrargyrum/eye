@@ -1,14 +1,13 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt4.QtCore import Qt, QObject, pyqtSlot as Slot
-from PyQt4.QtGui import QShortcut, QKeySequence
-import collections
+from PyQt5.QtCore import Qt, QObject, pyqtSlot as Slot
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QShortcut
 import weakref
 import inspect
 from logging import getLogger
 
 from .utils import exceptionLogging
-from .app import qApp
 
 __all__ = ('registerSignal', 'registerEventFilter', 'registerShortcut', 'disabled',
            'defaultEditorConfig', 'defaultWindowConfig', 'defaultLexerConfig',

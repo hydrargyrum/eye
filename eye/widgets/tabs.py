@@ -1,13 +1,11 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.Qsci import *
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget
 Signal = pyqtSignal
 Slot = pyqtSlot
 
-from ..app import qApp
-from .helpers import WidgetMixin, acceptIf
+from .helpers import WidgetMixin
 
 __all__ = ('TabWidget',)
 

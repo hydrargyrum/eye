@@ -1,6 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt4.QtCore import QObject, QFileSystemWatcher, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 Signal = pyqtSignal
 Slot = pyqtSlot
 

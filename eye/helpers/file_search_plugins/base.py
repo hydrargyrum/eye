@@ -1,11 +1,7 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-import os
 
-from ...connector import registerSignal, disabled, categoryObjects
-from ...utils import exceptionLogging
-
-__all__ = ('register_plugin', 'SearchPlugin', 'enabledPlugins')
+__all__ = ('registerPlugin', 'SearchPlugin', 'enabledPlugins')
 
 
 PLUGINS = {}

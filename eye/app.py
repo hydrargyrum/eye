@@ -8,8 +8,8 @@ import argparse
 import sip
 sip.setapi('QString', 2)
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QApplication, QWidget
 Signal = pyqtSignal
 Slot = pyqtSlot
 

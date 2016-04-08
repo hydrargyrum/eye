@@ -1,8 +1,7 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.Qsci import *
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDockWidget, QWidget
 Signal = pyqtSignal
 Slot = pyqtSlot
 
@@ -64,7 +63,7 @@ class Window(QMainWindow, CategoryMixin):
 
 	@Slot()
 	def bufferOpenDialog(self):
-		path = QFileDialog.getOpenFileName(self, self.tr('Open file'), os.path.expanduser('~'))
+		path, qfilter = QFileDialog.getOpenFileName(self, self.tr('Open file'), os.path.expanduser('~'))
 		if path:
 			self.currentBuffer().openFile(path)
 

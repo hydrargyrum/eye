@@ -6,15 +6,18 @@ from logging import getLogger
 
 from .utils import exceptionLogging
 
+
 __all__ = ('writeBytesToFile', 'readBytesFromFile')
 
 LOGGER = getLogger(__name__)
 
+
 def writeBytesToFileDirect(filepath, data):
 	with exceptionLogging(logger=LOGGER):
 		with open(filepath, 'wb') as f:
-			filepath.write(data)
+			f.write(data)
 			return True
+
 
 def writeBytesToFile(filepath, data):
 	if os.name == 'nt':
@@ -28,6 +31,7 @@ def writeBytesToFile(filepath, data):
 			f.write(data)
 		os.rename(tmpfile, filepath)
 		return True
+
 
 def readBytesFromFile(filepath):
 	with exceptionLogging(logger=LOGGER):
