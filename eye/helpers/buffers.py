@@ -15,7 +15,8 @@ def findEditor(path):
 
 def _createEditor(path):
 	win = qApp().lastWindow
-	tabs = win.lastFocus.parentTabBar()
+	cur = win.currentBuffer()
+	tabs = cur.parentTabBar()
 
 	ed = Editor()
 	ed.openFile(path)

@@ -29,7 +29,7 @@ def searchStart(search_widget):
 	plugin_id = search_widget.selectedPlugin()
 	find_root = search_widget.shouldFindRoot()
 
-	ed = search_widget.window().lastFocus
+	ed = search_widget.window().currentBuffer()
 
 	cs = qtEnumToCs(qregex.caseSensitivity())
 

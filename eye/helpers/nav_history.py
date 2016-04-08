@@ -27,7 +27,7 @@ def pushHistory(editor, line, col):
 def goBack():
 	global POPPING
 
-	current = qApp().lastWindow.lastFocus
+	current = qApp().lastWindow.currentBuffer()
 
 	try:
 		rneweditor, newline, newcol = BACKWARD.pop()
@@ -61,7 +61,7 @@ def goForward():
 		return goForward()
 
 	POPPING = (rneweditor, newline, newcol)
-	BACKWARD.append(makeEntry(qApp().lastWindow.lastFocus))
+	BACKWARD.append(makeEntry(qApp().lastWindow.currentBuffer()))
 
 	LOGGER.debug('going forward')
 	editor = rneweditor()

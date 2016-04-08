@@ -7,6 +7,7 @@ Signal = pyqtSignal
 Slot = pyqtSlot
 
 import logging
+from weakref import ref
 
 from ..app import qApp
 from .helpers import WidgetMixin
@@ -56,10 +57,11 @@ class PositionIndicator(QLabel, WidgetMixin):
 			return
 
 		if self.lastFocus:
-			self.lastFocus.cursorPositionChanged.disconnect(self.onPosChanged)
-			self.lastFocus.linesChanged.disconnect(self.onLinesChanged)
+			lastFocus = self.lastFocus()
+			lastFocus.cursorPositionChanged.disconnect(self.onPosChanged)
+			lastFocus.linesChanged.disconnect(self.onLinesChanged)
 
-		self.lastFocus = new
+		self.lastFocus = ref(new)
 		new.cursorPositionChanged.connect(self.onPosChanged)
 		new.linesChanged.connect(self.onLinesChanged)
 		self.updateLabel()
@@ -74,9 +76,9 @@ class PositionIndicator(QLabel, WidgetMixin):
 
 	@Slot()
 	def updateLabel(self):
-		line, col = self.lastFocus.getCursorPosition()
+		line, col = self.lastFocus().getCursorPosition()
 		line, col = line + 1, col + 1
-		lines = self.lastFocus.lines()
+		lines = self.lastFocus().lines()
 
 		d = dict(line=line, col=col, percent=line * 100. / lines)
 		self.setText(self.format % d)

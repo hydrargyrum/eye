@@ -7,6 +7,7 @@ Signal = pyqtSignal
 Slot = pyqtSlot
 
 import os
+from weakref import ref
 
 from ..app import qApp
 from .helpers import CategoryMixin, acceptIf
@@ -35,7 +36,7 @@ class Window(QMainWindow, CategoryMixin):
 		
 		self.setCentralWidget(self.splitter)
 
-		self.lastFocus = ed
+		self.lastFocus = ref(ed)
 		qApp().focusChanged.connect(self._appFocusChanged)
 
 		self.addCategory('window')
@@ -49,13 +50,14 @@ class Window(QMainWindow, CategoryMixin):
 
 	## buffers
 	def currentBuffer(self):
-		return self.lastFocus
+		return self.lastFocus()
 
 	@Slot()
 	def bufferNew(self):
 		ed = Editor()
-		if self.lastFocus:
-			parent = self.lastFocus.parentTabBar()
+		cur = self.currentBuffer()
+		if cur:
+			parent = cur.parentTabBar()
 			parent.addWidget(ed)
 			ed.giveFocus()
 		return ed
@@ -117,7 +119,7 @@ class Window(QMainWindow, CategoryMixin):
 	@Slot(QWidget, QWidget)
 	def _appFocusChanged(self, old, new):
 		if self.centralWidget().isAncestorOf(new):
-			self.lastFocus = new
+			self.lastFocus = ref(new)
 
 	def addDockable(self, area, widget):
 		dw = QDockWidget()
