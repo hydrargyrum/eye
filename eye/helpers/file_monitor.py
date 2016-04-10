@@ -51,7 +51,7 @@ def onOpen(editor, path):
 @registerSignal('editor', 'fileAboutToBeSaved')
 @disabled
 def onBeforeSave(editor, path):
-	if path:
+	if editor.path:
 		MONITOR.delFile(editor.path)
 
 
