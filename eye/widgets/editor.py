@@ -23,17 +23,21 @@ __all__ = ('Editor', 'Marker', 'Indicator', 'Margin')
 LOGGER = getLogger(__name__)
 
 class HasWeakEditorMixin(object):
+	def __init__(self, **kwargs):
+		super(HasWeakEditorMixin, self).__init__(**kwargs)
+		self.__editor = None
+
 	@property
 	def editor(self):
-		if self._editor is not None:
-			return self._editor()
+		if self.__editor is not None:
+			return self.__editor()
 
 	@editor.setter
 	def editor(self, value):
 		if value is None:
-			self._editor = None
+			self.__editor = None
 		else:
-			self._editor = ref(value)
+			self.__editor = ref(value)
 
 
 class Marker(HasWeakEditorMixin):
@@ -234,8 +238,8 @@ class BaseEditor(QsciScintilla):
 	_getMarkerPrevious = sciPropGet(QsciScintilla.SCI_MARKERPREVIOUS, 2)
 	_getMarkerNext = sciPropGet(QsciScintilla.SCI_MARKERNEXT, 2)
 
-	def __init__(self, *args):
-		QsciScintilla.__init__(self, *args)
+	def __init__(self, **kwargs):
+		super(BaseEditor, self).__init__(**kwargs)
 
 		self.SCN_MACRORECORD.connect(self.scn_macro)
 
@@ -350,9 +354,8 @@ class BaseEditor(QsciScintilla):
 class Editor(BaseEditor, CentralWidgetMixin):
 	SmartCaseSensitive = object()
 
-	def __init__(self, *a):
-		BaseEditor.__init__(self, *a)
-		CentralWidgetMixin.__init__(self)
+	def __init__(self, **kwargs):
+		super(Editor, self).__init__(**kwargs)
 
 		self.path = ''
 		self.modificationChanged.connect(self.titleChanged)

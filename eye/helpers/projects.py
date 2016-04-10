@@ -35,7 +35,7 @@ PROJECT_FILENAME = '.editorconfig'
 
 class Project(QObject):
 	def __init__(self):
-		QObject.__init__(self)
+		super(Project, self).__init__()
 		self.dir = None
 		self.cfgpath = None
 		self.cfg = None

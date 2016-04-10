@@ -17,7 +17,7 @@ __all__ = ('LogWidget', 'PositionIndicator')
 class LogWidget(QPlainTextEdit):
 	class LogHandler(logging.Handler):
 		def __init__(self, widget):
-			logging.Handler.__init__(self)
+			super(LogWidget.LogHandler, self).__init__()
 			self.widget = widget
 			self.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 
@@ -25,7 +25,7 @@ class LogWidget(QPlainTextEdit):
 			self.widget.appendPlainText(self.format(record))
 
 	def __init__(self, parent=None):
-		QPlainTextEdit.__init__(self, parent)
+		super(LogWidget, self).__init__(parent=parent)
 		self.handler = LogWidget.LogHandler(self)
 		self.setReadOnly(True)
 
@@ -39,9 +39,8 @@ class LogWidget(QPlainTextEdit):
 class PositionIndicator(QLabel, WidgetMixin):
 	format = '%(percent)3d%% %(line)5d:%(col)3d'
 
-	def __init__(self, *a):
-		QLabel.__init__(self, *a)
-		WidgetMixin.__init__(self)
+	def __init__(self, **kwargs):
+		super(PositionIndicator, self).__init__(**kwargs)
 		self.lastFocus = None
 
 		qApp().focusChanged.connect(self.focusChanged)

@@ -19,7 +19,7 @@ LOGGER = getLogger(__name__)
 
 class SignalListener(QObject):
 	def __init__(self, cb, categories, signal, parent=None):
-		QObject.__init__(self, parent)
+		super(SignalListener, self).__init__(parent)
 		self.cb = cb
 		self.categories = categories
 		self.signal = signal
@@ -59,7 +59,7 @@ class SignalListener(QObject):
 
 class EventFilter(QObject):
 	def __init__(self, cb, categories, eventTypes, parent=None):
-		QObject.__init__(self, parent)
+		super(EventFilter, self).__init__(parent)
 		self.cb = cb
 		self.categories = categories
 		self.eventTypes = eventTypes
@@ -80,7 +80,7 @@ class EventFilter(QObject):
 
 class EventConnector(QObject, object):
 	def __init__(self):
-		QObject.__init__(self)
+		super(EventConnector, self).__init__()
 		self.allObjects = weakref.WeakSet()
 		self.allListeners = []
 

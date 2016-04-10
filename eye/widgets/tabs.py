@@ -11,8 +11,8 @@ __all__ = ('TabWidget',)
 
 
 class TabBar(QTabBar):
-	def __init__(self, *args):
-		QTabBar.__init__(self, *args)
+	def __init__(self, **kwargs):
+		super(TabBar, self).__init__(**kwargs)
 		self.setTabsClosable(True)
 		self.setMovable(True)
 		self.setUsesScrollButtons(True)
@@ -27,9 +27,8 @@ class TabBar(QTabBar):
 class TabWidget(QTabWidget, WidgetMixin):
 	lastTabClosed = Signal()
 
-	def __init__(self, *args):
-		QTabWidget.__init__(self, *args)
-		WidgetMixin.__init__(self)
+	def __init__(self, **kwargs):
+		super(TabWidget, self).__init__(**kwargs)
 
 		self.tabCloseRequested.connect(self._tabCloseRequested)
 		self.currentChanged.connect(self._currentChanged)

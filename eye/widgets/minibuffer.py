@@ -16,8 +16,7 @@ __all__ = ('Minibuffer', 'openMiniBuffer', 'getMiniBuffer')
 
 class Minibuffer(QLineEdit, WidgetMixin):
 	def __init__(self, parent=None):
-		QLineEdit.__init__(self, parent)
-		WidgetMixin.__init__(self)
+		super(Minibuffer, self).__init__(parent=parent)
 
 		self.statusBar = None
 		self.closeOnEscape = True

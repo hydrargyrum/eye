@@ -18,8 +18,8 @@ def acceptIf(ev, cond):
 
 
 class CategoryMixin(object):
-	def __init__(self):
-		super(CategoryMixin, self).__init__()
+	def __init__(self, **kwargs):
+		super(CategoryMixin, self).__init__(**kwargs)
 		self._categories = set()
 		CONNECTOR.addObject(self)
 
@@ -40,8 +40,8 @@ class CategoryMixin(object):
 
 
 class WidgetMixin(CategoryMixin):
-	def __init__(self):
-		CategoryMixin.__init__(self)
+	def __init__(self, **kwargs):
+		super(WidgetMixin, self).__init__(**kwargs)
 
 	def giveFocus(self, reason=Qt.OtherFocusReason):
 		if not self.isActiveWindow():
@@ -51,8 +51,8 @@ class WidgetMixin(CategoryMixin):
 
 
 class CentralWidgetMixin(WidgetMixin):
-	def __init__(self):
-		WidgetMixin.__init__(self)
+	def __init__(self, **kwargs):
+		super(CentralWidgetMixin, self).__init__(**kwargs)
 
 	def title(self):
 		return ''

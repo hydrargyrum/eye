@@ -14,8 +14,8 @@ __all__ = ('Monitor', 'onOpen', 'onBeforeSave')
 LOGGER = getLogger(__name__)
 
 class Monitor(QFileSystemWatcher):
-	def __init__(self):
-		QFileSystemWatcher.__init__(self)
+	def __init__(self, **kwargs):
+		super(Monitor, self).__init__(**kwargs)
 		self.fileChanged.connect(self.onFileChanged)
 		# TODO WeakValueDictionary is enough? use signal instead of cb?
 		self.watched = {}

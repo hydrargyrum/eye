@@ -20,8 +20,7 @@ columnRole = consts.registerRole()
 
 class ResultsWidget(QTreeWidget, WidgetMixin):
 	def __init__(self, parent=None):
-		QTreeWidget.__init__(self)
-		WidgetMixin.__init__(self)
+		super(ResultsWidget, self).__init__(parent=parent)
 
 		self.setAlternatingRowColors(True)
 		self.setAllColumnsShowFocus(True)
@@ -68,8 +67,8 @@ class ResultsWidget(QTreeWidget, WidgetMixin):
 
 
 class SearchOptionsButton(QPushButton):
-	def __init__(self):
-		QPushButton.__init__(self)
+	def __init__(self, **kwargs):
+		super(SearchOptionsButton, self).__init__(**kwargs)
 
 		self.setText(self.tr('Options'))
 
@@ -109,9 +108,8 @@ class SearchOptionsButton(QPushButton):
 
 
 class SearchWidget(QWidget, WidgetMixin):
-	def __init__(self):
-		QWidget.__init__(self)
-		WidgetMixin.__init__(self)
+	def __init__(self, **kwargs):
+		super(SearchWidget, self).__init__(**kwargs)
 
 		layout = QGridLayout()
 		self.setLayout(layout)

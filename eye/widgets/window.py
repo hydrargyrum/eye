@@ -20,9 +20,8 @@ __all__ = ('Window',)
 class Window(QMainWindow, CategoryMixin):
 	EditorClass = Editor
 
-	def __init__(self, *a):
-		QMainWindow.__init__(self, *a)
-		CategoryMixin.__init__(self)
+	def __init__(self, *args):
+		super(Window, self).__init__(*args)
 
 		self.menubar = self.menuBar()
 

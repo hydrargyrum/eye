@@ -13,9 +13,8 @@ __all__ = ('SplitManager', 'Splitter')
 class Splitter(QSplitter, WidgetMixin):
 	HandleBar = 42
 
-	def __init__(self, *a):
-		QSplitter.__init__(self, *a)
-		WidgetMixin.__init__(self)
+	def __init__(self, **kwargs):
+		super(Splitter, self).__init__(**kwargs)
 
 		self.addCategory('splitter')
 
@@ -43,11 +42,10 @@ class SplitManager(QWidget, WidgetMixin):
 
 	SplitterClass = Splitter
 
-	def __init__(self, *args):
-		QWidget.__init__(self, *args)
-		WidgetMixin.__init__(self)
+	def __init__(self, **kwargs):
+		super(SplitManager, self).__init__(**kwargs)
 
-		self.root = self.SplitterClass(Qt.Horizontal)
+		self.root = self.SplitterClass(orientation=Qt.Horizontal)
 
 		layout = QStackedLayout()
 		self.setLayout(layout)
@@ -66,7 +64,7 @@ class SplitManager(QWidget, WidgetMixin):
 		if parent.orientation() == orientation:
 			parent.insertWidget(pos + 1, newWidget)
 		else:
-			newSplit = self.SplitterClass(orientation)
+			newSplit = self.SplitterClass(orientation=orientation)
 			parent.insertWidget(pos, newSplit)
 			if widgetLocation:
 				newSplit.addWidget(widgetLocation)

@@ -25,7 +25,7 @@ __all__ = ('App', 'qApp', 'main')
 
 class App(QApplication):
 	def __init__(self, argv):
-		QApplication.__init__(self, argv)
+		super(App, self).__init__(argv)
 		self.setApplicationName('eye')
 
 		logging.basicConfig()
