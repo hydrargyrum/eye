@@ -18,6 +18,8 @@ __all__ = ('Window',)
 
 
 class Window(QMainWindow, CategoryMixin):
+	EditorClass = Editor
+
 	def __init__(self, *a):
 		QMainWindow.__init__(self, *a)
 		CategoryMixin.__init__(self)
@@ -26,7 +28,7 @@ class Window(QMainWindow, CategoryMixin):
 
 		self.splitter = SplitManager()
 
-		ed = Editor()
+		ed = self.EditorClass()
 		tabs = TabWidget()
 		tabs.addWidget(ed)
 
@@ -53,7 +55,7 @@ class Window(QMainWindow, CategoryMixin):
 
 	@Slot()
 	def bufferNew(self):
-		ed = Editor()
+		ed = self.EditorClass()
 		cur = self.currentBuffer()
 		if cur:
 			parent = cur.parentTabBar()
@@ -89,7 +91,7 @@ class Window(QMainWindow, CategoryMixin):
 		parent = self.currentBuffer().parentTabBar()
 		spl, idx = self.splitter.childId(parent)
 
-		ed = Editor()
+		ed = self.EditorClass()
 		tabs = TabWidget()
 		tabs.addWidget(ed)
 
