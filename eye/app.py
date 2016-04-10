@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-import sys, os
-import logging
 import argparse
+import logging
+import os
+import sys
 
 import sip
 sip.setapi('QString', 2)
@@ -104,6 +105,13 @@ class App(QApplication):
 
 
 def main():
+	# if the default excepthook is used, PyQt 5.5 *aborts* the app when an unhandled exception occurs
+	# see http://pyqt.sourceforge.net/Docs/PyQt5/incompatibilities.html
+	# as this behaviour is questionable, we restore the old one
+
+	if sys.excepthook is sys.__excepthook__:
+		sys.excepthook = lambda *args: sys.__excepthook__(*args)
+
 	app = App(sys.argv)
 	app.run()
 	return 0
