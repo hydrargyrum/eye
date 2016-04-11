@@ -63,6 +63,36 @@ class TabWidget(QTabWidget, WidgetMixin):
 	def widgets(self):
 		return [self.widget(i) for i in xrange(self.count())]
 
+	def _selectTab(self, step, s1, e1, rotate, s2, e2):
+		for idx in xrange(s1, e1, step):
+			if self.isTabEnabled(idx):
+				self.setCurrentIndex(idx)
+				return
+		if not rotate:
+			return
+		for idx in xrange(s2, e2, step):
+			if self.isTabEnabled(idx):
+				self.setCurrentIndex(idx)
+				return
+
+	@Slot()
+	def selectPrevTab(self, rotate=False):
+		cur = self.currentIndex()
+		self._selectTab(-1, cur - 1, -1, rotate, self.count() - 1, cur)
+
+	@Slot()
+	def selectPrevTabRotate(self):
+		self.selectPrevTab(True)
+
+	@Slot()
+	def selectNextTab(self, rotate=False):
+		cur = self.currentIndex()
+		self._selectTab(1, cur + 1, self.count(), rotate, 0, cur)
+
+	@Slot()
+	def selectNextTabRotate(self):
+		self.selectNextTab(True)
+
 	def requestClose(self):
 		for i in xrange(self.count()):
 			w = self.widget(0)
