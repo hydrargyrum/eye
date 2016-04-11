@@ -80,6 +80,14 @@ class Marker(HasWeakEditorMixin):
 	def getPrevious(self, line):
 		return self.editor.getMarkerPrevious(line, self.toBit())
 
+	def listAll(self):
+		ln = -1
+		while True:
+			ln = self.editor.markerFindNext(ln + 1, self.toBit())
+			if ln < 0:
+				return
+			yield ln
+
 
 class Indicator(HasWeakEditorMixin):
 	def __init__(self, style, editor=None, id=-1):

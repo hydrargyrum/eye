@@ -1,8 +1,9 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-__all__ = ('addBookmark', 'nextBookmark', 'previousBookmark')
+__all__ = ('toggleBookmark', 'listBookmarks', 'nextBookmark', 'previousBookmark')
 
-def addBookmark(ed):
+
+def toggleBookmark(ed):
 	ln = ed.getCursorPosition()[0]
 
 	marker = ed.markers['bookmark']  
@@ -10,6 +11,7 @@ def addBookmark(ed):
 		marker.removeAt(ln)
 	else:
 		marker.putAt(ln)
+
 
 def nextBookmark(ed):
         ln = ed.getCursorPosition()[0]
@@ -19,6 +21,7 @@ def nextBookmark(ed):
                 ln = ed.markers['bookmark'].getNext(0)
         ed.setCursorPosition(ln, 0)
 
+
 def previousBookmark(ed):
         ln = ed.getCursorPosition()[0]
 
@@ -26,3 +29,6 @@ def previousBookmark(ed):
         if ln < 0:
                 ln = ed.markers['bookmark'].getPrevious(ed.lines())
 
+
+def listBookmarks(ed):
+	return list(ed.markers['bookmark'].listAll())
