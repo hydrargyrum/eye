@@ -76,19 +76,32 @@ class SplitManager(QWidget, WidgetMixin):
 		if not parent.count() and parent != self.root:
 			self.removeWidget(parent)
 
+	@Slot()
+	def balanceSplitsRecursive(self, startAt=None):
+		for w in self._iterRecursive(startAt):
+			if isinstance(w, self.SplitterClass):
+				self.balanceSplits(w)
+
+	def balanceSplits(self, spl):
+		spl.setSizes([1] * spl.count())  # qt redistributes space
+
 	def allChildren(self):
-		widgets = []
-		splitters = [self.root]
+		return [w for w in self._iterRecursive() if not isinstance(w, self.SplitterClass)]
+
+	def _iterRecursive(self, startAt=None):
+		if startAt is None:
+			startAt = self.root
+
+		splitters = [startAt]
+		yield startAt
 		while splitters:
 			spl = splitters.pop()
 			for i in xrange(spl.count()):
 				w = spl.widget(i)
 				if isinstance(w, self.SplitterClass):
 					splitters.append(w)
-				else:
-					widgets.append(w)
+				yield w
 
-		return widgets
 
 	def getRect(self, widget):
 		return QRect(widget.mapTo(self, QPoint()), widget.size())
