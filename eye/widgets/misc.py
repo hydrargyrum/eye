@@ -41,7 +41,7 @@ class PositionIndicator(QLabel, WidgetMixin):
 
 	def __init__(self, **kwargs):
 		super(PositionIndicator, self).__init__(**kwargs)
-		self.lastFocus = None
+		self.lastFocus = lambda: None
 
 		qApp().focusChanged.connect(self.focusChanged)
 
@@ -54,8 +54,8 @@ class PositionIndicator(QLabel, WidgetMixin):
 		if new.window() != self.window():
 			return
 
-		if self.lastFocus:
-			lastFocus = self.lastFocus()
+		lastFocus = self.lastFocus()
+		if lastFocus:
 			lastFocus.cursorPositionChanged.disconnect(self.onPosChanged)
 			lastFocus.linesChanged.disconnect(self.onLinesChanged)
 
