@@ -400,6 +400,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			return ''
 		return os.path.basename(self.path)
 
+	@Slot()
 	def saveFile(self):
 		path = self.path
 
@@ -482,6 +483,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.fileOpened.emit(path)
 		return True
 
+	@Slot()
 	def reloadFile(self):
 		oldPos = self.getCursorPosition()
 
@@ -529,6 +531,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		finally:
 			self.endUndoAction()
 
+	@Slot()
 	def goto1(self, line, col=None):
 		col = col or 1
 		line, col = line - 1, col - 1
