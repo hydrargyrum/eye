@@ -4,6 +4,7 @@
 import argparse
 import logging
 import os
+import runpy
 import sys
 
 import sip
@@ -56,7 +57,7 @@ class App(QApplication):
 		for f in self._startupScripts():
 			self.logger.debug('execing startup script %s', f)
 			try:
-				execfile(f, self._scriptDict())
+				runpy.run_path(f, self._scriptDict())
 			except Exception:
 				self.logger.error('cannot execute startup script %r', f, exc_info=True)
 

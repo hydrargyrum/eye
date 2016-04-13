@@ -18,7 +18,7 @@ __all__ = ('applyStyles', 'extensionToLexer', 'mimeToLexer', 'stylesFromLexer')
 
 def stylesFromLexer(lexer):
 	styles = {}
-	for i in xrange(1 << lexer.styleBitsNeeded()):
+	for i in range(1 << lexer.styleBitsNeeded()):
 		name = lexer.description(i)
 		if not name:
 			break

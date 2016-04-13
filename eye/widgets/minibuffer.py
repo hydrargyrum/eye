@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QLineEdit, QShortcut
 Signal = pyqtSignal
 Slot = pyqtSlot
 
+from ..three import str
 from ..app import qApp
 from ..connector import categoryObjects
 from .helpers import WidgetMixin
@@ -50,7 +51,7 @@ class Minibuffer(QLineEdit, WidgetMixin):
 	def setCloseOnFocusOut(self, b):
 		self.closeOnEscape = b
 
-	textEntered = Signal(unicode)
+	textEntered = Signal(str)
 	cancelled = Signal()
 
 	@Slot()

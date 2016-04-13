@@ -7,6 +7,7 @@ import weakref
 import inspect
 from logging import getLogger
 
+from .three import bytes, str
 from .utils import exceptionLogging
 
 __all__ = ('registerSignal', 'registerEventFilter', 'registerShortcut', 'disabled',
@@ -26,14 +27,14 @@ class SignalListener(QObject):
 
 	@Slot(int)
 	@Slot(str)
-	@Slot(unicode)
+	@Slot(bytes)
 	@Slot(QObject)
 	@Slot(object)
 	@Slot(int, int)
-	@Slot(unicode, unicode)
-	@Slot(int, unicode)
-	@Slot(unicode, int)
-	@Slot(unicode, object)
+	@Slot(str, str)
+	@Slot(int, str)
+	@Slot(str, int)
+	@Slot(str, object)
 	@Slot(object, object)
 	@Slot()
 	def map(self, *args, **kwargs):
@@ -134,7 +135,7 @@ class EventConnector(QObject, object):
 					self.doDisconnect(obj, lis, cat)
 
 	def objectsMatching(self, categories):
-		if isinstance(categories, (str, unicode, basestring)):
+		if isinstance(categories, (bytes, str)):
 			categories = (categories,)
 		categories = frozenset(categories)
 		return [obj for obj in self.allObjects if categories <= obj.categories()]
@@ -149,7 +150,7 @@ def categoryObjects(cats):
 
 
 def registerSignal(categories, signal):
-	if isinstance(categories, (str, unicode, basestring)):
+	if isinstance(categories, (bytes, str)):
 		categories = [categories]
 	categories = frozenset(categories)
 
@@ -162,7 +163,7 @@ def registerSignal(categories, signal):
 
 
 def registerEventFilter(categories, eventTypes):
-	if isinstance(categories, (str, unicode, basestring)):
+	if isinstance(categories, (bytes, str)):
 		categories = [categories]
 	categories = frozenset(categories)
 

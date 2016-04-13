@@ -13,6 +13,7 @@ import contextlib
 from weakref import ref
 from logging import getLogger
 
+from ..three import bytes, str
 from .helpers import CentralWidgetMixin, acceptIf
 from .. import structs
 from .. import io
@@ -170,7 +171,7 @@ class Margin(HasWeakEditorMixin):
 		self.editor.setMarginMarkerMask(self.id, (1 << 32) - 1)
 
 	def setText(self, line, txt):
-		if isinstance(txt, (str, unicode)):
+		if isinstance(txt, (str, bytes)):
 			self.setMarginText(self.id, txt, 0)
 		else:
 			self.setMarginText(self.id, txt)
@@ -295,42 +296,42 @@ class BaseEditor(QsciScintilla):
 		self._disposeMI(self.indicators, self.freeIndicators, name)
 
 	def fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i):
-		if isinstance(i, (str, unicode)):
+		if isinstance(i, (str, bytes)):
 			i = self.indicators[i].id
 		return QsciScintilla.fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i)
 
 	def clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i):
-		if isinstance(i, (str, unicode)):
+		if isinstance(i, (str, bytes)):
 			i = self.indicators[i].id
 		return QsciScintilla.clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i)
 
 	def markerAdd(self, ln, i):
-		if isinstance(i, (str, unicode)):
+		if isinstance(i, (str, bytes)):
 			i = self.markers[i].id
 		return QsciScintilla.markerAdd(self, ln, i)
 
 	def markerDelete(self, ln, i):
-		if isinstance(i, (str, unicode)):
+		if isinstance(i, (str, bytes)):
 			i = self.markers[i].id
 		return QsciScintilla.markerDelete(self, ln, i)
 
 	def setMarkerBackgroundColor(self, c, i):
-		if isinstance(i, (str, unicode)):
+		if isinstance(i, (str, bytes)):
 			i = self.markers[i].id
 		return QsciScintilla.setMarkerBackgroundColor(self, c, i)
 
 	def setMarkerForegroundColor(self, c, i):
-		if isinstance(i, (str, unicode)):
+		if isinstance(i, (str, bytes)):
 			i = self.markers[i].id
 		return QsciScintilla.setMarkerForegroundColor(self, c, i)
 
 	def getMarkerPrevious(self, ln, i):
-		if isinstance(i, (str, unicode)):
+		if isinstance(i, (str, bytes)):
 			i = self.markers[i].id
 		return self._getMarkerPrevious(ln, i)
 
 	def getMarkerNext(self, ln, i):
-		if isinstance(i, (str, unicode)):
+		if isinstance(i, (str, bytes)):
 			i = self.markers[i].id
 		return self._getMarkerNext(ln, i)
 
@@ -625,11 +626,11 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 	## signals
 	titleChanged = Signal()
-	fileAboutToBeSaved = Signal(unicode)
-	fileSaved = Signal(unicode)
-	fileSavedAs = Signal(unicode)
-	fileAboutToBeOpened = Signal(unicode)
-	fileOpened = Signal(unicode)
+	fileAboutToBeSaved = Signal(str)
+	fileSaved = Signal(str)
+	fileSavedAs = Signal(str)
+	fileAboutToBeOpened = Signal(str)
+	fileOpened = Signal(str)
 	lexerChanged = Signal(QObject)
 	fileModifiedExternally = Signal()
 	positionJumped = Signal(int, int)

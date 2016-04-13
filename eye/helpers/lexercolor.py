@@ -3,6 +3,7 @@
 from ConfigParser import SafeConfigParser
 from logging import getLogger
 
+from ..three import str
 from ..connector import categoryObjects, registerSignal, disabled
 from ..utils import ignoreExceptions
 from ..colorutils import QColorAlpha
@@ -22,7 +23,7 @@ SCHEME = None
 
 def readScheme(path):
 	parser = SafeConfigParser()
-	parser.optionxform = unicode
+	parser.optionxform = str
 	parser.read([path])
 	return parser
 
@@ -33,7 +34,7 @@ def fuzzyEquals(a, b):
 	return norm(a) == norm(b)
 
 def getStyleByDesc(lexer, desc, fuzzy=False):
-	for i in xrange(1 << lexer.styleBitsNeeded()):
+	for i in range(1 << lexer.styleBitsNeeded()):
 		idesc = lexer.description(i)
 		if idesc == desc or (fuzzy and fuzzyEquals(desc, idesc)):
 			return i

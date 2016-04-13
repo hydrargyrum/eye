@@ -6,6 +6,7 @@ Slot = pyqtSlot
 
 from logging import getLogger
 
+from ..three import str
 from ..connector import registerSignal, disabled
 
 __all__ = ('Monitor', 'onOpen', 'onBeforeSave')
@@ -31,7 +32,7 @@ class Monitor(QFileSystemWatcher):
 		self.removePath(path)
 		del self.watched[path]
 
-	@Slot(unicode)
+	@Slot(str)
 	def onFileChanged(self, path):
 		#~ os.path.exists(path)
 		# modification vs deletion/rename?

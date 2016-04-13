@@ -21,7 +21,7 @@ class Splitter(QSplitter, WidgetMixin):
 	def childAt(self, pos):
 		if pos.x() < 0 or pos.y() < 0 or pos.x() >= self.width() or pos.y() >= self.height():
 			return None
-		for i in xrange(self.count()):
+		for i in range(self.count()):
 			w = self.widget(i)
 			if w.geometry().contains(pos):
 				return w
@@ -96,7 +96,7 @@ class SplitManager(QWidget, WidgetMixin):
 		yield startAt
 		while splitters:
 			spl = splitters.pop()
-			for i in xrange(spl.count()):
+			for i in range(spl.count()):
 				w = spl.widget(i)
 				if isinstance(w, self.SplitterClass):
 					splitters.append(w)

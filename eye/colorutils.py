@@ -1,12 +1,16 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+from __future__ import unicode_literals
+
 from PyQt5.QtGui import QColor
+
+from .three import bytes, str
 
 __all__ = ('QColorAlpha', 'QColor')
 
 def QColorAlpha(*args):
 	if len(args) == 1:
-		if isinstance(args[0], (str, unicode)):
+		if isinstance(args[0], (bytes, str)):
 			s = args[0]
 			if s.startswith('#') and len(s) == 9: #RRGGBBAA
 				qc = QColor(s[:7])

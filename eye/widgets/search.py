@@ -6,8 +6,9 @@ from PyQt5.QtWidgets import QWidget, QActionGroup, QGridLayout, QLineEdit, QComb
 Signal = pyqtSignal
 Slot = pyqtSlot
 
-from .helpers import WidgetMixin
+from ..three import str
 from .. import consts
+from .helpers import WidgetMixin
 from ..helpers import file_search
 from ..reutils import csToQtEnum
 
@@ -63,7 +64,7 @@ class ResultsWidget(QTreeWidget, WidgetMixin):
 		loc = qitem.data(0, lineRole).toInt() or None
 		self.resultActivated.emit(path, loc)
 
-	resultActivated = Signal(unicode, object)
+	resultActivated = Signal(str, object)
 
 
 class SearchOptionsButton(QPushButton):

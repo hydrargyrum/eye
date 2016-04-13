@@ -61,16 +61,16 @@ class TabWidget(QTabWidget, WidgetMixin):
 		self.setTabText(idx, self.tr('%s') % filename)
 
 	def widgets(self):
-		return [self.widget(i) for i in xrange(self.count())]
+		return [self.widget(i) for i in range(self.count())]
 
 	def _selectTab(self, step, s1, e1, rotate, s2, e2):
-		for idx in xrange(s1, e1, step):
+		for idx in range(s1, e1, step):
 			if self.isTabEnabled(idx):
 				self.setCurrentIndex(idx)
 				return
 		if not rotate:
 			return
-		for idx in xrange(s2, e2, step):
+		for idx in range(s2, e2, step):
 			if self.isTabEnabled(idx):
 				self.setCurrentIndex(idx)
 				return
@@ -94,7 +94,7 @@ class TabWidget(QTabWidget, WidgetMixin):
 		self.selectNextTab(True)
 
 	def requestClose(self):
-		for i in xrange(self.count()):
+		for i in range(self.count()):
 			w = self.widget(0)
 			if w.closeFile():
 				self.removeTab(0)
