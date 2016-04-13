@@ -6,7 +6,14 @@ __all__ = ('bytes', 'str')
 
 
 if sys.version_info.major < 3:
-    bytes, str = str, unicode
-else:
-    bytes, str = bytes, str
+	bytes, str = str, unicode
 
+	execfile = execfile
+else:
+	bytes, str = bytes, str
+
+	# cheap but ad-hoc replacement
+	def execfile(path, globals):
+		with open(path) as fd:
+			src = fd.read()
+		exec(src, globals)
