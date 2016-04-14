@@ -104,6 +104,11 @@ class Project(QObject):
 			if fnmatch.filter([relpath, os.path.basename(relpath)], section):
 				sections.append(section)
 		sections.sort(key=len)
+
+		if sections:
+			LOGGER.debug('sections in %r apply for %r: %r', self.cfgpath, relpath, sections)
+		else:
+			LOGGER.debug('no sections in %r apply for %r', self.cfgpath, relpath)
 		return sections
 
 	def rootProject(self):
@@ -121,11 +126,19 @@ class Project(QObject):
 
 	def applyOptions(self, editor):
 		options = mergedOptionsForFile(self, editor.path)
-		applyOptionsDict(editor, options)
+		if options:
+			LOGGER.debug('applying options for editor %r', editor.path)
+			applyOptionsDict(editor, options)
+		else:
+			LOGGER.debug('no options apply to editor %r', editor.path)
 
 	def applyPreOptions(self, editor):
 		options = mergedOptionsForFile(self, editor.path)
-		applyPreOptionsDict(editor, options)
+		if options:
+			LOGGER.debug('applying pre-options for editor %r', editor.path)
+			applyPreOptionsDict(editor, options)
+		else:
+			LOGGER.debug('no options apply to editor %r', editor.path)
 
 
 TRUE_STRINGS = ['true', 'yes', 'on', '1']
