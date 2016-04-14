@@ -6,10 +6,10 @@ Slot = pyqtSlot
 
 import fnmatch
 import os
-from ConfigParser import RawConfigParser, NoOptionError, Error
+from six.moves.configparser import RawConfigParser, NoOptionError, Error
 from logging import getLogger
 from weakref import WeakValueDictionary, ref
-from StringIO import StringIO
+from six import StringIO
 
 from ..connector import registerSignal, disabled
 from ..utils import exceptionLogging

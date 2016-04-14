@@ -1,6 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from ConfigParser import SafeConfigParser
+from six.moves.configparser import SafeConfigParser
 from logging import getLogger
 
 from ..three import str
