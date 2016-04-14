@@ -2,7 +2,7 @@
 
 import sys
 
-__all__ = ('bytes', 'str')
+__all__ = ('bytes', 'str', 'execfile')
 
 
 if sys.version_info.major < 3:

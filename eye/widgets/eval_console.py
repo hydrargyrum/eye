@@ -2,6 +2,9 @@
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget
+
+from six import StringIO, exec_
+import sys
 import traceback
 
 from ..app import qApp
@@ -10,7 +13,6 @@ from .helpers import WidgetMixin
 Slot = pyqtSlot
 
 __all__ = ('EvalConsole',)
-
 
 
 class EvalConsole(QWidget, WidgetMixin):
@@ -28,9 +30,23 @@ class EvalConsole(QWidget, WidgetMixin):
 		layout.addWidget(self.display)
 		layout.addWidget(self.line)
 
+	def _exec(self, line):
+		res = None
+		try:
+			try:
+				res = eval(line, self.namespace)
+			except SyntaxError:
+				pass
+			else:
+				if res is not None:
+					print(repr(res))
+				return
+			exec_(line, self.namespace)
+		except Exception as e:
+			traceback.print_exc()
+
 	@Slot()
 	def execLine(self):
-		# TODO catch prints
 		# TODO be able to define functions, do ifs, fors
 
 		self.namespace['window'] = qApp().lastWindow
@@ -39,16 +55,17 @@ class EvalConsole(QWidget, WidgetMixin):
 		text = self.line.text()
 		self.line.setText('')
 
-		res = None
 		output = '>>> %s\n' % text
-		try:
-			try:
-				res = eval(text, self.namespace)
-			except SyntaxError:
-				exec text in self.namespace
-		except Exception as e:
-			output += '%s\n' % traceback.format_exc()
-		else:
-			if res is not None:
-				output += '%r\n' % res
+		output += capture_output(self._exec, text)
 		self.display.appendPlainText(output)
+
+
+def capture_output(cb, *args, **kwargs):
+	sio = StringIO()
+	old = sys.stdout, sys.stderr
+	sys.stdout, sys.stderr = sio, sio
+	try:
+		res = cb(*args, **kwargs)
+	finally:
+		sys.stdout, sys.stderr = old
+	return sio.getvalue()
