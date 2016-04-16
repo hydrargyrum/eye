@@ -24,7 +24,7 @@ class GitGrep(SearchPlugin):
 		with open(os.devnull, 'w') as nul:
 			try:
 				res = subprocess.call(['git', 'rev-parse'], cwd=path, stderr=nul)
-			except OSError, e:
+			except OSError as e:
 				if e.errno == errno.ENOENT:
 					res = 1
 		return not res
