@@ -2,14 +2,17 @@
 
 import logging
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QObject, pyqtSlot as Slot
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QAction
 
-from ..connector import registerSignal
+from ..three import bytes, str
+from ..connector import registerSignal, categoryObjects, CONNECTOR
 
 
-__all__ = ('registerActionSlot', 'registerActionShortcut')
+__all__ = ('registerActionShortcut', 'unregisterActionShortcut',
+           'registerShortcut', 'registerActionSlot',
+           'getAction')
 
 
 LOGGER = logging.getLogger(__name__)
@@ -17,44 +20,208 @@ LOGGER = logging.getLogger(__name__)
 
 def setupActionSlot(obj, slotName):
 	slot = getattr(obj, slotName)
+	buildAction(obj, slotName, slot)
 
+
+def buildAction(obj, actionName, target):
 	action = QAction(obj)
-	action.setObjectName(slotName)
+	action.setObjectName(actionName)
 	obj.addAction(action)
-	action.triggered.connect(slot)
-	LOGGER.debug('registered action %r for %r', slotName, obj)
+	action.triggered.connect(target)
 
 	return action
 
 
+def disableShortcut(obj, keyseq):
+	qkeyseq = QKeySequence(keyseq)
+
+	for child in obj.children():
+		if isinstance(child, QAction):
+			if child.shortcut() == qkeyseq:
+				child.setShortcut(QKeySequence())
+
+
+def getAction(obj, actionName):
+	return obj.findChild(QAction, actionName, Qt.FindDirectChildrenOnly)
+
+
+def disableAction(obj, actionName):
+	action = getAction(actionName)
+	if action:
+		obj.removeAction(action)
+
+
 def registerActionSlot(categories, slotName):
-	@registerSignal(categories, 'connected')
-	def onObject(obj):
-		action = obj.findChild(QAction, actionName, Qt.FindDirectChildrenOnly)
-		if action:
-			LOGGER.debug('%r (requested categories: %r) has already registered action %r', obj, categories, slotName)
-		else:
-			setupActionSlot(obj, slotName)
+	ACTIONS.registerActionSlot(categories, slotName)
+
+
+def to_stringlist(obj):
+	if isinstance(obj, (str, bytes)):
+		return [obj]
+	else:
+		return obj
+
+
+class CategoryStore(QObject):
+	def __init__(self, **kwargs):
+		super(CategoryStore, self).__init__(**kwargs)
+		self.by_cat = {}
+		self.by_key = {}
+		CONNECTOR.categoryAdded.connect(self.categoryAdded)
+		CONNECTOR.categoryRemoved.connect(self.categoryRemoved)
+
+	@Slot(object, str)
+	def categoryAdded(self, obj, cat):
+		keys = self.by_cat.get(cat, {})
+		for key in keys:
+			self.registerObject(obj, key, keys[key])
+
+	@Slot(object, str)
+	def categoryRemoved(self, obj, cat):
+		obj_cats = obj.categories()
+		keys = self.by_cat.get(cat, {})
+		for key in keys:
+			key_cats = set(self.by_key.get(key, []))
+			if not (obj_cats & sh_cats):
+				self.unregisterObject(obj, key)
+
+	def registerCategories(self, categories, key, value):
+		categories = set(to_stringlist(categories))
+
+		objects = set()
+		for cat in categories:
+			objects |= set(categoryObjects(cat))
+
+		for obj in objects:
+			self.registerObject(obj, key, value)
+
+		for cat in categories:
+			self.by_cat.setdefault(cat, {})[key] = value
+		self.by_key.setdefault(key, {})[cat] = value
+
+	def unregisterCategories(self, categories, key):
+		categories = set(to_stringlist(categories))
+
+		# categories left that will prevent an object from being unregistered
+		key_cats = set(self.by_key.get(key, []))
+		retaining_cats = key_cats - categories
+
+		# object list
+		objects = set()
+		for cat in categories:
+			objects |= set(categoryObjects(cat))
+
+		for obj in objects:
+			if not (obj.categories() & retaining_cats):
+				self.unregisterObject(obj, key)
+
+		for cat in categories:
+			try:
+				del self.by_cat[cat][key]
+			except KeyError:
+				pass
+		try:
+			del self.by_key[key][cat]
+		except KeyError:
+			pass
+
+	def registerObject(self, obj, key, value):
+		raise NotImplementedError()
+
+	def unregisterObject(self, obj, key):
+		raise NotImplementedError()
+
+
+class ShortcutStore(CategoryStore):
+	def __init__(self, **kwargs):
+		super(ShortcutStore, self).__init__(**kwargs)
+
+	def registerObject(self, obj, key, actionName):
+		disableShortcut(obj, key[0])
+		action = getAction(obj, actionName)
+		action.setShortcut(key[0])
+		action.setShortcutContext(key[1])
+
+	def unregisterObject(self, obj, key):
+		disableShortcut(obj, key[0])
+
+	def registerShortcut(self, categories, key, value):
+		LOGGER.info('registering shortcut %r with %r for categories %r', key, value, categories)
+		self.registerCategories(categories, key, value)
+
+	def unregisterShortcut(self, categories, key):
+		LOGGER.info('unregistering shortcut %r with %r for categories %r', key, value, categories)
+		self.unregisterCategories(categories, key)
+
+
+class ActionStore(CategoryStore):
+	def __init__(self, **kwargs):
+		super(ActionStore, self).__init__(**kwargs)
+		self.func_counter = 0
+
+	def registerObject(self, obj, key, value):
+		LOGGER.debug('registering %s action %r for object %r', value[0], key, obj)
+		if value[0] == 'slot':
+			setupActionSlot(obj, key)
+		elif value[0] == 'func':
+			buildAction(obj, key, value[1])
+
+	def unregisterObject(self, obj, key):
+		LOGGER.debug('unregistering action %r for object %r', key, obj)
+		disableAction(obj, key)
+
+	def registerActionSlot(self, categories, slotName):
+		LOGGER.info('registering slot action %r for categories %r', slotName, categories)
+		self.registerCategories(categories, slotName, ('slot',))
+
+	def registerActionFunc(self, categories, cb):
+		self.func_counter += 1
+		autoname = '%s_%d' % (cb.__name__, self.func_counter)
+
+		LOGGER.info('registering function action %r (autoname=%r) for categories %r', cb, autoname, categories)
+		cb.action_name = autoname
+		self.registerCategories(categories, autoname, ('func', cb))
+		return autoname
+
+	def hasAction(self, category, actionName):
+		return actionName in self.by_cat.get(category, {})
 
 
 def registerActionShortcut(categories, actionName, keyseq, context=Qt.WidgetShortcut):
-	@registerSignal(categories, 'connected')
-	def onObject(obj):
-		action = obj.findChild(QAction, actionName, Qt.FindDirectChildrenOnly)
-		if not action:
-			if hasattr(obj, actionName):
-				action = setupActionSlot(obj, actionName)
-			else:
-				LOGGER.warning('%r (requested categories: %r) has no action %r', obj, categories, actionName)
-				return
+	categories = set(to_stringlist(categories))
+	key = (QKeySequence(keyseq), context)
 
-		qkeyseq = QKeySequence(keyseq)
+	create_slot = set()
+	for cat in categories:
+		if not ACTIONS.hasAction(cat, actionName):
+			create_slot.add(cat)
+	if create_slot:
+		ACTIONS.registerActionSlot(create_slot, actionName)
 
-		# disable actions with the same shortcut
-		for child in obj.children():
-			if isinstance(child, QAction):
-				if child.shortcut() == qkeyseq:
-					child.setShortcut(QKeySequence())
+	SHORTCUTS.registerShortcut(categories, key, actionName)
 
-		action.setShortcut(qkeyseq)
-		action.setShortcutContext(context)
+
+def unregisterActionShortcut(categories, keyseq, context=Qt.WidgetShortcut):
+	key = (QKeySequence(keyseq), context)
+	SHORTCUTS.unregisterShortcut(categories, key)
+
+
+def registerShortcut(categories, keyseq, context=Qt.WidgetShortcut):
+	key = (QKeySequence(keyseq), context)
+
+	def decorator(cb):
+		newcb = lambda: cb(SHORTCUTS.sender().parent())
+		actionName = ACTIONS.registerActionFunc(categories, newcb)
+		SHORTCUTS.registerShortcut(categories, key, actionName)
+		return cb
+	return decorator
+
+
+# monkey-patch qkeysequence so it is hashable
+
+QKeySequence.__hash__ = lambda self: hash(self.toString())
+QKeySequence.__repr__ = lambda self: '<QKeySequence key=%r>' % self.toString()
+
+# warning: order is important since shortcuts can create a slot-action
+ACTIONS = ActionStore()
+SHORTCUTS = ShortcutStore()

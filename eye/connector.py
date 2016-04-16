@@ -1,21 +1,29 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import Qt, QObject, pyqtSlot as Slot
+from PyQt5.QtCore import Qt, QObject, pyqtSignal as Signal, pyqtSlot as Slot
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QShortcut
-import weakref
+
 import inspect
 from logging import getLogger
+import weakref
 
 from .three import bytes, str
 from .utils import exceptionLogging
 
-__all__ = ('registerSignal', 'registerEventFilter', 'registerShortcut', 'disabled',
+__all__ = ('registerSignal', 'registerEventFilter', 'disabled',
            'defaultEditorConfig', 'defaultWindowConfig', 'defaultLexerConfig',
            'categoryObjects')
 
 
 LOGGER = getLogger(__name__)
+
+
+def to_stringlist(obj):
+	if isinstance(obj, (str, bytes)):
+		return [obj]
+	else:
+		return obj
 
 
 class SignalListener(QObject):
@@ -79,7 +87,10 @@ class EventFilter(QObject):
 		obj.removeEventFilter(self)
 
 
-class EventConnector(QObject, object):
+class EventConnector(QObject):
+	categoryAdded = Signal(object, str)
+	categoryRemoved = Signal(object, str)
+
 	def __init__(self):
 		super(EventConnector, self).__init__()
 		self.allObjects = weakref.WeakSet()
@@ -115,7 +126,7 @@ class EventConnector(QObject, object):
 			else:
 				self.doConnect(obj, lis, peekSet(matches))
 
-	def categoryAdded(self, obj, cat):
+	def addCategory(self, obj, cat):
 		prev = obj.categories().copy()
 		prev.remove(cat)
 
@@ -125,14 +136,16 @@ class EventConnector(QObject, object):
 					continue # object is already connected
 				else:
 					self.doConnect(obj, lis, cat)
+		self.categoryAdded.emit(obj, cat)
 
-	def categoryRemoved(self, obj, cat):
+	def removeCategory(self, obj, cat):
 		for lis in self.allListeners:
 			if cat in lis.categories:
 				if obj.categories() & lis.categories:
 					continue # object is still connected
 				else:
 					self.doDisconnect(obj, lis, cat)
+		self.categoryRemoved.emit(obj, cat)
 
 	def objectsMatching(self, categories):
 		if isinstance(categories, (bytes, str)):
@@ -150,9 +163,7 @@ def categoryObjects(cats):
 
 
 def registerSignal(categories, signal):
-	if isinstance(categories, (bytes, str)):
-		categories = [categories]
-	categories = frozenset(categories)
+	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
 		lis = SignalListener(func, categories, signal, CONNECTOR)
@@ -163,9 +174,7 @@ def registerSignal(categories, signal):
 
 
 def registerEventFilter(categories, eventTypes):
-	if isinstance(categories, (bytes, str)):
-		categories = [categories]
-	categories = frozenset(categories)
+	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
 		lis = EventFilter(func, categories, eventTypes, CONNECTOR)
@@ -178,25 +187,6 @@ def registerEventFilter(categories, eventTypes):
 def disabled(func):
 	func.enabled = False
 	return func
-
-
-def registerShortcut(categories, ks, context=Qt.WidgetShortcut):
-	def deco(cb):
-		def cbWidget(sh):
-			return cb(sh.parentWidget())
-
-		@registerSignal(categories, 'connected')
-		def action(widget):
-			shortcut = QShortcut(widget)
-			shortcut.setKey(QKeySequence(ks))
-			shortcut.setContext(context)
-
-			lis = SignalListener(cbWidget, categories, 'activated', shortcut)
-			CONNECTOR.doConnect(shortcut, lis, categories[0])
-
-		return cb
-
-	return deco
 
 
 defaultEditorConfig = registerSignal(['editor'], 'connected')

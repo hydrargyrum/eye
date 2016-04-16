@@ -8,8 +8,8 @@ from weakref import ref
 
 from ..widgets.minibuffer import openMiniBuffer
 from ..connector import registerSignal
-from ..connector import registerShortcut
 from ..colorutils import QColorAlpha
+from .actions import registerShortcut
 
 
 @registerSignal('editor', 'connected')

@@ -30,13 +30,13 @@ class CategoryMixin(object):
 		if c in self._categories:
 			return
 		self._categories.add(c)
-		CONNECTOR.categoryAdded(self, c)
+		CONNECTOR.addCategory(self, c)
 
 	def removeCategory(self, c):
 		if c not in self._categories:
 			return
 		self._categories.remove(c)
-		CONNECTOR.categoryRemoved(self, c)
+		CONNECTOR.removeCategory(self, c)
 
 
 class WidgetMixin(CategoryMixin):
