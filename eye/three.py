@@ -16,4 +16,5 @@ else:
 	def execfile(path, globals):
 		with open(path) as fd:
 			src = fd.read()
-		exec(src, globals)
+		code = compile(src, path, 'exec')
+		exec(code, globals)
