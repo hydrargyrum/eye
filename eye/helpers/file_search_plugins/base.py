@@ -9,6 +9,7 @@ PLUGINS = {}
 
 def registerPlugin(cls):
 	PLUGINS[cls.id] = cls()
+	return cls
 
 
 class SearchPlugin(object):
