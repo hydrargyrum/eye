@@ -159,16 +159,40 @@ class ActionStore(CategoryStore):
 		super(ActionStore, self).__init__(**kwargs)
 		self.func_counter = 0
 
+	@Slot()
+	def placeholder(self):
+		LOGGER.warning("placeholder function shouldn't be called %r", actionName)
+
+	def hasSlot(self, obj, slotName):
+		return callable(getattr(obj, slotName, None))
+
 	def registerObject(self, obj, key, value):
 		LOGGER.debug('registering %s action %r for object %r', value[0], key, obj)
-		if value[0] == 'slot':
+
+		old = getAction(obj, key)
+		if old is not None:
+			try:
+				old.triggered.disconnect(self.placeholder)
+			except TypeError:
+				LOGGER.warning('will not override existing action %r from object %r', key, obj)
+				return
+			obj.removeAction(old)
+			old.setParent(None)
+
+		if value[0] == 'slot' or self.hasSlot(obj, key):
 			setupActionSlot(obj, key)
 		elif value[0] == 'func':
 			buildAction(obj, key, value[1])
+		elif value[0] == 'placeholder':
+			buildAction(obj, key, self.placeholder)
 
 	def unregisterObject(self, obj, key):
 		LOGGER.debug('unregistering action %r for object %r', key, obj)
 		disableAction(obj, key)
+
+	def registerActionPlaceholder(self, categories, actionName):
+		LOGGER.debug('creating registering placeholder action %r for categories %r', actionName, categories)
+		self.registerCategories(categories, actionName, ('placeholder',))
 
 	def registerActionSlot(self, categories, slotName):
 		LOGGER.info('registering slot action %r for categories %r', slotName, categories)
@@ -191,12 +215,12 @@ def registerActionShortcut(categories, actionName, keyseq, context=Qt.WidgetShor
 	categories = set(to_stringlist(categories))
 	key = (QKeySequence(keyseq), context)
 
-	create_slot = set()
+	create_ph = set()
 	for cat in categories:
 		if not ACTIONS.hasAction(cat, actionName):
-			create_slot.add(cat)
-	if create_slot:
-		ACTIONS.registerActionSlot(create_slot, actionName)
+			create_ph.add(cat)
+	if create_ph:
+		ACTIONS.registerActionPlaceholder(create_ph, actionName)
 
 	SHORTCUTS.registerShortcut(categories, key, actionName)
 
