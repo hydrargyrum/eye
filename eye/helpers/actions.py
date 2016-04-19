@@ -6,6 +6,7 @@ import logging
 from PyQt5.QtCore import Qt, QObject, pyqtSlot as Slot
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QAction
+from PyQt5.Qsci import QsciCommand, QsciScintilla
 
 from ..three import bytes, str
 from ..connector import registerSignal, categoryObjects, CONNECTOR
@@ -40,6 +41,20 @@ def disableShortcut(obj, keyseq):
 		if isinstance(child, QAction):
 			if child.shortcut() == qkeyseq:
 				child.setShortcut(QKeySequence())
+
+
+def disableSciShortcut(obj, keyseq):
+	assert keyseq.count() == 1
+	qcmd = obj.standardCommands().boundTo(keyseq[0])
+	if qcmd is not None:
+		qcmd.setKey(0)
+
+
+def setSciShortcut(obj, actionName, keyseq):
+	assert keyseq.count() == 1
+	qval = getattr(QsciCommand, actionName)
+	qcmd = obj.standardCommands().find(qval)
+	qcmd.setKey(keyseq[0])
 
 
 def getAction(obj, actionName):
@@ -137,13 +152,23 @@ class ShortcutStore(CategoryStore):
 	def __init__(self, **kwargs):
 		super(ShortcutStore, self).__init__(**kwargs)
 
+	def isEditorCommand(self, obj, name):
+		return isinstance(obj, QsciScintilla) and hasattr(QsciCommand, name)
+
 	def registerObject(self, obj, key, actionName):
+		if self.isEditorCommand(obj, actionName):
+			disableSciShortcut(obj, key[0])
+			setSciShortcut(obj, actionName, key[0])
+			return
+
 		disableShortcut(obj, key[0])
 		action = getAction(obj, actionName)
 		action.setShortcut(key[0])
 		action.setShortcutContext(key[1])
 
 	def unregisterObject(self, obj, key):
+		if isinstance(obj, QsciScintilla):
+			disableSciShortcut(obj, key[0])
 		disableShortcut(obj, key[0])
 
 	def registerShortcut(self, categories, key, value):
@@ -186,6 +211,8 @@ class ActionStore(CategoryStore):
 			buildAction(obj, key, value[1])
 		elif value[0] == 'placeholder':
 			buildAction(obj, key, self.placeholder)
+		elif value[0] == 'scicommand':
+			buildAction(obj, key, self.sci)
 
 	def unregisterObject(self, obj, key):
 		LOGGER.debug('unregistering action %r for object %r', key, obj)
@@ -198,6 +225,9 @@ class ActionStore(CategoryStore):
 	def registerActionSlot(self, categories, slotName):
 		LOGGER.info('registering slot action %r for categories %r', slotName, categories)
 		self.registerCategories(categories, slotName, ('slot',))
+
+	def registerActionSci(self, categories, name):
+		self.registerCategories(categories, name, ('scicommand', name))
 
 	def registerActionFunc(self, categories, cb):
 		self.func_counter += 1
