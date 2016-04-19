@@ -108,6 +108,28 @@ class Indicator(HasWeakEditorMixin):
 			self.id = self.editor.indicatorDefine(self.style, self.id)
 			del self.style
 
+	def getAtPos(self, pos):
+		return self.editor.indicatorValueAt(self.id, pos)
+
+	def getStartFromPos(self, pos):
+		return self.editor.indicatorStart(self.id, pos)
+
+	def getEndFromPos(self, pos):
+		return self.editor.indicatorEnd(self.id, pos)
+
+	def iterRanges(self):
+		start = 0
+		inrange = bool(self.getAtPos(0))
+
+		ed_end = self.editor.length()
+		while start < ed_end:
+			end = self.getEndFromPos(start)
+			if inrange:
+				yield (start, end)
+
+			inrange = not inrange
+			start = end
+
 	def putAt(self, lineFrom, indexFrom, lineTo, indexTo):
 		self.editor.fillIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, self.id)
 
@@ -123,6 +145,9 @@ class Indicator(HasWeakEditorMixin):
 		startLi = self.editor.lineIndexFromPosition(start)
 		endLi = self.editor.lineIndexFromPosition(end)
 		self.removeAt(*(startLi + endLi))
+
+	def clear(self):
+		self.removeAtPos(0, self.editor.length())
 
 	def setColor(self, col):
 		self.editor.setIndicatorForegroundColor(col, self.id)
@@ -206,6 +231,8 @@ def sipvoid_as_str(v):
         i += 1
 
 class BaseEditor(QsciScintilla):
+	# selection
+
 	SelectionStream = QsciScintilla.SC_SEL_STREAM
 	SelectionRectangle = QsciScintilla.SC_SEL_RECTANGLE
 	SelectionLines = QsciScintilla.SC_SEL_LINES
@@ -220,13 +247,6 @@ class BaseEditor(QsciScintilla):
 	setAdditionalSelectionTyping = sciPropSet(QsciScintilla.SCI_SETADDITIONALSELECTIONTYPING)
 	additionalSelectionTyping = sciPropGet(QsciScintilla.SCI_GETADDITIONALSELECTIONTYPING)
 
-	VsNone = QsciScintilla.SCVS_NONE
-	VsRectangular = QsciScintilla.SCVS_RECTANGULARSELECTION
-	VsUser = QsciScintilla.SCVS_USERACCESSIBLE
-
-	setVirtualSpaceOptions = sciPropSet(QsciScintilla.SCI_SETVIRTUALSPACEOPTIONS)
-	virtualSpaceOptions = sciPropGet(QsciScintilla.SCI_GETVIRTUALSPACEOPTIONS)
-
 	selectionsCount = sciPropGet(QsciScintilla.SCI_GETSELECTIONS)
 	selectionsEmpty = sciPropGet(QsciScintilla.SCI_GETSELECTIONEMPTY)
 	clearSelections = sciPropSet(QsciScintilla.SCI_CLEARSELECTIONS, 0)
@@ -234,18 +254,35 @@ class BaseEditor(QsciScintilla):
 	setMainSelection = sciPropSet(QsciScintilla.SCI_SETMAINSELECTION)
 	mainSelection = sciPropGet(QsciScintilla.SCI_GETMAINSELECTION)
 
+	# virtual space
+	VsNone = QsciScintilla.SCVS_NONE
+	VsRectangular = QsciScintilla.SCVS_RECTANGULARSELECTION
+	VsUser = QsciScintilla.SCVS_USERACCESSIBLE
+
+	setVirtualSpaceOptions = sciPropSet(QsciScintilla.SCI_SETVIRTUALSPACEOPTIONS)
+	virtualSpaceOptions = sciPropGet(QsciScintilla.SCI_GETVIRTUALSPACEOPTIONS)
+
+	# character representation
 	setRepresentation = sciPropSet(QsciScintilla.SCI_SETREPRESENTATION, 2)
 	getRepresentation = sciPropGet(QsciScintilla.SCI_GETREPRESENTATION)
 	clearRepresentation = sciPropSet(QsciScintilla.SCI_CLEARREPRESENTATION)
 
+	# fold
 	setFoldLevel = sciPropGet(QsciScintilla.SCI_SETFOLDLEVEL, 2)
 	getFoldLevel = sciPropGet(QsciScintilla.SCI_GETFOLDLEVEL, 1)
 
+	# macro
 	_startMacroRecord = sciPropSet(QsciScintilla.SCI_STARTRECORD, 0)
 	_stopMacroRecord = sciPropSet(QsciScintilla.SCI_STOPRECORD, 0)
 
+	# markers
 	_getMarkerPrevious = sciPropGet(QsciScintilla.SCI_MARKERPREVIOUS, 2)
 	_getMarkerNext = sciPropGet(QsciScintilla.SCI_MARKERNEXT, 2)
+
+	# indicators
+	indicatorValueAt = sciPropGet(QsciScintilla.SCI_INDICATORVALUEAT, 2)
+	indicatorStart = sciPropGet(QsciScintilla.SCI_INDICATORSTART, 2)
+	indicatorEnd = sciPropGet(QsciScintilla.SCI_INDICATOREND, 2)
 
 	def __init__(self, **kwargs):
 		super(BaseEditor, self).__init__(**kwargs)
