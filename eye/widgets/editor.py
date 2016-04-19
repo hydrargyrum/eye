@@ -222,6 +222,19 @@ def factory_factory(default_expected_args):
 sciPropSet = factory_factory(1)
 sciPropGet = factory_factory(0)
 
+
+def sciProp(prop, expected_args):
+	def func(self, *args):
+		if len(args) != len(expected_args):
+			raise TypeError("this function takes exactly %d argument(s)" % len(expected_args))
+		for n, (arg, expected_type) in enumerate(zip(args, expected_args)):
+			if not isinstance(arg, expected_type):
+				raise TypeError("argument %d has unexpected type %r (expected %r)" %
+				                (n + 1, type(arg).__name__, expected_type.__name__))
+		return self.SendScintilla(prop, *args)
+	return func
+
+
 def sipvoid_as_str(v):
     i = 1
     while True:
@@ -229,6 +242,7 @@ def sipvoid_as_str(v):
         if s[-1] == '\x00':
             return s[:-1]
         i += 1
+
 
 class BaseEditor(QsciScintilla):
 	# selection
@@ -291,6 +305,17 @@ class BaseEditor(QsciScintilla):
 	indicatorValueAt = sciPropGet(QsciScintilla.SCI_INDICATORVALUEAT, 2)
 	indicatorStart = sciPropGet(QsciScintilla.SCI_INDICATORSTART, 2)
 	indicatorEnd = sciPropGet(QsciScintilla.SCI_INDICATOREND, 2)
+
+	# search
+	setTargetStart = sciPropSet(QsciScintilla.SCI_SETTARGETSTART)
+	targetStart = sciPropGet(QsciScintilla.SCI_GETTARGETSTART)
+	setTargetEnd = sciPropSet(QsciScintilla.SCI_SETTARGETEND)
+	targetEnd = sciPropGet(QsciScintilla.SCI_GETTARGETEND)
+	setTargetRange = sciPropSet(QsciScintilla.SCI_SETTARGETRANGE, 2)
+	_searchInTarget = sciProp(QsciScintilla.SCI_SEARCHINTARGET, (int, bytes))
+
+	setSearchFlags = sciPropSet(QsciScintilla.SCI_SETSEARCHFLAGS)
+	searchFlags = sciPropGet(QsciScintilla.SCI_GETSEARCHFLAGS)
 
 	def __init__(self, **kwargs):
 		super(BaseEditor, self).__init__(**kwargs)
@@ -399,6 +424,11 @@ class BaseEditor(QsciScintilla):
 	def replayMacroAction(self, action):
 		msg, lp, wp = action
 		return self.SendScintilla(msg, lp, wp)
+
+	def searchInTarget(self, s):
+		if isinstance(s, str):
+			s = s.encode('utf-8')
+		return self._searchInTarget(len(s), s)
 
 	macroRecordStarted = Signal()
 	macroRecordStopped = Signal()
