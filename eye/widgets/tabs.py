@@ -17,12 +17,6 @@ class TabBar(QTabBar):
 		self.setMovable(True)
 		self.setUsesScrollButtons(True)
 
-	def focusInEvent(self, ev):
-		QTabBar.focusInEvent(self, ev)
-		self.focused.emit()
-
-	focused = Signal()
-
 
 class TabWidget(QTabWidget, WidgetMixin):
 	lastTabClosed = Signal()
@@ -35,19 +29,35 @@ class TabWidget(QTabWidget, WidgetMixin):
 
 		bar = TabBar()
 		self.setTabBar(bar)
-		bar.focused.connect(self.refocus)
 
 		self.addCategory('tabwidget')
 
 	def currentBuffer(self):
 		return self.currentWidget()
 
+	def _idxContainerOf(self, widget):
+		while widget is not self:
+			idx = self.indexOf(widget)
+			if idx >= 0:
+				return idx
+			widget = widget.parent()
+		return -1
+
 	def closeTab(self, ed):
+		assert self.isAncestorOf(ed)
 		if ed.closeFile():
-			self.removeTab(self.indexOf(ed))
+			idx = self._idxContainerOf(ed)
+
+			self.removeTab(idx)
 			return True
 		else:
 			return False
+
+	def setCurrentWidget(self, widget):
+		assert self.isAncestorOf(widget)
+		idx = self._idxContainerOf(widget)
+		if idx >= 0:
+			self.setCurrentIndex(idx)
 
 	def addWidget(self, widget):
 		self.addTab(widget, widget.icon(), widget.title())
@@ -111,8 +121,8 @@ class TabWidget(QTabWidget, WidgetMixin):
 
 	@Slot(int)
 	def _currentChanged(self, idx):
-		if self.hasFocus():
-			self.widget(idx).setFocus(Qt.OtherFocusReason)
+		self.setFocusProxy(self.widget(idx))
+		self.tabBar().setFocusProxy(self.widget(idx))
 
 	@Slot()
 	def _subTitleChanged(self):
@@ -130,12 +140,13 @@ class TabWidget(QTabWidget, WidgetMixin):
 			return
 		self.setTabIcon(idx, w.icon())
 
+	# override
 	def tabInserted(self, idx):
-		QTabWidget.tabInserted(self, idx)
+		super(TabWidget, self).tabInserted(idx)
 		self._changeTabBarVisibility()
 
 	def tabRemoved(self, idx):
-		QTabWidget.tabRemoved(self, idx)
+		super(TabWidget, self).tabRemoved(idx)
 		self._changeTabBarVisibility()
 
 		w = self._findRemovedWidget()
@@ -143,6 +154,8 @@ class TabWidget(QTabWidget, WidgetMixin):
 
 		if self.count() == 0:
 			self.lastTabClosed.emit()
+		elif self.currentIndex() == idx:
+			self.currentWidget().giveFocus()
 
 	def _findRemovedWidget(self):
 		# implementation detail, but no access to the removed widget
