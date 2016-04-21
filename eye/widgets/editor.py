@@ -317,6 +317,8 @@ class BaseEditor(QsciScintilla):
 	setSearchFlags = sciPropSet(QsciScintilla.SCI_SETSEARCHFLAGS)
 	searchFlags = sciPropGet(QsciScintilla.SCI_GETSEARCHFLAGS)
 
+	setLexerProperty = sciProp(QsciScintilla.SCI_SETPROPERTY, (bytes, bytes))
+
 	def __init__(self, **kwargs):
 		super(BaseEditor, self).__init__(**kwargs)
 
