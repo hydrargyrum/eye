@@ -98,11 +98,13 @@ class EventConnector(QObject):
 
 	def doConnect(self, obj, lis, cat=''):
 		LOGGER.debug('connecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
-		lis.doConnect(obj)
+		with exceptionLogging(reraise=False, logger=LOGGER):
+			lis.doConnect(obj)
 
 	def doDisconnect(self, obj, lis, cat=''):
 		LOGGER.debug('disconnecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
-		lis.doDisconnect(obj)
+		with exceptionLogging(reraise=False, logger=LOGGER):
+			lis.doDisconnect(obj)
 
 	def addListener(self, categories, lis):
 		self.allListeners.append(lis)
