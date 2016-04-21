@@ -156,6 +156,28 @@ class EventConnector(QObject):
 		return [obj for obj in self.allObjects if categories <= obj.categories()]
 
 
+class CategoryMixin(object):
+	def __init__(self, **kwargs):
+		super(CategoryMixin, self).__init__(**kwargs)
+		self._categories = set()
+		CONNECTOR.addObject(self)
+
+	def categories(self):
+		return self._categories
+
+	def addCategory(self, c):
+		if c in self._categories:
+			return
+		self._categories.add(c)
+		CONNECTOR.addCategory(self, c)
+
+	def removeCategory(self, c):
+		if c not in self._categories:
+			return
+		self._categories.remove(c)
+		CONNECTOR.removeCategory(self, c)
+
+
 def peekSet(s):
 	return next(iter(s))
 
