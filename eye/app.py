@@ -10,7 +10,7 @@ import sip
 sip.setapi('QString', 2)
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow
 Signal = pyqtSignal
 Slot = pyqtSlot
 
@@ -100,7 +100,8 @@ class App(QApplication):
 	def _appFocusChanged(self, old, new):
 		while new and not new.isWindow():
 			new = new.parentWidget()
-		if not new:
+		if not new or not isinstance(new, QMainWindow):
+			# exclude dialogs
 			return
 		self.lastWindow = new
 
