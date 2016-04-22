@@ -51,7 +51,8 @@ class GrepLike(SearchPlugin):
 @registerPlugin
 class AckGrep(GrepLike):
 	id = 'ack'
-	cmd_base = ['ack-grep']
+	# ack insists on using stdin despite being given filepaths
+	cmd_base = ['ack-grep', '--nofilter']
 
 
 @registerPlugin
