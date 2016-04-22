@@ -13,6 +13,7 @@ __all__ = ('findCommand', 'LineProcess')
 
 LOGGER = logging.getLogger(__name__)
 
+
 def findCommand(cmd):
 	for elem in os.getenv('PATH').split(os.pathsep):
 		path = os.path.join(elem, cmd)
@@ -56,4 +57,4 @@ class LineProcess(QProcess):
 
 	@Slot()
 	def onStderr(self):
-		self._perform(1, self.readAllStandardError(), self.stderrLineRead.emit)
+		self._perform(1, self.readAllStandardError(), self.stderrLineRead)
