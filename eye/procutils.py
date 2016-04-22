@@ -34,6 +34,11 @@ class LineProcess(QProcess):
 		self.readyReadStandardError.connect(self.onStderr)
 		self.readyReadStandardOutput.connect(self.onStdout)
 		self.stateChanged.connect(self.onStateChanged)
+		self.finished.connect(self.onFinish)
+		if hasattr(self, 'errorOccurred'): # qt >=5.6
+			self.errorOccurred.connect(self.onError)
+		elif hasattr(self, 'error'):
+			self.error.connect(self.onError)
 
 	@Slot(int)
 	def onStateChanged(self, state):
@@ -58,3 +63,14 @@ class LineProcess(QProcess):
 	@Slot()
 	def onStderr(self):
 		self._perform(1, self.readAllStandardError(), self.stderrLineRead)
+
+	@Slot()
+	def onError(self):
+		cmd = [self.program()] + self.arguments()
+		LOGGER.warning('error when running %r: %s', cmd, self.errorString())
+
+	@Slot(int)
+	def onFinish(self, ret):
+		if ret != 0:
+			cmd = [self.program()] + self.arguments()
+			LOGGER.info('command %r exited with code %r', cmd, ret)
