@@ -40,6 +40,13 @@ class LineProcess(QProcess):
 		elif hasattr(self, 'error'):
 			self.error.connect(self.onError)
 
+	def stop(self, wait=0):
+		if wait and self.state() != self.NotRunning:
+			self.terminate()
+			self.waitForFinished(wait)
+		if self.state() != self.NotRunning:
+			self.kill()
+
 	@Slot(int)
 	def onStateChanged(self, state):
 		if state == self.Starting:
