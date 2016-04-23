@@ -268,6 +268,14 @@ class BaseEditor(QsciScintilla):
 	clearRepresentation = sciPropSet(QsciScintilla.SCI_CLEARREPRESENTATION)
 
 	# fold
+	FoldFlagLineBeforeExpanded = QsciScintilla.SC_FOLDFLAG_LINEBEFORE_EXPANDED
+	FoldFlagLineBeforeContracted = QsciScintilla.SC_FOLDFLAG_LINEBEFORE_CONTRACTED
+	FoldFlagLineAfterExpanded = QsciScintilla.SC_FOLDFLAG_LINEAFTER_EXPANDED
+	FoldFlagLineAfterContracted = QsciScintilla.SC_FOLDFLAG_LINEAFTER_CONTRACTED
+	FoldFlagLevelNumbers = QsciScintilla.SC_FOLDFLAG_LEVELNUMBERS
+	FoldFlagLineState = QsciScintilla.SC_FOLDFLAG_LINESTATE
+
+	setFoldFlags = sciPropSet(QsciScintilla.SCI_SETFOLDFLAGS)
 	setFoldLevel = sciPropGet(QsciScintilla.SCI_SETFOLDLEVEL, 2)
 	getFoldLevel = sciPropGet(QsciScintilla.SCI_GETFOLDLEVEL, 1)
 
