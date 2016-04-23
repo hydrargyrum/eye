@@ -73,6 +73,12 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		return ed
 
 	@Slot()
+	def bufferNewAtTabs(self, tabbar):
+		ed = self.EditorClass()
+		tabbar.addWidget(ed)
+		return ed
+
+	@Slot()
 	def bufferOpenDialog(self):
 		path, qfilter = QFileDialog.getOpenFileName(self, self.tr('Open file'), os.path.expanduser('~'))
 		if path:
