@@ -5,6 +5,8 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget
 Signal = pyqtSignal
 Slot = pyqtSlot
 
+from ..three import str
+from .droparea import DropAreaMixin
 from .helpers import WidgetMixin
 
 __all__ = ('TabWidget',)
@@ -18,8 +20,9 @@ class TabBar(QTabBar):
 		self.setUsesScrollButtons(True)
 
 
-class TabWidget(QTabWidget, WidgetMixin):
+class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 	lastTabClosed = Signal()
+	fileDropped = Signal(str)
 
 	def __init__(self, **kwargs):
 		super(TabWidget, self).__init__(**kwargs)

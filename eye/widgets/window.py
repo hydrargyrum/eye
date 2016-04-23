@@ -8,17 +8,21 @@ Slot = pyqtSlot
 import os
 from weakref import ref
 
+from ..three import str
 from ..app import qApp
 from .helpers import CategoryMixin, acceptIf
 from .editor import Editor
 from .tabs import TabWidget
 from .splitter import SplitManager
+from .droparea import DropAreaMixin
 
 __all__ = ('Window',)
 
 
-class Window(QMainWindow, CategoryMixin):
+class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 	EditorClass = Editor
+
+	fileDropped = Signal(str)
 
 	def __init__(self, *args):
 		super(Window, self).__init__(*args)
