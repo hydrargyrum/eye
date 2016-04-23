@@ -5,7 +5,8 @@ import os
 import subprocess
 from logging import getLogger
 
-from .base import registerPlugin, SearchPlugin
+from .base import registerPlugin
+from .grep import GrepLike
 
 
 __all__ = ('GitGrep',)
@@ -14,10 +15,12 @@ __all__ = ('GitGrep',)
 LOGGER = getLogger(__name__)
 
 @registerPlugin
-class GitGrep(SearchPlugin):
+class GitGrep(GrepLike):
 	id = "git-grep"
+	cmd_base = ['git', 'grep', '-n', '-I']
 
-	def isAvailable(self, path):
+	@classmethod
+	def isAvailable(cls, path):
 		if os.path.isfile(path):
 			path = os.path.dirname(path)
 
@@ -29,29 +32,10 @@ class GitGrep(SearchPlugin):
 					res = 1
 		return not res
 
-	def searchRootPath(self, path):
+	@classmethod
+	def searchRootPath(cls, path):
 		path = path or '.'
 		if os.path.isfile(path):
 			path = os.path.dirname(path)
 		cmd = ['git', 'rev-parse', '--show-toplevel']
 		return subprocess.check_output(cmd, cwd=path).strip()
-
-	def search(self, path, expr, caseSensitive=True):
-		path = path or '.'
-		cmd = ['git', 'grep', '-n', '-I', '-z', expr]
-		if not caseSensitive:
-			cmd.insert(-1, '-i')
-
-		out = subprocess.check_output(cmd, cwd=path)
-
-		for line in out.split('\n'):
-			if not line:
-				continue
-			try:
-				f, line, snippet = line.split('\x00')
-			except ValueError:
-				LOGGER.warning('cannot parse output line %r when searching %r', line, expr, exc_info=True)
-				continue
-
-			snippet = snippet.strip()
-			yield (f, line, snippet)

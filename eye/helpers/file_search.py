@@ -49,3 +49,7 @@ def searchWithPlugin(plugin_id, path, pattern, find_root=False, **options):
 		root = path
 
 	return plugin.search(root, pattern, **options)
+
+
+def setupLocationList(plugin, loclist):
+	plugin.found.connect(loclist.addItem)

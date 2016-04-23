@@ -1,5 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+from PyQt5.QtCore import QObject, pyqtSignal as Signal
 
 __all__ = ('registerPlugin', 'SearchPlugin', 'enabledPlugins')
 
@@ -8,21 +9,30 @@ PLUGINS = {}
 
 
 def registerPlugin(cls):
-	PLUGINS[cls.id] = cls()
+	PLUGINS[cls.id] = cls
 	return cls
 
 
-class SearchPlugin(object):
-	def name(self):
-		return self.id
+class SearchPlugin(QObject):
+	found = Signal(dict)
+	finished = Signal(int)
 
-	def isAvailable(self, path):
+	@classmethod
+	def name(cls):
+		return cls.id
+
+	@classmethod
+	def isAvailable(cls, path):
 		raise NotImplementedError()
 
-	def searchRootPath(self, path):
+	@classmethod
+	def searchRootPath(cls, path):
 		raise NotImplementedError()
 
-	def search(self, root, pattern, **options):
+	def interrupt(self):
+		pass
+
+	def search(self, path, pattern, **options):
 		raise NotImplementedError()
 
 

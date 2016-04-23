@@ -1,51 +1,67 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-import errno
-import os
-import subprocess
+from PyQt5.QtCore import QProcess, pyqtSlot as Slot
+
 from logging import getLogger
+import os
+import re
 
 from .base import registerPlugin, SearchPlugin
 from ...procutils import findCommand
+from ..build import SimpleBuilder
 
 
-__all__ = ('AckGrep', 'AgGrep', 'BasicGrep')
+__all__ = ('AckGrep', 'AgGrep', 'BasicGrep', 'GitGrep')
 
 
 LOGGER = getLogger(__name__)
 
+
+class GrepProcess(SimpleBuilder):
+	reobj = re.compile('^(?P<path>.+):(?P<line>\d+):(?P<snippet>.*)$')
+
+
 class GrepLike(SearchPlugin):
 	cmd_base = None
 
-	def isAvailable(self, path):
-		return findCommand(self.cmd_base[0]) is not None
+	def __init__(self, **kwargs):
+		super(GrepLike, self).__init__(**kwargs)
+		self.runner = GrepProcess()
+		self.runner.warningPrinted.connect(self._gotResult)
+		self.runner.finished.connect(self.finished)
 
-	def searchRootPath(self, path):
+	def __del__(self):
+		self.interrupt()
+
+	@classmethod
+	def isAvailable(cls, path):
+		return findCommand(cls.cmd_base[0]) is not None
+
+	@classmethod
+	def searchRootPath(cls, path):
 		path = path or '.'
 		if os.path.isfile(path):
 			path = os.path.dirname(path)
 		return path
 
-	def search(self, path, expr, caseSensitive=True):
+	@Slot(dict)
+	def _gotResult(self, d):
+		self.found.emit(d)
+
+	def interrupt(self):
+		self.runner.interrupt()
+
+	def search(self, path, pattern, caseSensitive=True):
 		path = path or '.'
-		cmd = self.cmd_base + [expr]
+		cmd = list(self.cmd_base)
 		if not caseSensitive:
-			cmd.insert(-1, '-i')
+			cmd.append('-i')
 
-		#~ proc = subprocess.Popen(cmd, cwd=path, stdout=subprocess.PIPE)
-		#~ out, err = proc.communicate()
-		out = subprocess.check_output(cmd, cwd=path)
-		for line in out.split('\n'):
-			if not line:
-				continue
-			try:
-				f, line, snippet = line.split(':', 2)
-			except ValueError:
-				LOGGER.warning('cannot parse line %r when searching %r', line, expr, exc_info=True)
-				continue
-
-			snippet = snippet.strip()
-			yield (f, line, snippet)
+		cmd.append(pattern)
+		cmd.append(path)
+		self.runner.rootpath = path
+		self.runner.setWorkingDirectory(path)
+		self.runner.run_cmd(cmd)
 
 
 @registerPlugin

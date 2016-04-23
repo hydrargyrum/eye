@@ -26,6 +26,9 @@ class Builder(QObject, CategoryMixin):
 	def columns(self):
 		raise NotImplementedError()
 
+	def interrupt(self):
+		pass
+
 	def run(self, *args, **kwargs):
 		raise NotImplementedError()
 
@@ -61,6 +64,9 @@ class SimpleBuilder(Builder):
 			obj['path'] = os.path.join(self.rootpath, obj['path'])
 			obj['shortpath'] = getRelativePathIn(obj['path'], self.rootpath) or obj['path']
 		self.warningPrinted.emit(obj)
+
+	def interrupt(self):
+		self.proc.stop()
 
 	def setWorkingDirectory(self, path):
 		self.proc.setWorkingDirectory(path)

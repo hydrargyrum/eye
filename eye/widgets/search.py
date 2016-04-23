@@ -6,10 +6,12 @@ from PyQt5.QtWidgets import QWidget, QActionGroup, QGridLayout, QLineEdit, QComb
 Signal = pyqtSignal
 Slot = pyqtSlot
 
+import os
+
 from ..three import str
 from .. import consts
 from .helpers import WidgetMixin
-from ..helpers import file_search
+from ..helpers import file_search, buffers
 from ..reutils import csToQtEnum
 from .locationlist import LocationList
 
@@ -33,17 +35,19 @@ class SearchOptionsButton(QPushButton):
 		menu.addSeparator()
 		self.actionFormat = QActionGroup(self)
 		self.actionPlain = menu.addAction(self.tr('Plain text'))
+		self.actionPlain.setEnabled(False)
 		self.actionRe = menu.addAction(self.tr('Regular expression'))
 		self.actionGlob = menu.addAction(self.tr('Glob pattern'))
+		self.actionGlob.setEnabled(False)
 		self.actionFormat.addAction(self.actionPlain)
 		self.actionFormat.addAction(self.actionRe)
 		self.actionFormat.addAction(self.actionGlob)
 
 		self.actionRoot = menu.addAction(self.tr('Search in best root dir'))
 
-		for act in [self.actionCi, self.actionRe, self.actionPlain, self.actionGlob]:
+		for act in [self.actionCi, self.actionRe, self.actionPlain, self.actionGlob, self.actionRoot]:
 			act.setCheckable(True)
-		self.actionPlain.setChecked(True)
+		self.actionRe.setChecked(True)
 
 		self.setMenu(menu)
 
@@ -82,6 +86,8 @@ class SearchWidget(QWidget, WidgetMixin):
 		self.results = LocationList()
 		self.results.setColumns(['path', 'line', 'snippet'])
 
+		self.searcher = None
+
 		layout.addWidget(self.exprEdit, 0, 0)
 		layout.addWidget(self.optionsButton, 0, 1)
 		layout.addWidget(self.pluginChoice, 0, 2)
@@ -98,7 +104,7 @@ class SearchWidget(QWidget, WidgetMixin):
 		self.exprEdit.setText(text)
 
 	def selectedPlugin(self):
-		return self.pluginChoice.itemData(self.pluginChoice.currentIndex()).toString()
+		return self.pluginChoice.itemData(self.pluginChoice.currentIndex())
 
 	def regexp(self):
 		re = QRegExp(self.exprEdit.text())
@@ -108,5 +114,25 @@ class SearchWidget(QWidget, WidgetMixin):
 
 	def shouldFindRoot(self):
 		return self.optionsButton.shouldFindRoot()
+
+	def makeArgs(self, plugin):
+		ed = buffers.currentBuffer()
+
+		if self.shouldFindRoot():
+			path = plugin.searchRootPath(ed.path)
+		else:
+			path = os.path.dirname(ed.path)
+		pattern = self.exprEdit.text()
+		ci = self.optionsButton.caseSensitive()
+		return (path, pattern, ci)
+
+	@Slot()
+	def doSearch(self):
+		self.results.clear()
+		plugin_type = file_search.getPlugin(self.selectedPlugin())
+		self.searcher = plugin_type()
+		file_search.setupLocationList(self.searcher, self.results)
+		args = self.makeArgs(self.searcher)
+		self.searcher.search(*args)
 
 	returnPressed = Signal()
