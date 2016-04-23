@@ -19,6 +19,12 @@ from .droparea import DropAreaMixin
 __all__ = ('Window',)
 
 
+class DockWidget(QDockWidget, CategoryMixin):
+	def __init__(self, **kwargs):
+		super(QDockWidget, self).__init__(**kwargs)
+		self.addCategory('dock_container')
+
+
 class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 	EditorClass = Editor
 
@@ -125,7 +131,9 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		if self.centralWidget().isAncestorOf(new):
 			self.lastFocus = ref(new)
 
-	def addDockable(self, area, widget):
-		dw = QDockWidget()
+	def addDockable(self, area, widget, title=''):
+		dw = DockWidget()
+		if title:
+			dw.setWindowTitle(title)
 		self.addDockWidget(area, dw)
 		dw.setWidget(widget)
