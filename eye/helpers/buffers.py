@@ -42,3 +42,7 @@ def listEditors():
 	for ed in connector.categoryObjects('editor'):
 		yield ed.path
 
+
+def currentBuffer():
+	win = qApp().lastWindow
+	return win.currentBuffer()
