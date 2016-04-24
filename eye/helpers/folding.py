@@ -29,25 +29,43 @@ class MarkerFolder(QObject, HasWeakEditorMixin):
 		editor.sciModified.connect(self.onModification)
 		self.timer = QTimer()
 		self.timer.setSingleShot(True)
-		self.timer.timeout.connect(self.refold)
-		self.start = 0
+		self.timer.timeout.connect(self.refoldQueue)
+		self.linesToRefold = set()
 
 	@Slot()
-	def refold(self):
-		n = self.editor.getFoldLevel(self.start) & QsciScintilla.SC_FOLDLEVELNUMBERMASK
+	def refold(self, force=False):
+		self.refoldAt(0, force)
 
-		first = True
-		for i in range(self.start, self.editor.lines()):
-			if not first:
-				self.editor.setFoldLevel(i, n)
-			first = False
+	@Slot()
+	def refoldQueue(self, force=False):
+		while len(self.linesToRefold):
+			start = self.linesToRefold.pop()
+			self.refoldAt(start, force)
+
+	def refoldAt(self, start, force=False):
+		waitnext = True
+		level = self.editor.getFoldLevel(start) & QsciScintilla.SC_FOLDLEVELNUMBERMASK
+		for i in range(start, self.editor.lines()):
+			self.linesToRefold.discard(i)
+			flag = 0
 
 			line = self.editor.text(i)
-			diff = header = len(self.markerStart.findall(line))
+			diff = len(self.markerStart.findall(line))
+			if diff:
+				flag |= QsciScintilla.SC_FOLDLEVELHEADERFLAG
 			diff -= len(self.markerEnd.findall(line))
-			if header:
-				self.editor.setFoldLevel(i, n | QsciScintilla.SC_FOLDLEVELHEADERFLAG)
-			n += diff
+
+			new = level | flag
+			current = self.editor.getFoldLevel(i)
+			if force or current != new:
+				self.editor.setFoldLevel(i, new)
+				waitnext = True
+			else:
+				if not waitnext:
+					break
+				waitnext = False
+
+			level += diff
 
 	@Slot(object)
 	def onModification(self, st):
@@ -60,10 +78,8 @@ class MarkerFolder(QObject, HasWeakEditorMixin):
 			refold, _ = self.editor.lineIndexFromPosition(pos)
 
 		if refold is not None:
-			if self.timer.isActive():
-				self.start = min(self.start, refold)
-			else:
-				self.start = refold
+			self.linesToRefold.add(refold)
+			if not self.timer.isActive():
 				self.timer.start(self.interval)
 
 		# TODO smarter refold: check if insert/delete contains pattern or changes folding
