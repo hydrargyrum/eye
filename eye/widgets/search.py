@@ -16,7 +16,7 @@ from ..reutils import csToQtEnum
 from .locationlist import LocationList
 
 
-__all__ = ('absolutePathRole', 'lineRole', 'columnRole', 'ResultsWidget')
+__all__ = ('absolutePathRole', 'lineRole', 'columnRole', 'SearchWidget')
 
 absolutePathRole = consts.registerRole()
 lineRole = consts.registerRole()
@@ -75,6 +75,7 @@ class SearchWidget(QWidget, WidgetMixin):
 
 		self.exprEdit = QLineEdit()
 		self.exprEdit.returnPressed.connect(self.returnPressed)
+		self.setFocusProxy(self.exprEdit)
 
 		self.optionsButton = SearchOptionsButton()
 
