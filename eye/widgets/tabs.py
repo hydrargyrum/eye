@@ -94,7 +94,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 		self.parent().insertWidget(idx, widget)
 
 
-class TabWidget(QTabWidget, DropAreaMixin, WidgetMixin, BandMixin):
+class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 	"""Tab widget class
 
 	By default, instances of this class have the category `"tabwidget"` (see :doc:`eye.connector`).
