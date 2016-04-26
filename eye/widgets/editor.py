@@ -321,6 +321,7 @@ class BaseEditor(QsciScintilla):
 		super(BaseEditor, self).__init__(**kwargs)
 
 		self.SCN_MACRORECORD.connect(self.scn_macro)
+		self.SCN_MODIFIED.connect(self.scn_modified)
 
 		self.freeMarkers = []
 		self.markers = {}
@@ -430,9 +431,14 @@ class BaseEditor(QsciScintilla):
 			s = s.encode('utf-8')
 		return self._searchInTarget(len(s), s)
 
+	@Slot(int, int, object, int, int, int, int, int, int, int)
+	def scn_modified(self, *args):
+		self.sciModified.emit(args)
+
 	macroRecordStarted = Signal()
 	macroRecordStopped = Signal()
 	actionRecorded = Signal(object)
+	sciModified = Signal(object)
 
 
 class Editor(BaseEditor, CentralWidgetMixin):
