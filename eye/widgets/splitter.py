@@ -48,7 +48,7 @@ class Splitter(QSplitter, WidgetMixin):
 		If the final widget under `pos` is contained in a sub-`Splitter` or sub-sub-`Splitter`, it won't be
 		returned, only the direct child, the direct sub-`Splitter` will be returned.
 		"""
-		if pos.x() < 0 or pos.y() < 0 or pos.x() >= self.width() or pos.y() >= self.height():
+		if not self.rect().contains(pos):
 			return None
 		for i in range(self.count()):
 			w = self.widget(i)

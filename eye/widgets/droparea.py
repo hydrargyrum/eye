@@ -41,7 +41,7 @@ class DropAreaMixin(BandMixin):
 			return super(DropAreaMixin, self).dragEnterEvent(ev)
 
 		ev.acceptProposedAction()
-		self.showBand(0, 0, self.width(), self.height())
+		self.showBand(self.rect())
 
 	def dragLeaveEvent(self, ev):
 		if not self.__hasSignal():
