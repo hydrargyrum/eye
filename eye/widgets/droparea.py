@@ -8,7 +8,25 @@ from logging import getLogger
 LOGGER = getLogger(__name__)
 
 
-class DropAreaMixin(object):
+class BandMixin(object):
+	def __init__(self, **kwargs):
+		super(BandMixin, self).__init__(**kwargs)
+		self.__band = None
+
+	def showBand(self, *geom):
+		if not self.__band:
+			self.__band = QRubberBand(QRubberBand.Rectangle, parent=self)
+		self.__band.setGeometry(*geom)
+		self.__band.show()
+
+	def hideBand(self):
+		if self.__band:
+			self.__band.hide()
+			self.__band.setParent(None)
+			self.__band = None
+
+
+class DropAreaMixin(BandMixin):
 	# fileDropped = Signal(str)
 
 	def __init__(self, **kwargs):
@@ -23,27 +41,19 @@ class DropAreaMixin(object):
 			return super(DropAreaMixin, self).dragEnterEvent(ev)
 
 		ev.acceptProposedAction()
-		self.bandDrop = QRubberBand(QRubberBand.Rectangle, parent=self)
-		self.bandDrop.setGeometry(0, 0, self.width(), self.height())
-		self.bandDrop.show()
-
-	def hideBandDrop(self):
-		if self.bandDrop:
-			self.bandDrop.hide()
-			self.bandDrop.setParent(None)
-			self.bandDrop = None
+		self.showBand(0, 0, self.width(), self.height())
 
 	def dragLeaveEvent(self, ev):
 		if not self.__hasSignal():
 			return super(DropAreaMixin, self).dragLeaveEvent(ev)
 
-		self.hideBandDrop()
+		self.hideBand()
 
 	def dropEvent(self, ev):
 		if not self.__hasSignal():
 			return super(DropAreaMixin, self).dropEvent(ev)
 
-		self.hideBandDrop()
+		self.hideBand()
 
 		for url in ev.mimeData().urls():
 			if url.isLocalFile():

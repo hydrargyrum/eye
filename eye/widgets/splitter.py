@@ -20,6 +20,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QRect
 from PyQt5.QtWidgets import QSplitter, QWidget, QStackedLayout
 Signal = pyqtSignal
 
+from .. import consts
 from .helpers import WidgetMixin
 from ..qt import Slot
 
@@ -75,11 +76,6 @@ class SplitManager(QWidget, WidgetMixin):
 	Instances of this class have the `"splitmanager"` category by default.
 	"""
 
-	North = 0
-	South = 1
-	West = 2
-	East = 3
-
 	SplitterClass = Splitter
 
 	def __init__(self, **kwargs):
@@ -108,6 +104,41 @@ class SplitManager(QWidget, WidgetMixin):
 			parent.insertWidget(pos, newSplit)
 			if widgetLocation:
 				newSplit.addWidget(widgetLocation)
+			newSplit.addWidget(newWidget)
+
+	def splitAt2(self, currentWidget, direction, newWidget):
+		parent = currentWidget.parent()
+		idx = parent.indexOf(currentWidget)
+
+		orientation = consts.ORIENTATIONS[direction]
+		if parent.orientation() == orientation:
+			if direction in (consts.DOWN, consts.RIGHT):
+				idx += 1
+			parent.insertWidget(idx, newWidget)
+		else:
+			newSplit = self.SplitterClass(orientation=orientation)
+			parent.insertWidget(idx, newSplit)
+			if currentWidget:
+				newSplit.addWidget(currentWidget)
+			newSplit.addWidget(newWidget)
+
+	def moveWidget(self, currentWidget, direction, newWidget):
+		if currentWidget is newWidget:
+			return
+		parent = currentWidget.parent()
+		idx = parent.indexOf(currentWidget)
+
+		orientation = consts.ORIENTATIONS[direction]
+		self.removeWidget(newWidget)
+		if parent.orientation() == orientation:
+			if direction in (consts.DOWN, consts.RIGHT):
+				idx += 1
+			parent.insertWidget(idx, newWidget)
+		else:
+			newSplit = self.SplitterClass(orientation=orientation)
+			parent.insertWidget(idx, newSplit)
+			if currentWidget:
+				newSplit.addWidget(currentWidget)
 			newSplit.addWidget(newWidget)
 
 	def removeWidget(self, widget):

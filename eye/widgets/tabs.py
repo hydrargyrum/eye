@@ -3,27 +3,98 @@
 """Tab widget
 """
 
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, QMimeData
+from PyQt5.QtGui import QPolygon, QDrag
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget
 Signal = pyqtSignal
 
+from .. import consts
 from ..three import str
 from ..qt import Slot
-from .droparea import DropAreaMixin
+from ..connector import CategoryMixin
+from .droparea import DropAreaMixin, BandMixin
 from .helpers import WidgetMixin
 
 __all__ = ('TabWidget',)
 
 
-class TabBar(QTabBar):
+TAB_MIME = 'application/x.eye.tab'
+
+
+def isTabDropEvent(ev):
+	mdata = ev.mimeData()
+	return mdata.hasFormat(TAB_MIME)
+
+
+def takeWidget(widget):
+	tw = widget.parentTabBar()
+	tw.removeTab(tw.indexOf(widget))
+
+
+def dropGetWidget(ev):
+	tb = ev.source()
+	tw = tb.parent()
+	return tw.widget(tb.tabDrag)
+
+
+class TabBar(QTabBar, BandMixin, CategoryMixin):
 	def __init__(self, **kwargs):
 		super(TabBar, self).__init__(**kwargs)
 		self.setTabsClosable(True)
-		self.setMovable(True)
+		#~ self.setMovable(True)
 		self.setUsesScrollButtons(True)
+		self.addCategory('tabbar')
+
+	def mousePressEvent(self, ev):
+		super(TabBar, self).mousePressEvent(ev)
+		self.tabDrag = self.tabAt(ev.pos())
+
+	def mouseMoveEvent(self, ev):
+		mdata = QMimeData()
+		mdata.setData(TAB_MIME, b'x')
+		drag = QDrag(self)
+		drag.setMimeData(mdata)
+		res = drag.exec_()
+
+	def _showBand(self, ev):
+		idx = self.tabAt(ev.pos())
+		if idx >= 0:
+			self.showBand(self.tabRect(idx))
+		else:
+			self.showBand(self.rect())
+
+	def dragEnterEvent(self, ev):
+		if not isTabDropEvent(ev):
+			return super(TabBar, self).dragEnterEvent(ev)
+
+		ev.acceptProposedAction()
+		self._showBand(ev)
+
+	def dragMoveEvent(self, ev):
+		if not isTabDropEvent(ev):
+			return super(TabBar, self).dragMoveEvent(ev)
+
+		ev.acceptProposedAction()
+		self._showBand(ev)
+
+	def dragLeaveEvent(self, ev):
+		self.hideBand()
+
+	def dropEvent(self, ev):
+		if not isTabDropEvent(ev):
+			return super(TabBar, self).dropEvent(ev)
+
+		ev.acceptProposedAction()
+		self.hideBand()
+
+		widget = dropGetWidget(ev)
+		takeWidget(widget)
+		idx = self.tabAt(ev.pos())
+		assert isinstance(self.parent(), TabWidget)
+		self.parent().insertWidget(idx, widget)
 
 
-class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
+class TabWidget(QTabWidget, DropAreaMixin, WidgetMixin, BandMixin):
 	"""Tab widget class
 
 	By default, instances of this class have the category `"tabwidget"` (see :doc:`eye.connector`).
@@ -88,6 +159,13 @@ class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 	def addWidget(self, widget):
 		"""Add a new tab with the specified widget"""
 		self.addTab(widget, widget.icon(), widget.title())
+		if hasattr(widget, 'titleChanged'):
+			widget.titleChanged.connect(self._subTitleChanged)
+		if hasattr(widget, 'iconChanged'):
+			widget.iconChanged.connect(self._subIconChanged)
+
+	def insertWidget(self, idx, widget):
+		self.insertTab(idx, widget, widget.icon(), widget.title())
 		if hasattr(widget, 'titleChanged'):
 			widget.titleChanged.connect(self._subTitleChanged)
 		if hasattr(widget, 'iconChanged'):
@@ -158,8 +236,10 @@ class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 	@Slot(int)
 	def _tabCloseRequested(self, idx):
 		widget = self.widget(idx)
-		if widget.closeFile():
-			self.removeTab(idx)
+		if not widget.closeFile():
+			return
+
+		self.removeTab(idx)
 
 	@Slot(int)
 	def _currentChanged(self, idx):
@@ -219,3 +299,73 @@ class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 	def refocus(self):
 		"""Give focus to the widget inside the current tab"""
 		self.currentWidget().setFocus(Qt.OtherFocusReason)
+
+	# drag and drop events
+	def _showBand(self, pos):
+		quad = widgetQuadrant(self.rect(), pos)
+		r = widgetHalf(self.rect(), quad)
+		self.showBand(r)
+
+	def dragEnterEvent(self, ev):
+		if isTabDropEvent(ev):
+			self.tabBar().setVisible(True)
+			ev.acceptProposedAction()
+			self._showBand(ev.pos())
+		else:
+			super(TabWidget, self).dragEnterEvent(ev)
+
+	def dragMoveEvent(self, ev):
+		if isTabDropEvent(ev):
+			ev.acceptProposedAction()
+			self._showBand(ev.pos())
+		else:
+			super(TabWidget, self).dragMoveEvent(ev)
+
+	def dragLeaveEvent(self, ev):
+		super(TabWidget, self).dragLeaveEvent(ev)
+		self.hideBand()
+		self._changeTabBarVisibility()
+
+	def dropEvent(self, ev):
+		if isTabDropEvent(ev):
+			self.hideBand()
+			splitmanager = self.parent().parentManager()
+
+			quad = widgetQuadrant(self.rect(), ev.pos())
+
+			widget = dropGetWidget(ev)
+			oldTw = widget.parentTabBar()
+			if oldTw.count() == 1:
+				splitmanager.moveWidget(self, quad, oldTw)
+			else:
+				takeWidget(widget)
+				tabs = TabWidget()
+				tabs.addWidget(widget)
+				splitmanager.splitAt2(self, quad, tabs)
+		else:
+			super(TabWidget, self).dropEvent(ev)
+
+
+def widgetQuadrant(rect, point):
+	center = rect.center()
+
+	if QPolygon([rect.topLeft(), rect.topRight(), center]).containsPoint(point, 0):
+		return consts.UP
+	if QPolygon([rect.bottomLeft(), rect.bottomRight(), center]).containsPoint(point, 0):
+		return consts.DOWN
+	if QPolygon([rect.topLeft(), rect.bottomLeft(), center]).containsPoint(point, 0):
+		return consts.LEFT
+	if QPolygon([rect.bottomRight(), rect.topRight(), center]).containsPoint(point, 0):
+		return consts.RIGHT
+
+
+def widgetHalf(rect, quadrant):
+	if quadrant in (consts.UP, consts.DOWN):
+		rect.setHeight(rect.height() / 2)
+		if quadrant == consts.DOWN:
+			rect.translate(0, rect.height())
+	elif quadrant in (consts.LEFT, consts.RIGHT):
+		rect.setWidth(rect.width() / 2)
+		if quadrant == consts.RIGHT:
+			rect.translate(rect.width(), 0)
+	return rect
