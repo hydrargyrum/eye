@@ -45,6 +45,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 		self.setUsesScrollButtons(True)
 		self.addCategory('tabbar')
 
+	## drag and drop events
 	def mousePressEvent(self, ev):
 		super(TabBar, self).mousePressEvent(ev)
 		self.tabDrag = self.tabAt(ev.pos())
@@ -132,6 +133,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 			widget = widget.parent()
 		return -1
 
+	## add/remove tabs
 	def closeTab(self, ed):
 		"""Close the tab containing the specified widget and return True if it can be
 
@@ -150,7 +152,6 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		return True
 
 	def setCurrentWidget(self, widget):
-		"""Select the tab containing the specified widget"""
 		assert self.isAncestorOf(widget)
 		idx = self._idxContainerOf(widget)
 		if idx >= 0:
@@ -158,6 +159,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 
 	def addWidget(self, widget):
 		"""Add a new tab with the specified widget"""
+		assert not self.isAncestorOf(widget)
 		self.addTab(widget, widget.icon(), widget.title())
 		if hasattr(widget, 'titleChanged'):
 			widget.titleChanged.connect(self._subTitleChanged)
@@ -165,19 +167,18 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 			widget.iconChanged.connect(self._subIconChanged)
 
 	def insertWidget(self, idx, widget):
+		assert not self.isAncestorOf(widget)
 		self.insertTab(idx, widget, widget.icon(), widget.title())
 		if hasattr(widget, 'titleChanged'):
 			widget.titleChanged.connect(self._subTitleChanged)
 		if hasattr(widget, 'iconChanged'):
 			widget.iconChanged.connect(self._subIconChanged)
 
+	removeWidget = closeTab
+
 	def widgetSetFilename(self, widget, filename):
 		idx = self.indexOf(widget)
 		self.setTabText(idx, self.tr('%s') % filename)
-
-	def widgets(self):
-		"""Return widgets contained in tabs"""
-		return [self.widget(i) for i in range(self.count())]
 
 	def _selectTab(self, step, s1, e1, rotate, s2, e2):
 		for idx in range(s1, e1, step):
@@ -190,6 +191,13 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 			if self.isTabEnabled(idx):
 				self.setCurrentIndex(idx)
 				return
+	## tab change
+	def setCurrentWidget(self, widget):
+		"""Select the tab containing the specified widget"""
+		assert self.isAncestorOf(widget)
+		idx = self._idxContainerOf(widget)
+		if idx >= 0:
+			self.setCurrentIndex(idx)
 
 	@Slot()
 	def selectPrevTab(self, rotate=False):
@@ -219,6 +227,19 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		"""Select next tab or first tab if current is the last tab"""
 		self.selectNextTab(True)
 
+	def _selectTab(self, step, s1, e1, rotate, s2, e2):
+		for idx in range(s1, e1, step):
+			if self.isTabEnabled(idx):
+				self.setCurrentIndex(idx)
+				return
+		if not rotate:
+			return
+		for idx in range(s2, e2, step):
+			if self.isTabEnabled(idx):
+				self.setCurrentIndex(idx)
+				return
+
+	## close management
 	def requestClose(self):
 		"""Close all tabs and return `True` if all could be closed
 
@@ -238,7 +259,6 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		widget = self.widget(idx)
 		if not widget.closeFile():
 			return
-
 		self.removeTab(idx)
 
 	@Slot(int)
@@ -265,7 +285,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 			return
 		self.setTabIcon(idx, w.icon())
 
-	# override
+	## override
 	def tabInserted(self, idx):
 		super(TabWidget, self).tabInserted(idx)
 		self._changeTabBarVisibility()
@@ -295,12 +315,17 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		visible = (self.count() > 1)
 		self.tabBar().setVisible(visible)
 
+	## misc
 	@Slot()
 	def refocus(self):
 		"""Give focus to the widget inside the current tab"""
 		self.currentWidget().setFocus(Qt.OtherFocusReason)
 
-	# drag and drop events
+	def widgets(self):
+		"""Return widgets contained in tabs"""
+		return [self.widget(i) for i in range(self.count())]
+
+	## drag and drop events
 	def _showBand(self, pos):
 		quad = widgetQuadrant(self.rect(), pos)
 		r = widgetHalf(self.rect(), quad)
@@ -336,12 +361,14 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 			widget = dropGetWidget(ev)
 			oldTw = widget.parentTabBar()
 			if oldTw.count() == 1:
-				splitmanager.moveWidget(self, quad, oldTw)
+				if oldTw is self:
+					return
+				splitmanager.splitAt(self, quad, oldTw)
 			else:
 				takeWidget(widget)
 				tabs = TabWidget()
 				tabs.addWidget(widget)
-				splitmanager.splitAt2(self, quad, tabs)
+				splitmanager.splitAt(self, quad, tabs)
 		else:
 			super(TabWidget, self).dropEvent(ev)
 

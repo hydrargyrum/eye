@@ -16,15 +16,20 @@ splits. For example, it's possible to have editors layed out this way in a windo
 Each split may contain a :any:`eye.widgets.tabs.TabWidget`, containing a single or multiple tabs.
 """
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QRect
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QRect, QTimer
 from PyQt5.QtWidgets import QSplitter, QWidget, QStackedLayout
 Signal = pyqtSignal
+
+import logging
 
 from .. import consts
 from .helpers import WidgetMixin
 from ..qt import Slot
 
 __all__ = ('SplitManager', 'Splitter', 'QSplitter')
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Splitter(QSplitter, WidgetMixin):
@@ -39,6 +44,10 @@ class Splitter(QSplitter, WidgetMixin):
 		super(Splitter, self).__init__(**kwargs)
 
 		self.addCategory('splitter')
+
+	def children(self):
+		for i in range(self.count()):
+			yield self.widget(i)
 
 	def childAt(self, pos):
 		"""Return child widget at position
@@ -67,6 +76,22 @@ class Splitter(QSplitter, WidgetMixin):
 		"""Return all direct children widgets"""
 		return [self.widget(i) for i in range(self.count())]
 
+	def removeChild(self, widget):
+		assert self.isAncestorOf(widget)
+		assert self is not widget
+
+		widget.setParent(None)
+
+	def replaceChild(self, child, new):
+		assert child is not new
+		assert self is not child
+		assert self is not new
+		assert self.isAncestorOf(child)
+
+		idx = self.indexOf(child)
+		child.setParent(None)
+		self.insertWidget(idx, new)
+
 
 class SplitManager(QWidget, WidgetMixin):
 	"""Split manager widget
@@ -87,28 +112,45 @@ class SplitManager(QWidget, WidgetMixin):
 		self.setLayout(layout)
 		layout.addWidget(self.root)
 
+		self.optimizeTimer = QTimer()
+		self.optimizeTimer.setInterval(0)
+		self.optimizeTimer.setSingleShot(True)
+		self.optimizeTimer.timeout.connect(self._optimize)
+
 		self.addCategory('splitmanager')
 
-	def splitAt(self, widgetLocation, orientation, newWidget):
-		if widgetLocation:
-			parent = widgetLocation.parent()
-			pos = parent.indexOf(widgetLocation)
-		else:
+	# TODO check if it can be integrated synchronously in calls
+	@Slot()
+	def _optimize(self):
+		splitters = [self.root]
+		i = 0
+		while i < len(splitters):
+			spl = splitters[i]
+			splitters.extend(c for c in spl.children() if isinstance(c, QSplitter))
+			i += 1
+		splitters.pop(0)
+		splitters.reverse()
+
+		for spl in splitters:
+			parent = spl.parent()
+			if parent is None:
+				continue
+
+			if spl.count() == 0:
+				parent.removeChild(spl)
+			elif spl.count() == 1:
+				child = next(iter(spl.children()))
+				parent.replaceChild(spl, child)
+
+	## split/move/delete
+	def splitAt(self, currentWidget, direction, newWidget):
+		if currentWidget is None:
 			parent = self.root
-			pos = 0
-
-		if parent.orientation() == orientation:
-			parent.insertWidget(pos + 1, newWidget)
+			idx = 0
 		else:
-			newSplit = self.SplitterClass(orientation=orientation)
-			parent.insertWidget(pos, newSplit)
-			if widgetLocation:
-				newSplit.addWidget(widgetLocation)
-			newSplit.addWidget(newWidget)
-
-	def splitAt2(self, currentWidget, direction, newWidget):
-		parent = currentWidget.parent()
-		idx = parent.indexOf(currentWidget)
+			assert self.isAncestorOf(currentWidget)
+			parent = currentWidget.parent()
+			idx = parent.indexOf(currentWidget)
 
 		orientation = consts.ORIENTATIONS[direction]
 		if parent.orientation() == orientation:
@@ -124,29 +166,23 @@ class SplitManager(QWidget, WidgetMixin):
 
 	def moveWidget(self, currentWidget, direction, newWidget):
 		if currentWidget is newWidget:
+			LOGGER.info('will not move %r over itself', currentWidget)
 			return
-		parent = currentWidget.parent()
-		idx = parent.indexOf(currentWidget)
 
-		orientation = consts.ORIENTATIONS[direction]
 		self.removeWidget(newWidget)
-		if parent.orientation() == orientation:
-			if direction in (consts.DOWN, consts.RIGHT):
-				idx += 1
-			parent.insertWidget(idx, newWidget)
-		else:
-			newSplit = self.SplitterClass(orientation=orientation)
-			parent.insertWidget(idx, newSplit)
-			if currentWidget:
-				newSplit.addWidget(currentWidget)
-			newSplit.addWidget(newWidget)
+		self.splitAt(currentWidget, direction, newWidget)
+		self.optimizeTimer.start()
 
 	def removeWidget(self, widget):
-		parent = widget.parent()
-		widget.setParent(None)
-		if not parent.count() and parent != self.root:
-			self.removeWidget(parent)
+		if not self.isAncestorOf(widget):
+			LOGGER.info("cannot remove widget %r since it doesn't belong to %r", widget, self)
+			return
 
+		spl, _ = self.childId(widget)
+		spl.removeChild(widget)
+		self.optimizeTimer.start()
+
+	## balance
 	@Slot()
 	def balanceSplitsRecursive(self, startAt=None):
 		for w in self._iterRecursive(startAt):
@@ -156,8 +192,24 @@ class SplitManager(QWidget, WidgetMixin):
 	def balanceSplits(self, spl):
 		spl.setSizes([1] * spl.count())  # qt redistributes space
 
+	## getters
 	def allChildren(self):
 		return [w for w in self._iterRecursive() if not isinstance(w, self.SplitterClass)]
+
+	def childRect(self, widget):
+		return QRect(widget.mapTo(self, QPoint()), widget.size())
+
+	def childId(self, widget):
+		spl = widget
+		while not isinstance(spl, QSplitter):
+			spl = spl.parent()
+		return (spl, spl.indexOf(widget))
+
+	def deepChildAt(self, pos):
+		widget = self.root
+		while isinstance(widget, QSplitter):
+			widget = widget.childAt(widget.mapFrom(self, pos))
+		return widget
 
 	def _iterRecursive(self, startAt=None):
 		if startAt is None:
@@ -173,22 +225,7 @@ class SplitManager(QWidget, WidgetMixin):
 					splitters.append(w)
 				yield w
 
-
-	def getRect(self, widget):
-		return QRect(widget.mapTo(self, QPoint()), widget.size())
-
-	def childId(self, widget):
-		spl = widget
-		while not isinstance(spl, self.SplitterClass):
-			spl = spl.parent()
-		return (spl, spl.indexOf(widget))
-
-	def deepChildAt(self, pos):
-		widget = self.root
-		while isinstance(widget, QSplitter):
-			widget = widget.childAt(widget.mapFrom(self, pos))
-		return widget
-
+	## close management
 	def requestClose(self):
 		for c in self.allChildren():
 			if not c.requestClose():

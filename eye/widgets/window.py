@@ -9,6 +9,7 @@ from weakref import ref
 
 from ..three import str
 from ..qt import Slot
+from .. import consts
 from .helpers import CategoryMixin, acceptIf
 from .editor import Editor
 from .tabs import TabWidget
@@ -48,9 +49,9 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		tabs = TabWidget()
 		tabs.addWidget(ed)
 
-		self.splitter.splitAt(None, Qt.Horizontal, tabs)
+		self.splitter.splitAt(None, consts.RIGHT, tabs)
 		tabs.lastTabClosed.connect(self._tabbarLastClosed)
-		
+
 		self.setCentralWidget(self.splitter)
 
 		self.lastFocus = ref(ed)
@@ -65,6 +66,13 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		menu.addAction('Open...').triggered.connect(self.bufferOpenDialog)
 		menu.addAction('Save').triggered.connect(self.bufferSave)
 		menu.addAction('Quit').triggered.connect(self.quitRequested)
+
+	def addDockable(self, area, widget, title=''):
+		dw = DockWidget()
+		if title:
+			dw.setWindowTitle(title)
+		self.addDockWidget(area, dw)
+		dw.setWidget(widget)
 
 	## buffers
 	def currentBuffer(self):
@@ -125,7 +133,11 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		tabs = TabWidget()
 		tabs.addWidget(ed)
 
-		self.splitter.splitAt(parent, orientation, tabs)
+		DIRS = {
+			Qt.Vertical: consts.DOWN,
+			Qt.Horizontal: consts.RIGHT
+		}
+		self.splitter.splitAt(parent, DIRS[orientation], tabs)
 		tabs.lastTabClosed.connect(self._tabbarLastClosed)
 
 	@Slot()
@@ -153,10 +165,3 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 	def _appFocusChanged(self, old, new):
 		if self.centralWidget().isAncestorOf(new):
 			self.lastFocus = ref(new)
-
-	def addDockable(self, area, widget, title=''):
-		dw = DockWidget()
-		if title:
-			dw.setWindowTitle(title)
-		self.addDockWidget(area, dw)
-		dw.setWidget(widget)
