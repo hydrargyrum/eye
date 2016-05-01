@@ -409,7 +409,7 @@ class BaseEditor(QsciScintilla):
 		return self._getMarkerNext(ln, i)
 
 	## macros
-	@Slot(int, int, object)
+	#~ @Slot('uint', 'unsigned long', object)
 	def scn_macro(self, msg, lp, wp):
 		if isinstance(wp, sip.voidptr):
 			self.actionRecorded.emit([msg, lp, sipvoid_as_str(wp)])
@@ -433,7 +433,7 @@ class BaseEditor(QsciScintilla):
 			s = s.encode('utf-8')
 		return self._searchInTarget(len(s), s)
 
-	@Slot(int, int, object, int, int, int, int, int, int, int)
+	@Slot(int, int, 'const char*', int, int, int, int, int, int, int)
 	def scn_modified(self, *args):
 		self.sciModified.emit(args)
 
@@ -714,7 +714,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	fileSavedAs = Signal(str)
 	fileAboutToBeOpened = Signal(str)
 	fileOpened = Signal(str)
-	lexerChanged = Signal(QObject)
+	lexerChanged = Signal(object)
 	fileModifiedExternally = Signal()
 	positionJumped = Signal(int, int)
 
