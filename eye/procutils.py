@@ -47,7 +47,7 @@ class LineProcess(QProcess):
 		if self.state() != self.NotRunning:
 			self.kill()
 
-	@Slot(int)
+	@Slot(QProcess.ProcessState)
 	def onStateChanged(self, state):
 		if state == self.Starting:
 			cmd = [self.program()] + self.arguments()
