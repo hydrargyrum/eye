@@ -73,12 +73,22 @@ def to_stringlist(obj):
 		return obj
 
 
-class SignalListener(QObject):
+class ListenerMixin(object):
+	def unregister(self):
+		objects = set()
+		for cat in self.categories:
+			objects.update(CONNECTOR.objectsMatching(cat))
+		for obj in objects:
+			self.doDisconnect(obj)
+
+
+class SignalListener(QObject, ListenerMixin):
 	def __init__(self, cb, categories, signal, parent=None):
 		super(SignalListener, self).__init__(parent)
 		self.cb = cb
 		self.categories = categories
 		self.signal = signal
+		self.caller = None
 
 	@Slot(int)
 	@Slot(str)
@@ -113,12 +123,13 @@ class SignalListener(QObject):
 			getattr(obj, self.signal).disconnect(self.map)
 
 
-class EventFilter(QObject):
+class EventFilter(QObject, ListenerMixin):
 	def __init__(self, cb, categories, eventTypes, parent=None):
 		super(EventFilter, self).__init__(parent)
 		self.cb = cb
 		self.categories = categories
 		self.eventTypes = eventTypes
+		self.caller = None
 
 	def eventFilter(self, obj, ev):
 		ret = False
@@ -202,6 +213,15 @@ class EventConnector(QObject):
 		categories = frozenset(categories)
 		return [obj for obj in self.allObjects if categories <= obj.categories()]
 
+	def deleteCreatedBy(self, caller):
+		newListeners = []
+		for lis in self.allListeners:
+			if lis.caller == caller:
+				lis.unregister()
+			else:
+				newListeners.append(lis)
+		self.allListeners = newListeners
+
 
 class CategoryMixin(object):
 	"""Mixin class to support object categories."""
@@ -239,6 +259,10 @@ def categoryObjects(cats):
 	return CONNECTOR.objectsMatching(cats)
 
 
+def deleteCreatedBy(caller):
+	CONNECTOR.deleteCreatedBy(caller)
+
+
 def registerSignal(categories, signal):
 	"""Decorate a function that should be run when a signal is emitted.
 
@@ -256,7 +280,10 @@ def registerSignal(categories, signal):
 	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
+		caller = inspect.stack()[1][1]
+
 		lis = SignalListener(func, categories, signal, CONNECTOR)
+		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
 		return func
 

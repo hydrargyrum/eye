@@ -62,6 +62,13 @@ class App(QApplication):
 			except Exception:
 				self.logger.error('cannot execute startup script %r', f, exc_info=True)
 
+	def rerun(self, path):
+		connector.deleteCreatedBy(path)
+		try:
+			execfile(path, self._scriptDict())
+		except Exception:
+			self.logger.error('cannot execute startup script %r', path, exc_info=True)
+
 	def run(self):
 		"""Run app until exit
 
