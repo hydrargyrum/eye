@@ -9,8 +9,8 @@ from ..colorutils import QColorAlpha
 from ..lexers import stylesFromLexer
 from ._lexercolorgroups import getIdAndAliases
 
-__all__ = ('readScheme', 'applySchemeToEditor', 'applySchemeDictToEditor',
-           'applySchemeOnLexerChange', 'useSchemeFile')
+__all__ = ('applySchemeToEditor', 'applySchemeDictToEditor',
+           'applySchemeOnLexerChange', 'useSchemeFile', 'addSchemeFile')
 
 
 LOGGER = getLogger(__name__)
@@ -21,10 +21,9 @@ BG_ATTRS = frozenset(['bg', 'background'])
 SCHEME = None
 
 
-def readScheme(path):
+def newScheme():
 	parser = SafeConfigParser()
 	parser.optionxform = str
-	parser.read([path])
 	return parser
 
 
@@ -240,9 +239,20 @@ def useSchemeFile(path, applyToAll=True):
 		SCHEME = None
 		LOGGER.info('unsetting scheme file')
 		return
-	else:
-		SCHEME = readScheme(path)
-		LOGGER.info('using scheme file %r', path)
+
+	SCHEME = None
+	addSchemeFile(path, applyToAll)
+
+
+def addSchemeFile(path, applyToAll=True):
+	global SCHEME
+
+	if SCHEME is None:
+		LOGGER.info('starting with empty scheme')
+		SCHEME = newScheme()
+
+	LOGGER.info('adding scheme %r', path)
+	SCHEME.read([path])
 
 	if applyToAll:
 		for ed in categoryObjects('editor'):
