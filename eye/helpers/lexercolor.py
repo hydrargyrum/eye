@@ -49,11 +49,33 @@ def parseBool(s):
 	raise ValueError('%r is not a boolean value' % s)
 
 
+class UnsupportedModification(Exception):
+	pass
+
+
 class Modificator(object):
 	def __init__(self, editor, key, strvalue):
 		self.editor = editor
 		self.key = key
 		self.strvalue = strvalue
+
+	def applyGeneric(self, attr, *args):
+		if attr == 'font':
+			self.setFont('Family', self.strvalue, *args)
+		elif attr == 'points':
+			self.setFont('PointSizeF', float(self.strvalue), *args)
+		elif attr == 'bold':
+			self.setFont('Bold', parseBool(self.strvalue), *args)
+		elif attr == 'italic':
+			self.setFont('Italic', parseBool(self.strvalue), *args)
+		elif attr == 'underline':
+			self.setFont('Underline', parseBool(self.strvalue), *args)
+		elif attr in FG_ATTRS:
+			self.setColor(QColorAlpha(self.strvalue), *args)
+		elif attr in BG_ATTRS:
+			self.setPaper(QColorAlpha(self.strvalue), *args)
+		else:
+			raise UnsupportedModification()
 
 
 class LexerModificator(Modificator):
@@ -77,23 +99,15 @@ class LexerModificator(Modificator):
 	def applyOne(self, styleId, attr):
 		lexer = self.editor.lexer()
 
-		if attr == 'font':
-			self.applyFont(styleId, 'Family', self.strvalue)
-		elif attr == 'points':
-			self.applyFont(styleId, 'PointSizeF', float(self.strvalue))
-		elif attr == 'bold':
-			self.applyFont(styleId, 'Bold', parseBool(self.strvalue))
-		elif attr == 'italic':
-			self.applyFont(styleId, 'Italic', parseBool(self.strvalue))
-		elif attr == 'underline':
-			self.applyFont(styleId, 'Underline', parseBool(self.strvalue))
-		elif attr in FG_ATTRS:
-			lexer.setColor(QColorAlpha(self.strvalue), styleId)
-		elif attr in BG_ATTRS:
-			lexer.setPaper(QColorAlpha(self.strvalue), styleId)
+		self.applyGeneric(attr, lexer, styleId)
 
-	def applyFont(self, styleId, fontAttr, value):
-		lexer = self.editor.lexer()
+	def setColor(self, qc, lexer, styleId):
+		lexer.setColor(QColorAlpha(self.strvalue), styleId)
+
+	def setPaper(self, qc, lexer, styleId):
+		lexer.setPaper(QColorAlpha(self.strvalue), styleId)
+
+	def setFont(self, fontAttr, value, lexer, styleId):
 		font = lexer.font(styleId)
 		fontAttr = 'set%s' % fontAttr
 		getattr(font, fontAttr)(value)
@@ -102,22 +116,8 @@ class LexerModificator(Modificator):
 
 class EditorModificator(Modificator):
 	def apply(self):
-		self.element, attr = self.key.split('.')
-
-		d = {
-			'text': self.applyText,
-			'whitespace': self.applyWS,
-			'caret': self.applyCaret,
-			'selection': self.applySelection,
-			'hotspot': self.applyHotspot,
-			'matchedbrace': self.applyMB,
-			'unmatchedbrace': self.applyUB,
-		}
-
-		d[self.element](attr, self.strvalue)
-
-	def unsupported(self, attr):
-		LOGGER.warning('%s.%s is not supported', self.element, attr)
+		element, attr = self.key.split('.')
+		self.applyGeneric(attr, element)
 
 	def applyCaret(self, attr, strvalue):
 		if attr in FG_ATTRS:
@@ -127,62 +127,68 @@ class EditorModificator(Modificator):
 			qc = QColorAlpha(strvalue)
 			self.editor.setCaretLineBackgroundColor(qc)
 		else:
-			self.unsupported(attr)
+			raise UnsupportedModification()
 
-	def applySelection(self, attr, strvalue):
-		self.applyBasic('Selection', attr, strvalue)
+	def setColor(self, qc, element):
+		attrs = {
+			'text': 'setColor',
+			'selection': 'setSelectionForegroundColor',
+			'whitespace': 'setWhitespaceForegroundColor',
+			'caret': 'setCaretForegroundColor',
+			'hotspot': 'setHotspotForegroundColor',
+			'matchedbrace': 'setMatchedBraceForegroundColor',
+			'unmatchedbrace': 'setUnmatchedBraceForegroundColor',
+		}
 
-	def applyMB(self, attr, strvalue):
-		self.applyBasic('MatchedBrace', attr, strvalue)
+		getattr(self.editor, attrs[element])(qc)
 
-	def applyUB(self, attr, strvalue):
-		self.applyBasic('UnmatchedBrace', attr, strvalue)
+	def setPaper(self, qc, element):
+		attrs = {
+			'text': 'setPaper',
+			'selection': 'setSelectionBackgroundColor',
+			'whitespace': 'setWhitespaceBackgroundColor',
+			'caret': 'setCaretLineBackgroundColor',
+			'hotspot': 'setHotspotBackgroundColor',
+			'matchedbrace': 'setMatchedBraceBackgroundColor',
+			'unmatchedbrace': 'setUnmatchedBraceBackgroundColor',
+		}
 
-	def applyWS(self, attr, strvalue):
-		self.applyBasic('Whitespace', attr, strvalue)
+		getattr(self.editor, attrs[element])(qc)
 
-	def applyHotspot(self, attr, strvalue):
-		self.applyBasic('Hotspot', attr, strvalue)
+	def setFont(self, fontAttr, value, element):
+		if element != 'text':
+			raise UnsupportedModification()
 
-	def applyBasic(self, edAttr, attr, strvalue):
-		if attr in FG_ATTRS:
-			edAttr = 'set%sForegroundColor' % edAttr
-			qc = QColorAlpha(strvalue)
-			getattr(self.editor, edAttr)(qc)
-		elif attr in BG_ATTRS:
-			edAttr = 'set%sBackgroundColor' % edAttr
-			qc = QColorAlpha(strvalue)
-			getattr(self.editor, edAttr)(qc)
-		else:
-			self.unsupported(attr)
-
-	def applyText(self, attr, strvalue):
-		if attr in FG_ATTRS:
-			qc = QColorAlpha(strvalue)
-			self.editor.setColor(qc)
-		elif attr in BG_ATTRS:
-			qc = QColorAlpha(strvalue)
-			self.editor.setPaper(qc)
-		elif attr == 'font':
-			self.applyFont('Family', strvalue)
-		elif attr == 'points':
-			self.applyFont('PointSizeF', float(strvalue))
-		elif attr == 'bold':
-			self.applyFont('Bold', parseBool(strvalue))
-		elif attr == 'italic':
-			self.applyFont('Italic', parseBool(strvalue))
-		elif attr == 'underline':
-			self.applyFont('Underline', parseBool(strvalue))
-
-	def applyFont(self, fontAttr, value):
 		font = self.editor.font()
 		fontAttr = 'set%s' % fontAttr
 		getattr(font, fontAttr)(value)
 		self.editor.setFont(font)
 
 
-def IndicatorModificator(Modificator):
-	pass
+class IndicatorModificator(Modificator):
+	def apply(self):
+		name, attr = self.key.split('.')
+
+		indicator = self.editor.indicators.get(name)
+		if not indicator:
+			indicator = self.editor.createIndicator(name, self.editor.PlainIndicator)
+
+		self.applyGeneric(attr, indicator)
+
+	def applyGeneric(self, attr, indicator):
+		if attr == 'style':
+			indicator.setStyle(getattr(self.editor, self.strvalue))
+		else:
+			super(IndicatorModificator, self).applyGeneric(attr, indicator)
+
+	def setColor(self, qc, indicator):
+		indicator.setColor(qc)
+
+	def setPaper(self, qc, indicator):
+		indicator.setOutlineColor(qc)
+
+	def setFont(self, *args):
+		raise UnsupportedModification('font cannot be set for indicators')
 
 
 def getModificator(name):
@@ -209,7 +215,10 @@ def applySchemeDictToEditor(dct, editor):
 			continue
 
 		mod = modificator_type(editor, subkey, value)
-		mod.apply()
+		try:
+			mod.apply()
+		except UnsupportedModification:
+			LOGGER.warning('%s is not supported', key)
 
 
 def applySchemeToEditor(parser, editor):
