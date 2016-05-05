@@ -112,6 +112,9 @@ class Indicator(HasWeakEditorMixin):
 		return self.editor.indicatorValueAt(self.id, offset)
 
 	def getPreviousEdge(self, offset):
+		if offset > 0:
+			offset -= 1
+			# in scintilla, 'end' always advances, but 'starts' blocks...
 		return self.editor.indicatorStart(self.id, offset)
 
 	def getNextEdge(self, offset):
