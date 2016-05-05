@@ -70,7 +70,7 @@ class LocationList(QTreeWidget, WidgetMixin):
 		for i in range(self.columnCount()):
 			self.resizeColumnToContents(i)
 
-	@Slot(QModelIndex)
+	@Slot(QTreeWidgetItem, int)
 	def _resultActivated(self, qitem, col_number):
 		if not qitem:
 			return
