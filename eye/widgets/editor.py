@@ -111,10 +111,10 @@ class Indicator(HasWeakEditorMixin):
 	def getAtPos(self, pos):
 		return self.editor.indicatorValueAt(self.id, pos)
 
-	def getStartFromPos(self, pos):
+	def getPreviousEdge(self, pos):
 		return self.editor.indicatorStart(self.id, pos)
 
-	def getEndFromPos(self, pos):
+	def getNextEdge(self, pos):
 		return self.editor.indicatorEnd(self.id, pos)
 
 	def iterRanges(self):
@@ -123,7 +123,7 @@ class Indicator(HasWeakEditorMixin):
 
 		ed_end = self.editor.length()
 		while start < ed_end:
-			end = self.getEndFromPos(start)
+			end = self.getNextEdge(start)
 			if inrange:
 				yield (start, end)
 
