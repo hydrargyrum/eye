@@ -320,6 +320,18 @@ class BaseEditor(QsciScintilla):
 	setSearchFlags = sciPropSet(QsciScintilla.SCI_SETSEARCHFLAGS)
 	searchFlags = sciPropGet(QsciScintilla.SCI_GETSEARCHFLAGS)
 
+	# caret
+	CaretStyleInvisible = QsciScintilla.CARETSTYLE_INVISIBLE
+	CaretStyleLine = QsciScintilla.CARETSTYLE_LINE
+	CaretStyleBlock = QsciScintilla.CARETSTYLE_BLOCK
+
+	setCaretStyle = sciPropSet(QsciScintilla.SCI_SETCARETSTYLE)
+	caretStyle = sciPropGet(QsciScintilla.SCI_GETCARETSTYLE)
+
+	setCaretPeriod = sciPropSet(QsciScintilla.SCI_SETCARETPERIOD)
+	caretPeriod = sciPropGet(QsciScintilla.SCI_GETCARETPERIOD)
+
+	# lexer
 	setLexerProperty = sciProp(QsciScintilla.SCI_SETPROPERTY, (bytes, bytes))
 
 	def __init__(self, **kwargs):
@@ -473,6 +485,9 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self._lexer = None
 
 		self.addCategory('editor')
+
+	def __repr__(self):
+		return '<Editor path=%r>' % self.path
 
 	def title(self):
 		t = os.path.basename(self.path) or '<untitled>'
