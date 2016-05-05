@@ -50,4 +50,4 @@ token.Keyword.fg=%(yellow)s
 token.String.fg=%(cyan)s
 token.Number.fg=%(cyan)s
 
-token.Operator=%(green)s
+token.Operator.fg=%(green)s
