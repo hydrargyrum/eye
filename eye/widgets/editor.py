@@ -108,20 +108,20 @@ class Indicator(HasWeakEditorMixin):
 			self.id = self.editor.indicatorDefine(self.style, self.id)
 			del self.style
 
-	def getAtPos(self, pos):
-		return self.editor.indicatorValueAt(self.id, pos)
+	def getAtOffset(self, offset):
+		return self.editor.indicatorValueAt(self.id, offset)
 
-	def getPreviousEdge(self, pos):
-		return self.editor.indicatorStart(self.id, pos)
+	def getPreviousEdge(self, offset):
+		return self.editor.indicatorStart(self.id, offset)
 
-	def getNextEdge(self, pos):
-		return self.editor.indicatorEnd(self.id, pos)
+	def getNextEdge(self, offset):
+		return self.editor.indicatorEnd(self.id, offset)
 
 	def iterRanges(self):
 		start = 0
-		inrange = bool(self.getAtPos(0))
+		inrange = bool(self.getAtOffset(0))
 
-		ed_end = self.editor.length()
+		ed_end = self.editor.bytesLength()
 		while start < ed_end:
 			end = self.getNextEdge(start)
 			if inrange:
@@ -133,21 +133,21 @@ class Indicator(HasWeakEditorMixin):
 	def putAt(self, lineFrom, indexFrom, lineTo, indexTo):
 		self.editor.fillIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, self.id)
 
-	def putAtPos(self, start, end):
-		startLi = self.editor.lineIndexFromPosition(start)
-		endLi = self.editor.lineIndexFromPosition(end)
-		self.putAt(*(startLi + endLi))
+	def putAtOffset(self, start, end):
+		startl, startc = self.editor.lineIndexFromPosition(start)
+		endl, endc = self.editor.lineIndexFromPosition(end)
+		self.putAt(startl, startc, endl, endc)
 
 	def removeAt(self, lineFrom, indexFrom, lineTo, indexTo):
 		self.editor.clearIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, self.id)
 
-	def removeAtPos(self, start, end):
-		startLi = self.editor.lineIndexFromPosition(start)
-		endLi = self.editor.lineIndexFromPosition(end)
-		self.removeAt(*(startLi + endLi))
+	def removeAtOffset(self, start, end):
+		startl, startc = self.editor.lineIndexFromPosition(start)
+		endl, endc = self.editor.lineIndexFromPosition(end)
+		self.removeAt(startl, startc, endl, endc)
 
 	def clear(self):
-		self.removeAtPos(0, self.editor.length())
+		self.removeAtOffset(0, self.editor.bytesLength())
 
 	def setColor(self, col):
 		self.editor.setIndicatorForegroundColor(col, self.id)
@@ -636,6 +636,20 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			lexer = self._lexer
 		return lexer
 
+	def cursorPosition(self):
+		return self.getCursorPosition()
+
+	cursorLineIndex = cursorPosition
+
+	def cursorOffset(self):
+		return self.positionFromLineIndex(*self.getCursorPosition())
+
+	def bytesLength(self):
+		return self.length()
+
+	def textLength(self):
+		return len(self.text())
+
 	## search
 	@classmethod
 	def _smartCase(cls, txt, cs):
@@ -656,10 +670,10 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		txt = self.text()
 		reobj = self._searchOptionsToRe()
 		for mtc in reobj.finditer(txt):
-			self.indicators['searchHighlight'].putAtPos(mtc.start(), mtc.end())
+			self.indicators['searchHighlight'].putAtOffset(mtc.start(), mtc.end())
 
 	def clearSearchHighlight(self):
-		self.indicators['searchHighlight'].removeAtPos(0, self.length())
+		self.indicators['searchHighlight'].removeAtOffset(0, self.bytesLength())
 
 	def find(self, expr, caseSensitive=None, isRe=None, whole=None, wrap=None):
 		if self.search.highlight:
