@@ -79,6 +79,8 @@ class LexerModificator(Modificator):
 
 		if attr == 'font':
 			self.applyFont(styleId, 'Family', self.strvalue)
+		elif attr == 'points':
+			self.applyFont(styleId, 'PointSizeF', float(self.strvalue))
 		elif attr == 'bold':
 			self.applyFont(styleId, 'Bold', parseBool(self.strvalue))
 		elif attr == 'italic':
@@ -163,6 +165,8 @@ class EditorModificator(Modificator):
 			self.editor.setPaper(qc)
 		elif attr == 'font':
 			self.applyFont('Family', strvalue)
+		elif attr == 'points':
+			self.applyFont('PointSizeF', float(strvalue))
 		elif attr == 'bold':
 			self.applyFont('Bold', parseBool(strvalue))
 		elif attr == 'italic':
