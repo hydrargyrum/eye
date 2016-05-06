@@ -137,6 +137,7 @@ class EditorModificator(Modificator):
 			'hotspot': 'setHotspotForegroundColor',
 			'matchedbrace': 'setMatchedBraceForegroundColor',
 			'unmatchedbrace': 'setUnmatchedBraceForegroundColor',
+			'margin': 'setMarginsForegroundColor',
 		}
 
 		getattr(self.editor, attrs[element])(qc)
@@ -150,6 +151,7 @@ class EditorModificator(Modificator):
 			'hotspot': 'setHotspotBackgroundColor',
 			'matchedbrace': 'setMatchedBraceBackgroundColor',
 			'unmatchedbrace': 'setUnmatchedBraceBackgroundColor',
+			'margin': 'setMarginsBackgroundColor',
 		}
 
 		getattr(self.editor, attrs[element])(qc)
@@ -157,6 +159,7 @@ class EditorModificator(Modificator):
 	def setFont(self, fontAttr, value, element):
 		if element != 'text':
 			raise UnsupportedModification()
+		# margin.* lacks a Editor.marginsFont()
 
 		font = self.editor.font()
 		fontAttr = 'set%s' % fontAttr
