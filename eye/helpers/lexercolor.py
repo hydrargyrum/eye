@@ -8,6 +8,7 @@ from ..connector import categoryObjects, registerSignal, disabled
 from ..colorutils import QColorAlpha
 from ..lexers import stylesFromLexer
 from ._lexercolorgroups import getIdAndAliases
+from .styles import STYLES
 
 __all__ = ('applySchemeToEditor', 'applySchemeDictToEditor',
            'applySchemeOnLexerChange', 'useSchemeFile', 'addSchemeFile')
@@ -193,11 +194,37 @@ class IndicatorModificator(Modificator):
 		raise UnsupportedModification('font cannot be set for indicators')
 
 
+class StyleModificator(Modificator):
+	def apply(self):
+		name, attr = self.key.split('.')
+
+		self.applyGeneric(attr, STYLES[name])
+
+	def applyGeneric(self, attr, style):
+		if attr == 'eolfill':
+			style.setEolFill(parseBool(self.strvalue))
+		else:
+			super(StyleModificator, self).applyGeneric(attr, style)
+
+	def setFont(self, fontAttr, value, style):
+		font = style.font()
+		fontAttr = 'set%s' % fontAttr
+		getattr(font, fontAttr)(value)
+		style.setFont(font)
+
+	def setColor(self, qc, style):
+		style.setColor(qc)
+
+	def setPaper(self, qc, style):
+		style.setPaper(qc)
+
+
 def getModificator(name):
 	modificators = {
 		'token': LexerModificator,
 		'indicator': IndicatorModificator,
 		'base': EditorModificator,
+		'style': StyleModificator,
 	}
 
 	return modificators.get(name)
