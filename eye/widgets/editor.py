@@ -158,6 +158,9 @@ class Indicator(HasWeakEditorMixin):
 	def setOutlineColor(self, col):
 		self.editor.setIndicatorOutlineColor(col, self.id)
 
+	def setStyle(self, style):
+		self.id = self.editor.indicatorDefine(style, self.id)
+
 
 class Margin(HasWeakEditorMixin):
 	@staticmethod
