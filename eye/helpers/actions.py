@@ -1,5 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+from collections import OrderedDict
 import logging
 
 from PyQt5.QtCore import Qt, QObject, pyqtSlot as Slot
@@ -65,8 +66,8 @@ def to_stringlist(obj):
 class CategoryStore(QObject):
 	def __init__(self, **kwargs):
 		super(CategoryStore, self).__init__(**kwargs)
-		self.by_cat = {}
-		self.by_key = {}
+		self.by_cat = OrderedDict()
+		self.by_key = OrderedDict()
 		CONNECTOR.categoryAdded.connect(self.categoryAdded)
 		CONNECTOR.categoryRemoved.connect(self.categoryRemoved)
 
@@ -96,8 +97,8 @@ class CategoryStore(QObject):
 			self.registerObject(obj, key, value)
 
 		for cat in categories:
-			self.by_cat.setdefault(cat, {})[key] = value
-		self.by_key.setdefault(key, {})[cat] = value
+			self.by_cat.setdefault(cat, OrderedDict())[key] = value
+		self.by_key.setdefault(key, OrderedDict())[cat] = value
 
 	def unregisterCategories(self, categories, key):
 		categories = set(to_stringlist(categories))
