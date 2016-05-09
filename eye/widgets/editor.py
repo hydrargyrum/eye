@@ -337,6 +337,9 @@ class BaseEditor(QsciScintilla):
 	# lexer
 	setLexerProperty = sciProp(QsciScintilla.SCI_SETPROPERTY, (bytes, bytes))
 
+	# text
+	deleteRange = sciPropSet(QsciScintilla.SCI_DELETERANGE, 2)
+
 	def __init__(self, **kwargs):
 		super(BaseEditor, self).__init__(**kwargs)
 
