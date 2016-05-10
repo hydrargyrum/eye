@@ -6,6 +6,8 @@ from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem
 from ..three import str
 from .helpers import WidgetMixin
 from .. import consts
+from ..connector import registerSignal, disabled
+from ..helpers import buffers
 
 
 __all__ = ('absolutePathRole', 'lineRole', 'columnRole', 'LocationList')
@@ -80,9 +82,8 @@ class LocationList(QTreeWidget, WidgetMixin):
 		self.locationActivated.emit(path, line)
 
 
-"""
 @registerSignal('location_list', 'locationActivated')
 @disabled
-def locationActivated(widget, path, loc):
+def locationListOpen(widget, path, loc):
 	buffers.openEditor(path, loc)
-"""
+
