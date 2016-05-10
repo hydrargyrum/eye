@@ -6,7 +6,7 @@ import re
 
 
 __all__ = ('parseFilename', 'findAncestorContaining', 'findInAncestors',
-           'getCommonPrefix', 'getConfigPath')
+           'getCommonPrefix', 'getConfigPath', 'getConfigFilePath')
 
 
 def parseFilename(filepath):
@@ -20,7 +20,6 @@ def parseFilename(filepath):
 	filepath = filepath[:mtc.start()]
 
 	return (filepath, row, col)
-
 
 
 def findAncestorContaining(path, patterns):
@@ -79,4 +78,13 @@ def getConfigPath(*args):
 		import xdg.BaseDirectory
 		return xdg.BaseDirectory.save_config_path('eyeditor', *args)
 	except ImportError:
-		return os.path.join(os.path.expanduser('~/.config/eyeditor'), *args)
+		path = os.path.join(os.path.expanduser('~/.config/eyeditor'), *args)
+		os.makedirs(os.path.normpath(path))
+		return path
+
+
+def getConfigFilePath(*args):
+	subpath = os.path.join(*args)
+	dir = getConfigPath(os.path.dirname(subpath))
+	file = os.path.basename(subpath)
+	return os.path.join(dir, file)
