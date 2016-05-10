@@ -60,7 +60,7 @@ class LocationList(QTreeWidget, WidgetMixin):
 				cols.append(str(d.get(c, '')))
 
 		item = QTreeWidgetItem(cols)
-		item.setData(0, absolutePathRole, path)
+		item.setData(0, absolutePathRole, d['path'])
 		if line:
 			item.setData(0, lineRole, line)
 		self.addTopLevelItem(item)
@@ -76,8 +76,8 @@ class LocationList(QTreeWidget, WidgetMixin):
 			return
 
 		path = qitem.data(0, absolutePathRole) # TODO use roles to have shortname vs longname
-		loc = qitem.data(0, lineRole) or None
-		self.locationActivated.emit(path, loc)
+		line = qitem.data(0, lineRole) or None
+		self.locationActivated.emit(path, line)
 
 
 """
