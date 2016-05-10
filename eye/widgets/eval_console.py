@@ -1,6 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget
 
 from six import StringIO, exec_
@@ -15,6 +15,45 @@ Slot = pyqtSlot
 __all__ = ('EvalConsole',)
 
 
+class HistoryLine(QLineEdit):
+	def __init__(self, **kwargs):
+		super(HistoryLine, self).__init__(**kwargs)
+		self.lines = []
+		self.idx = None
+		self.returnPressed.connect(self._addHistory)
+
+	@Slot()
+	def _addHistory(self):
+		self.idx = None
+		self.lines.insert(0, self.text())
+
+	def keyPressEvent(self, ev):
+		if ev.key() == Qt.Key_Up:
+			if self.idx is None:
+				if not self.lines:
+					return
+				self.idx = 0
+			elif self.idx + 1 < len(self.lines):
+				self.idx += 1
+			else:
+				return
+
+			self.setText(self.lines[self.idx])
+		elif ev.key() == Qt.Key_Down:
+			if self.idx is None:
+				return
+			elif self.idx <= 0:
+				self.idx = None
+				self.setText('')
+				return
+			else:
+				self.idx -= 1
+
+			self.setText(self.lines[self.idx])
+		else:
+			super(HistoryLine, self).keyPressEvent(ev)
+
+
 class EvalConsole(QWidget, WidgetMixin):
 	def __init__(self, **kwargs):
 		super(EvalConsole, self).__init__(**kwargs)
@@ -24,7 +63,7 @@ class EvalConsole(QWidget, WidgetMixin):
 		self.setLayout(layout)
 
 		self.display = QPlainTextEdit(self)
-		self.line = QLineEdit(self)
+		self.line = HistoryLine()
 		self.line.returnPressed.connect(self.execLine)
 
 		layout.addWidget(self.display)
