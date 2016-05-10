@@ -49,6 +49,9 @@ class EvalConsole(QWidget, WidgetMixin):
 	def execLine(self):
 		# TODO be able to define functions, do ifs, fors
 
+		import eye
+		self.namespace['eye'] = eye
+		self.namespace['app'] = qApp()
 		self.namespace['window'] = qApp().lastWindow
 		self.namespace['editor'] = self.namespace['window'].currentBuffer()
 
