@@ -22,12 +22,16 @@ def writeBytesToFileDirect(filepath, data):
 def getPerm(path):
 	try:
 		stat = os.stat(path)
-	except OSError:
+	except OSError as e:
+		LOGGER.warning('could not stat file %r', path, exc_info=True)
 		return
 	return stat.st_mode, stat.st_uid, stat.st_gid
 
 
 def setPerm(path, perm):
+	if perm is None:
+		return
+
 	os.chmod(path, perm[0])
 	os.chown(path, perm[1], perm[2])
 
@@ -38,7 +42,10 @@ def writeBytesToFile(filepath, data):
 
 	# TODO if file is created by another user, the owner info may be lost or chown may fail
 	# TODO write directly in those cases?
-	oldperm = getPerm(filepath)
+	if os.path.exists(filepath):
+		oldperm = getPerm(filepath)
+	else:
+		oldperm = None
 
 	dir = os.path.dirname(filepath)
 	with exceptionLogging(logger=LOGGER):
