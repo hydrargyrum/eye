@@ -1,5 +1,17 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Plugin to support EditorConfig format
+
+`EditorConfig <http://editorconfig.org/>`_ is a file format for configuring text editors for a project, like indent
+style, encoding, etc. The format isn't tied to a particular text editor and is supported by many.
+
+This sample should be enough for using editorconfig::
+
+	import eye.helpers.projects
+	eye.helpers.projects.onPreOpen.enabled = True
+	eye.helpers.projects.onOpenSave.enabled = True
+"""
+
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 Signal = pyqtSignal
 Slot = pyqtSlot
@@ -145,6 +157,11 @@ TRUE_STRINGS = ['true', 'yes', 'on', '1']
 FALSE_STRINGS = ['false', 'no', 'off', '0']
 
 def parseBool(s, default=False):
+	"""Parse a string according to editorconfig and return a boolean value
+
+	The recognized `True` values are "true", "yes", "on" and "1". The recognized `False` values are "false",
+	"no", "off" and "0". The parsing is case insensitive. If `s` cannot be parsed, `default` is returned.
+	"""
 	s = (s or '').lower()
 	if s in TRUE_STRINGS:
 		return True
@@ -233,10 +250,20 @@ def applyOptionsDict(editor, dct):
 
 
 def findProjectForFile(path):
+	"""Find the nearest editorconfig file for a directory
+
+	`path` can be any file or dir, `findProjectForFile` will search in the ancestors for a `.editorconfig` file.
+	"""
 	return pathutils.findInAncestors(path, [PROJECT_FILENAME])
 
 
 def getProjectForFile(path):
+	"""Find and load an editorconfig for file
+
+	`path` can be any file or dir, :any:`findProjectForFile` will search a `.editorconfig`, then this file will
+	be loaded as a :any:`Project` and will be returned. If the `Project` was in cache, it will be returned
+	directly.
+	"""
 	found = findProjectForFile(path)
 	if not found:
 		LOGGER.debug('no project conf for %r', path)
@@ -258,6 +285,10 @@ def getProjectForFile(path):
 
 
 def openProjectFile(filepath):
+	"""Load and get a :any:`Project` object
+
+	`filepath` is loaded as a editorconfig file and a :any:`Project` is returned.
+	"""
 	LOGGER.info('loading project file %r', filepath)
 
 	project = Project()
@@ -271,6 +302,11 @@ def openProjectFile(filepath):
 @registerSignal('editor', 'fileAboutToBeOpened')
 @disabled
 def onPreOpen(editor, path):
+	"""Handler when any file is about to be opened
+
+	This handler will search a editorconfig for this editor widget, load it and apply options to the editor.
+	"""
+
 	project = getProjectForFile(path)
 	if not project:
 		return
@@ -283,6 +319,10 @@ def onPreOpen(editor, path):
 @registerSignal('editor', 'fileSavedAs')
 @disabled
 def onOpenSave(editor, path):
+	"""Handler when any file is opened/saved
+
+	This handler will search a editorconfig for this editor widget, load it and apply options to the editor.
+	"""
 	project = getProjectForFile(path)
 	if not project:
 		return

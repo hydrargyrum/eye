@@ -12,6 +12,7 @@ Contents:
    intro
    ui
    shortcuts
+   plugins
 
 
 Indices and tables
