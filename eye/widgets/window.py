@@ -9,7 +9,6 @@ import os
 from weakref import ref
 
 from ..three import str
-from ..app import qApp
 from .helpers import CategoryMixin, acceptIf
 from .editor import Editor
 from .tabs import TabWidget
@@ -47,6 +46,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		self.setCentralWidget(self.splitter)
 
 		self.lastFocus = ref(ed)
+		from ..app import qApp
 		qApp().focusChanged.connect(self._appFocusChanged)
 
 		self.addCategory('window')

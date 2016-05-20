@@ -19,7 +19,6 @@ qApp = lambda: QApplication.instance()
 from .three import execfile
 from . import pathutils
 from . import connector
-from .widgets import window
 
 
 __all__ = ('App', 'qApp', 'main')
@@ -39,6 +38,8 @@ class App(QApplication):
 		self.focusChanged.connect(self._appFocusChanged)
 
 	def initUi(self):
+		from .widgets import window
+
 		win = window.Window()
 		win.createDefaultMenuBar()
 		win.quitRequested.connect(self.quit)
