@@ -11,6 +11,7 @@ Contents:
 
    intro
    ui
+   shortcuts
 
 
 Indices and tables

@@ -25,7 +25,15 @@ class DockWidget(QDockWidget, CategoryMixin):
 
 
 class Window(QMainWindow, CategoryMixin, DropAreaMixin):
+	"""Main window type.
+
+	This window type should typically be used for editing windows.
+	As a QMainWindow, it supports menus, dock widgets and a status bar.
+	"""
+
 	EditorClass = Editor
+
+	"""Class of the widget to create when a new tab is opened."""
 
 	fileDropped = Signal(str)
 
@@ -60,10 +68,12 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 	## buffers
 	def currentBuffer(self):
+		"""Return the current buffer in this window, which has had focus last."""
 		return self.lastFocus()
 
 	@Slot()
 	def bufferNew(self):
+		"""Open a new, empty editor in current tab container."""
 		ed = self.EditorClass()
 		cur = self.currentBuffer()
 		if cur:
@@ -74,6 +84,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 	@Slot()
 	def bufferNewAtTabs(self, tabbar):
+		"""Open a new, empty editor in specified tab container."""
 		ed = self.EditorClass()
 		tabbar.addWidget(ed)
 		return ed
@@ -86,6 +97,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 	@Slot()
 	def bufferOpen(self, path):
+		"""Open a new buffer in current tab container and load specified path."""
 		ed = self.bufferNew()
 		if ed.openFile(path):
 			return ed
@@ -94,12 +106,14 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 	@Slot()
 	def bufferClose(self):
+		"""Close current buffer."""
 		ed = self.currentBuffer()
 		parent = ed.parentTabBar()
 		parent.closeTab(ed)
 
 	@Slot()
 	def bufferSave(self):
+		"""Save current buffer."""
 		self.currentBuffer().saveFile()
 
 	def _bufferNewSplit(self, orientation):
@@ -123,6 +137,8 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 	## signals
 	quitRequested = Signal()
+
+	"""Signal quitRequested()"""
 
 	## events
 	def closeEvent(self, ev):

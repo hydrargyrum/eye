@@ -63,6 +63,12 @@ class App(QApplication):
 				self.logger.error('cannot execute startup script %r', f, exc_info=True)
 
 	def run(self):
+		"""Run app until exit
+
+		Create and show interface, run config script, handle command-line args and run.
+		Does not return until app is quit.
+		"""
+
 		self._handleArguments()
 		win = self.initUi()
 		win.show()
@@ -108,6 +114,8 @@ class App(QApplication):
 
 
 def main():
+	"""Run eye app"""
+
 	# if the default excepthook is used, PyQt 5.5 *aborts* the app when an unhandled exception occurs
 	# see http://pyqt.sourceforge.net/Docs/PyQt5/incompatibilities.html
 	# as this behaviour is questionable, we restore the old one
