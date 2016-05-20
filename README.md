@@ -40,5 +40,5 @@ All of this is doable through the full Python API, the EYE API and the Qt compon
 
 ## Where is the documentation?
 
-For now, there's only the plugins code, no documentation yet.
-[PyQt4 docs](http://pyqt.sourceforge.net/Docs/PyQt4/index.html) are useful, and also the [QScintilla docs](http://pyqt.sourceforge.net/Docs/QScintilla2/).
+The documentation is built with sphinx in the docs dir and can be [consulted online](https://eye.readthedocs.io/).
+It is also a work-in-progress.
