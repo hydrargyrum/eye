@@ -13,6 +13,7 @@ Contents:
    ui
    shortcuts
    plugins
+   qt
 
 
 Indices and tables
