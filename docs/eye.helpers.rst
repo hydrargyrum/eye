@@ -1,0 +1,40 @@
+eye.helpers package
+===================
+
+.. automodule:: eye.helpers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+
+    eye.helpers.file_search_plugins
+
+Submodules
+----------
+
+.. toctree::
+
+   eye.helpers.actions
+   eye.helpers.bookmarks
+   eye.helpers.bufferlist2
+   eye.helpers.buffers
+   eye.helpers.build
+   eye.helpers.buildmenu
+   eye.helpers.editor_search
+   eye.helpers.file_monitor
+   eye.helpers.file_search
+   eye.helpers.folding
+   eye.helpers.keys
+   eye.helpers.lexer
+   eye.helpers.lexercolor
+   eye.helpers.macros
+   eye.helpers.margins
+   eye.helpers.nav_history
+   eye.helpers.projects
+   eye.helpers.remote_control
+   eye.helpers.styles
+
