@@ -5,6 +5,7 @@
 from PyQt5.QtCore import pyqtSlot
 
 import inspect
+import os
 import re
 
 
@@ -16,7 +17,8 @@ SLOT_RE = re.compile(r'@(?:\w\.)*Slot(\(.*\))')
 
 def Slot(*args, **kwargs):
 	def decorator(func):
-		func = pyqtSlot(*args, **kwargs)(func)
+		if os.environ.get('READTHEDOCS') != 'True':
+			func = pyqtSlot(*args, **kwargs)(func)
 
 		signatures = []
 

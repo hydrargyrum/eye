@@ -22,6 +22,20 @@ import os
 
 sys.path.insert(0, os.path.abspath('..'))
 
+if os.environ.get('READTHEDOCS') == 'True':
+    from mock import Mock as MagicMock
+
+    class Mock(MagicMock):
+        @classmethod
+        def __getattr__(cls, name):
+            return Mock()
+
+
+    MOCK_MODULES = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtNetwork',
+                    'PyQt5.QtWidgets', 'PyQt5.Qsci', 'sip',
+                   ]
+    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
