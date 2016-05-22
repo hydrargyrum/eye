@@ -1,20 +1,33 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Plugin for non-lexical code folding
+
+Default lexers provide code folding, for example functions can be folded. This plugin provides folding that isn't
+based on lexer tokens but on markers. For example "{{{" for starting a fold zone and "}}}" for ending a fold zone.
+
+Simple usage:
+
+	>>> import eye.helpers.folding
+	>>> eye.helpers.folding.disableLexerFolding.enabled = True
+	>>> eye.helpers.folding.setMarkerFolder.enabled = True
+"""
+
 from PyQt5.QtCore import QObject, QTimer, pyqtSignal as Signal, pyqtSlot as Slot
 from PyQt5.Qsci import QsciScintilla
 
 import re
 
-from ..connector import disabled, defaultLexerConfig
+from ..connector import disabled, defaultLexerConfig, defaultEditorConfig
 from ..widgets.editor import HasWeakEditorMixin
 
 
-__all__ = ('MarkerFolder', 'disableLexerFolding')
+__all__ = ('MarkerFolder', 'disableLexerFolding', 'setMarkerFolder')
 
 
 @defaultLexerConfig
 @disabled
 def disableLexerFolding(ed, *args):
+	"""Disable folding based on QsciLexer for an editor widget"""
 	ed.setLexerProperty(b'fold', b'0')
 
 
@@ -83,3 +96,10 @@ class MarkerFolder(QObject, HasWeakEditorMixin):
 				self.timer.start(self.interval)
 
 		# TODO smarter refold: check if insert/delete contains pattern or changes folding
+
+
+@defaultEditorConfig
+@disabled
+def setMarkerFolder(editor):
+	"""Enable folding based on markers for an editor widget"""
+	editor.folding = eye.helpers.folding.MarkerFolder(editor=editor)
