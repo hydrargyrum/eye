@@ -1,5 +1,8 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Helpers for QsciStyle
+"""
+
 from PyQt5.Qsci import QsciStyle
 
 

@@ -1,5 +1,21 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Multi-splitter widget
+
+The multi-splitter widget allows to have complex splitting layouts, with arbitrary levels of horizontal/vertical
+splits. For example, it's possible to have editors layed out this way in a window::
+
+	+--+----+----+
+	|  |    |    |
+	+--+----+    |
+	|       |    |
+	|       +----+
+	|       |    |
+	+-------+----+
+
+Each split may contain a :any:`eye.widgets.tabs.TabWidget`, containing a single or multiple tabs.
+"""
+
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QRect
 from PyQt5.QtWidgets import QSplitter, QWidget, QStackedLayout
 Signal = pyqtSignal
@@ -7,10 +23,15 @@ Slot = pyqtSlot
 
 from .helpers import WidgetMixin
 
-__all__ = ('SplitManager', 'Splitter')
+__all__ = ('SplitManager', 'Splitter', 'QSplitter')
 
 
 class Splitter(QSplitter, WidgetMixin):
+	"""Splitter widget for a single splitting level
+
+	`Splitter` objects are handled by the :any:`SplitManager` widget.
+	"""
+
 	HandleBar = 42
 
 	def __init__(self, **kwargs):
@@ -19,6 +40,13 @@ class Splitter(QSplitter, WidgetMixin):
 		self.addCategory('splitter')
 
 	def childAt(self, pos):
+		"""Return child widget at position
+
+		`pos` should be a `QPoint` relative to the top-left corner of this `Splitter` (which is at `(0, 0)`).
+		The return value will be `HandleBar` if `pos` is right on a handle bar of this splitter.
+		If the final widget under `pos` is contained in a sub-`Splitter` or sub-sub-`Splitter`, it won't be
+		returned, only the direct child, the direct sub-`Splitter` will be returned.
+		"""
 		if pos.x() < 0 or pos.y() < 0 or pos.x() >= self.width() or pos.y() >= self.height():
 			return None
 		for i in range(self.count()):
@@ -28,6 +56,7 @@ class Splitter(QSplitter, WidgetMixin):
 		return self.HandleBar
 
 	def parentManager(self):
+		"""Returns the :any:`SplitManager` managing this splitter"""
 		w = self.parent()
 		while not isinstance(w, SplitManager):
 			w = w.parent()
@@ -35,6 +64,13 @@ class Splitter(QSplitter, WidgetMixin):
 
 
 class SplitManager(QWidget, WidgetMixin):
+	"""Split manager widget
+
+	This widget allows to do multiple levels of splitter without having to manage the levels by hand.
+
+	Instances of this class have the `"splitmanager"` category by default.
+	"""
+
 	North = 0
 	South = 1
 	West = 2

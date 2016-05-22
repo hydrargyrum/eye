@@ -1,5 +1,15 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Automatic syntax coloring plugin
+
+This plugins adds automatic syntax coloring in an editor based on file extension. See :doc:`eye.lexers`.
+
+Simple usage:
+
+	>>> import eye.helpers.lexer
+	>>> eye.helpers.lexer.autoLexer.enabled = True
+"""
+
 from ..connector import registerSignal, disabled
 from .. import lexers
 
@@ -11,6 +21,10 @@ __all__ = ('autoLexer',)
 @registerSignal(['editor'], 'fileSaved')
 @disabled
 def autoLexer(ed, path):
+	"""Enables syntax coloring for an editor
+
+	The correct lexer is determined using file extension. See :any:`eye.lexers.extensionToLexer`.
+	"""
 	if ed.lexer():
 		return
 

@@ -40,7 +40,7 @@ from .helpers import CentralWidgetMixin, acceptIf
 from .. import structs
 from .. import io
 
-__all__ = ('Editor', 'Marker', 'Indicator', 'Margin', 'BaseEditor')
+__all__ = ('Editor', 'Marker', 'Indicator', 'Margin', 'BaseEditor', 'QsciScintilla')
 
 LOGGER = getLogger(__name__)
 

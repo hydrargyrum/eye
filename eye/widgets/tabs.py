@@ -1,5 +1,8 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Tab widget
+"""
+
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget
 Signal = pyqtSignal
@@ -21,7 +24,18 @@ class TabBar(QTabBar):
 
 
 class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
+	"""Tab widget class
+
+	By default, instances of this class have the category `"tabwidget"` (see :doc:`eye.connector`).
+	"""
+
 	lastTabClosed = Signal()
+
+	"""Signal lastTabClosed()
+
+	This signal is emitted when the last tab of this tab widget has been closed.
+	"""
+
 	fileDropped = Signal(str)
 
 	def __init__(self, **kwargs):
@@ -36,6 +50,7 @@ class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 		self.addCategory('tabwidget')
 
 	def currentBuffer(self):
+		"""Return the widget from the current tab"""
 		return self.currentWidget()
 
 	def _idxContainerOf(self, widget):
@@ -47,6 +62,11 @@ class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 		return -1
 
 	def closeTab(self, ed):
+		"""Close the tab containing the specified widget and return True if it can be
+
+		The tab can't be closed if the widget has a `closeFile()` method which returns `True` when it is
+		called. This method allows a tab content to reject closing if a file wasn't saved.
+		"""
 		assert self.isAncestorOf(ed)
 		if ed.closeFile():
 			idx = self._idxContainerOf(ed)
@@ -57,12 +77,14 @@ class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 			return False
 
 	def setCurrentWidget(self, widget):
+		"""Select the tab containing the specified widget"""
 		assert self.isAncestorOf(widget)
 		idx = self._idxContainerOf(widget)
 		if idx >= 0:
 			self.setCurrentIndex(idx)
 
 	def addWidget(self, widget):
+		"""Add a new tab with the specified widget"""
 		self.addTab(widget, widget.icon(), widget.title())
 		if hasattr(widget, 'titleChanged'):
 			widget.titleChanged.connect(self._subTitleChanged)
@@ -74,6 +96,7 @@ class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 		self.setTabText(idx, self.tr('%s') % filename)
 
 	def widgets(self):
+		"""Return widgets contained in tabs"""
 		return [self.widget(i) for i in range(self.count())]
 
 	def _selectTab(self, step, s1, e1, rotate, s2, e2):
@@ -90,23 +113,37 @@ class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 
 	@Slot()
 	def selectPrevTab(self, rotate=False):
+		"""Select previous tab
+
+		If `rotate` is `True` and the current tab is the first tab, the last tab is selected.
+		"""
 		cur = self.currentIndex()
 		self._selectTab(-1, cur - 1, -1, rotate, self.count() - 1, cur)
 
 	@Slot()
 	def selectPrevTabRotate(self):
+		"""Select previous tab or last if current is the first tab"""
 		self.selectPrevTab(True)
 
 	@Slot()
 	def selectNextTab(self, rotate=False):
+		"""Select next tab
+
+		If `rotate` is `True` and the current tab is the last tab, the first tab is selected.
+		"""
 		cur = self.currentIndex()
 		self._selectTab(1, cur + 1, self.count(), rotate, 0, cur)
 
 	@Slot()
 	def selectNextTabRotate(self):
+		"""Select next tab or first tab if current is the last tab"""
 		self.selectNextTab(True)
 
 	def requestClose(self):
+		"""Close all tabs and return `True` if all could be closed
+
+		See :any:`closeTab`.
+		"""
 		for i in range(self.count()):
 			w = self.widget(0)
 			if w.closeFile():
@@ -175,4 +212,5 @@ class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 
 	@Slot()
 	def refocus(self):
+		"""Give focus to the widget inside the current tab"""
 		self.currentWidget().setFocus(Qt.OtherFocusReason)
