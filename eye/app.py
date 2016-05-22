@@ -9,14 +9,14 @@ import sys
 import sip
 sip.setapi('QString', 2)
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow
 Signal = pyqtSignal
-Slot = pyqtSlot
 
 qApp = lambda: QApplication.instance()
 
 from .three import execfile
+from .qt import Slot
 from . import pathutils
 from . import connector
 

@@ -48,7 +48,7 @@ Module contents
 ---------------
 """
 
-from PyQt5.QtCore import Qt, QObject, pyqtSignal as Signal, pyqtSlot as Slot
+from PyQt5.QtCore import Qt, QObject, pyqtSignal as Signal
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QShortcut
 
@@ -56,6 +56,7 @@ import inspect
 from logging import getLogger
 import weakref
 
+from .qt import Slot
 from .three import bytes, str
 from .utils import exceptionLogging
 

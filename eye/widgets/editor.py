@@ -22,12 +22,11 @@ Module contents
 ---------------
 """
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.Qsci import QsciScintilla
 import sip
 Signal = pyqtSignal
-Slot = pyqtSlot
 
 import os
 import re
@@ -37,12 +36,16 @@ from logging import getLogger
 
 from ..three import bytes, str
 from .helpers import CentralWidgetMixin, acceptIf
+from ..qt import Slot
 from .. import structs
 from .. import io
 
+
 __all__ = ('Editor', 'Marker', 'Indicator', 'Margin', 'BaseEditor', 'QsciScintilla')
 
+
 LOGGER = getLogger(__name__)
+
 
 class HasWeakEditorMixin(object):
 	def __init__(self, **kwargs):

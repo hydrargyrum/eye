@@ -19,9 +19,9 @@ Each split may contain a :any:`eye.widgets.tabs.TabWidget`, containing a single 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QRect
 from PyQt5.QtWidgets import QSplitter, QWidget, QStackedLayout
 Signal = pyqtSignal
-Slot = pyqtSlot
 
 from .helpers import WidgetMixin
+from ..qt import Slot
 
 __all__ = ('SplitManager', 'Splitter', 'QSplitter')
 

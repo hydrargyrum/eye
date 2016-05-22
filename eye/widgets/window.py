@@ -1,14 +1,14 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDockWidget, QWidget
 Signal = pyqtSignal
-Slot = pyqtSlot
 
 import os
 from weakref import ref
 
 from ..three import str
+from ..qt import Slot
 from .helpers import CategoryMixin, acceptIf
 from .editor import Editor
 from .tabs import TabWidget

@@ -3,12 +3,12 @@
 """Tab widget
 """
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget
 Signal = pyqtSignal
-Slot = pyqtSlot
 
 from ..three import str
+from ..qt import Slot
 from .droparea import DropAreaMixin
 from .helpers import WidgetMixin
 
