@@ -68,13 +68,15 @@ class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 		called. This method allows a tab content to reject closing if a file wasn't saved.
 		"""
 		assert self.isAncestorOf(ed)
-		if ed.closeFile():
-			idx = self._idxContainerOf(ed)
 
-			self.removeTab(idx)
-			return True
-		else:
-			return False
+		if hasattr(ed, 'closeFile'):
+			if not ed.closeFile():
+				return False
+
+		idx = self._idxContainerOf(ed)
+
+		self.removeTab(idx)
+		return True
 
 	def setCurrentWidget(self, widget):
 		"""Select the tab containing the specified widget"""
