@@ -62,6 +62,10 @@ class Splitter(QSplitter, WidgetMixin):
 			w = w.parent()
 		return w
 
+	def widgets(self):
+		"""Return all direct children widgets"""
+		return [self.widget(i) for i in range(self.count())]
+
 
 class SplitManager(QWidget, WidgetMixin):
 	"""Split manager widget
