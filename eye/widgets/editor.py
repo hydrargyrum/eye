@@ -124,6 +124,13 @@ class Marker(HasWeakEditorMixin):
 		"""Remove marker of this type at `line` if present"""
 		self.editor.markerDelete(line, self.id)
 
+	def toggleAt(self, line):
+		"""Toggle marker of this type at `line`"""
+		if self.isAt(line):
+			self.removeAt(line)
+		else:
+			self.putAt(line)
+
 	def isAt(self, line):
 		"""Return `True` if a marker of this type is present at `line`"""
 		return self.toBit() & self.editor.markersAtLine(line)
@@ -150,6 +157,14 @@ class Marker(HasWeakEditorMixin):
 			if ln < 0:
 				return
 			yield ln
+
+	def setBackgroundColor(self, color):
+		"""Set background color of this marker type"""
+		self.editor.setMarkerBackgroundColor(color, self.id)
+
+	def setColor(self, color):
+		"""Set foreground color of this marker type"""
+		self.editor.setMarkerForegroundColor(color, self.id)
 
 
 class Indicator(HasWeakEditorMixin):
@@ -599,13 +614,13 @@ class BaseEditor(QsciScintilla):
 		obj._create(editor=self)
 		return obj
 
-	def createMarker(self, name, marker):
+	def createMarker(self, name, marker=QsciScintilla.Circle):
 		"""Create and return a Marker with name `name` and symbol `marker`"""
 		if not isinstance(marker, Marker):
 			marker = Marker(marker)
 		return self._createMI(self.markers, name, marker)
 
-	def createIndicator(self, name, indicator):
+	def createIndicator(self, name, indicator=QsciScintilla.PlainIndicator):
 		"""Create and return an Indicator with name `name` and style `indicator`"""
 		if not isinstance(indicator, Indicator):
 			indicator = Indicator(indicator)
@@ -626,48 +641,56 @@ class BaseEditor(QsciScintilla):
 	def disposeIndicator(self, name):
 		self._disposeMI(self.indicators, self.freeIndicators, name)
 
-	def fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i):
-		if isinstance(i, (str, bytes)):
-			i = self.indicators[i].id
-		return QsciScintilla.fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i)
+	## indicators
+	def _indicatorToId(self, indicator):
+		if isinstance(indicator, Indicator):
+			return indicator.id
+		elif isinstance(indicator, (str, bytes)):
+			return self.indicators[indicator].id
+		return indicator
 
-	def clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i):
-		if isinstance(i, (str, bytes)):
-			i = self.indicators[i].id
-		return QsciScintilla.clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, i)
+	def fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic):
+		indic = self._indicatorToId(indic)
+		return QsciScintilla.fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic)
 
-	def markerAdd(self, ln, i):
+	def clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic):
+		indic = self._indicatorToId(indic)
+		return QsciScintilla.clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic)
+
+	## markers
+	def _markerToId(self, marker):
+		if isinstance(marker, (str, bytes)):
+			return self.markers[marker].id
+		elif isinstance(marker, Marker):
+			return marker.id
+		return marker
+
+	def markerAdd(self, line, marker):
 		"""Add marker with name/id `i` at line `ln`"""
-		if isinstance(i, (str, bytes)):
-			i = self.markers[i].id
-		return QsciScintilla.markerAdd(self, ln, i)
+		marker = self._markerToId(marker)
+		return QsciScintilla.markerAdd(self, line, marker)
 
-	def markerDelete(self, ln, i):
+	def markerDelete(self, line, marker):
 		"""Delete marker with name/id `i` from line `ln`"""
-		if isinstance(i, (str, bytes)):
-			i = self.markers[i].id
-		return QsciScintilla.markerDelete(self, ln, i)
+		marker = self._markerToId(marker)
+		return QsciScintilla.markerDelete(self, line, marker)
 
-	def setMarkerBackgroundColor(self, c, i):
+	def setMarkerBackgroundColor(self, color, marker):
 		"""Set background color `c` to marker with id/name `i`"""
-		if isinstance(i, (str, bytes)):
-			i = self.markers[i].id
-		return QsciScintilla.setMarkerBackgroundColor(self, c, i)
+		marker = self._markerToId(marker)
+		return QsciScintilla.setMarkerBackgroundColor(self, color, marker)
 
-	def setMarkerForegroundColor(self, c, i):
-		if isinstance(i, (str, bytes)):
-			i = self.markers[i].id
-		return QsciScintilla.setMarkerForegroundColor(self, c, i)
+	def setMarkerForegroundColor(self, color, marker):
+		marker = self._markerToId(marker)
+		return QsciScintilla.setMarkerForegroundColor(self, color, marker)
 
-	def getMarkerPrevious(self, ln, i):
-		if isinstance(i, (str, bytes)):
-			i = self.markers[i].id
-		return self._getMarkerPrevious(ln, i)
+	def getMarkerPrevious(self, line, marker):
+		marker = self._markerToId(marker)
+		return self._getMarkerPrevious(line, marker)
 
-	def getMarkerNext(self, ln, i):
-		if isinstance(i, (str, bytes)):
-			i = self.markers[i].id
-		return self._getMarkerNext(ln, i)
+	def getMarkerNext(self, line, marker):
+		marker = self._markerToId(marker)
+		return self._getMarkerNext(line, marker)
 
 	## macros
 	#~ @Slot('uint', 'unsigned long', object)
@@ -967,9 +990,13 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.ensureLineVisible(line)
 		self.setCursorPosition(line, col)
 
-	def getLine(self):
-		"""Return the line number of the cursor position"""
+	def cursorLine(self):
+		"""Return the line number of the cursor position (starting from 0)"""
 		return self.getCursorPosition()[0]
+
+	def cursorColumn(self):
+		"""Return the column number of the cursor position (starting from 0)"""
+		return self.getCursorPosition()[1]
 
 	def setLexer(self, lexer):
 		QsciScintilla.setLexer(self, lexer)
