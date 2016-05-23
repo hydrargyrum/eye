@@ -140,14 +140,14 @@ class Marker(HasWeakEditorMixin):
 
 		-1 is returned if there is no line with the marker after `line`.
 		"""
-		return self.editor.getMarkerNext(line, self.toBit())
+		return self.editor.getMarkerNext(line + 1, self.toBit())
 
 	def getPrevious(self, line):
 		"""Return the line number of first line having this marker before `line`
 
 		-1 is returned if there is no line with the marker before `line`.
 		"""
-		return self.editor.getMarkerPrevious(line, self.toBit())
+		return self.editor.getMarkerPrevious(line - 1, self.toBit())
 
 	def listAll(self):
 		"""List all lines that have this marker set"""

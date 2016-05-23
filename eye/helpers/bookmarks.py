@@ -1,6 +1,14 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-__all__ = ('toggleBookmark', 'listBookmarks', 'nextBookmark', 'previousBookmark')
+"""Line bookmarks
+
+This plugin allows to set bookmark on lines. It's possible to navigate between bookmarked lines in a file.
+Bookmarks do not persist when file is closed.
+
+These bookmarks use a :any:`eye.widgets.editor.Marker` called "bookmark", which can be customized.
+"""
+
+__all__ = ('toggleBookmark', 'nextBookmark', 'previousBookmark', 'listBookmarks')
 
 
 def toggleBookmark(ed):
@@ -16,7 +24,7 @@ def toggleBookmark(ed):
 def nextBookmark(ed):
         ln = ed.getCursorPosition()[0]
 
-        ln = ed.markers['bookmark'].getNext(ln + 1)
+        ln = ed.markers['bookmark'].getNext(ln)
         if ln < 0:
                 ln = ed.markers['bookmark'].getNext(0)
         ed.setCursorPosition(ln, 0)
@@ -25,7 +33,7 @@ def nextBookmark(ed):
 def previousBookmark(ed):
         ln = ed.getCursorPosition()[0]
 
-        ln = ed.markers['bookmark'].getPrevious(ln - 1)
+        ln = ed.markers['bookmark'].getPrevious(ln)
         if ln < 0:
                 ln = ed.markers['bookmark'].getPrevious(ed.lines())
 
