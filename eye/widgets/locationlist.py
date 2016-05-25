@@ -1,5 +1,12 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Location list widget
+
+A location list widget displays a list of files and some lines in this file.
+It's typically used for displaying search results, where the list will contain the lines of files matching a pattern,
+in a grep fashion. It could also display compile errors, with the files and their erroneous lines.
+"""
+
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QModelIndex
 from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem
 

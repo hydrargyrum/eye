@@ -1,5 +1,8 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Regular expression utilities
+"""
+
 from PyQt5.QtCore import Qt
 import re
 import unittest
@@ -9,12 +12,14 @@ __all__ = ('csToQtEnum', 'qtEnumToCs', 'qreToPattern')
 
 
 def csToQtEnum(cs):
+	"""Return a `Qt.CaseSensitivity` flag for bool `cs`"""
 	if cs:
 		return Qt.CaseSensitive
 	else:
 		return Qt.CaseInsensitive
 
 def qtEnumToCs(enum):
+	"""Return True if `enum` value equals `Qt.CaseSensitive`"""
 	return enum == Qt.CaseSensitive
 
 

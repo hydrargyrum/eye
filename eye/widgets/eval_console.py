@@ -1,5 +1,8 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Interactive evaluator console
+"""
+
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget
 
@@ -55,6 +58,21 @@ class HistoryLine(QLineEdit):
 
 
 class EvalConsole(QWidget, WidgetMixin):
+	"""Interactive evaluator console widget
+
+	Text typed in the console will be executed as Python code, in the context of the EYE app, which allows to do
+	some operations on widgets directly from this console.
+
+	The `editor` variable is automatically set to the last focused editor widget in the current window.
+	The `window` variable is set to current window. The `eye` module is imported, and so are the submodules
+	already imported by the configuration files.
+
+	During execution of a line, stdout and stderr are captured and are output to this widget console.
+	Do not execute statemements taking a lot of time as it would freeze the UI.
+
+	This widget can typically added as a dock widget.
+	"""
+
 	def __init__(self, **kwargs):
 		super(EvalConsole, self).__init__(**kwargs)
 		self.namespace = {}

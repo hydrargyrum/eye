@@ -1,15 +1,30 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Path manipulation utilities
+"""
+
 import glob
 import os
 import re
 
 
 __all__ = ('parseFilename', 'findAncestorContaining', 'findInAncestors',
-           'getCommonPrefix', 'getConfigPath', 'getConfigFilePath')
+           'getCommonPrefix', 'getRelativePathIn', 'isIn',
+           'getConfigPath', 'getConfigFilePath')
 
 
 def parseFilename(filepath):
+	"""Parse a `filename:line:col` string
+
+	Parse a string containing a file path, a line number and column number, in
+	the format `filepath:line:col`. Line and column are optional. If only one
+	is present, it's taken as the line number. Returns a tuple
+
+	This function can be useful for command-line arguments.
+
+		>>> parseFilename('/foo/bar:1')
+		('/foo/bar', 1, None)
+	"""
 	row, col = None, None
 
 	mtc = re.search(r'(:\d+)?(:\d+)?$', filepath)
@@ -23,12 +38,25 @@ def parseFilename(filepath):
 
 
 def findAncestorContaining(path, patterns):
+	"""Find an ancestor containing any of `patterns`
+
+	Like :any:`findInAncestors`, but returns the directory containing the
+	matched file.
+	"""
 	found = findFileInAncestors(path, patterns)
 	if found:
 		return os.path.dirname(found)
 
 
 def findInAncestors(path, patterns):
+	"""Find file matching any of `patterns` in ancestors of `path`
+
+	`patterns` should be a list of globbing patterns (see standard `glob`
+	module).
+	Returns the absolute path of the first matching file. Patterns are
+	searched in order given. `path` is searched first, then its parent, then
+	ancestors in ascending order.
+	"""
 	path = os.path.abspath(path)
 
 	while True:
@@ -43,6 +71,14 @@ def findInAncestors(path, patterns):
 
 
 def getCommonPrefix(a, b):
+	"""Return common path prefix between path `a` and path `b`
+
+	Paths are normalized with `os.path.normpath`. Will not cut in the middle
+	of a path component.
+
+		>>> getCommonPrefix('/foo/bar', '/foo/baz')
+		'/foo'
+	"""
 	a, b = map(os.path.normpath, (a, b))
 	aparts = a.split(os.path.sep)
 	bparts = b.split(os.path.sep)
@@ -56,11 +92,33 @@ def getCommonPrefix(a, b):
 
 
 def isIn(a, b):
+	"""Return True if path `a` is contained path `b`
+
+	Does not check existence of paths. Paths are normalized with
+	`os.path.normpath`.
+
+		>>> isIn('/foo, '/bar')
+		False
+		>>> isIn('/bar/foo', '/bar')
+		True
+	"""
 	r = getRelativePathIn(a, b)
-	return r is None
+	return r is not None
 
 
 def getRelativePathIn(a, b):
+	"""Return the relative path of `a` inside `b`
+
+	If `a` is not contained inside `b`, returns `None`.
+
+	Paths are normalized with `os.path.normpath`. Does not check existence
+	of paths.
+
+		>>> getRelativePathIn('/bar/foo/qux', '/bar')
+		'foo/qux'
+		>>> getRelativePathIn('/foo', '/bar') is None
+		True
+	"""
 	a, b = map(os.path.normpath, (a, b))
 	aparts = a.split(os.path.sep)
 	bparts = b.split(os.path.sep)
