@@ -20,15 +20,15 @@ __all__ = ('autoLexer',)
 @registerSignal(['editor'], 'fileOpened')
 @registerSignal(['editor'], 'fileSaved')
 @disabled
-def autoLexer(ed, path):
+def autoLexer(editor, path=None):
 	"""Enables syntax coloring for an editor
 
 	The correct lexer is determined using file extension. See :any:`eye.lexers.extensionToLexer`.
 	"""
-	if ed.lexer():
+	if editor.lexer():
 		return
 
-	ext = os.path.splitext(ed.path)[1]
+	ext = os.path.splitext(editor.path)[1]
 	cls = lexers.extensionToLexer(ext)
 	if cls:
-		ed.setLexer(cls())
+		editor.setLexer(cls())
