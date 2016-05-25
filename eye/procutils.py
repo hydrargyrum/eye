@@ -15,6 +15,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def findCommand(cmd):
+	"""Find `cmd` in `$PATH`"""
 	for elem in os.getenv('PATH').split(os.pathsep):
 		path = os.path.join(elem, cmd)
 		if os.path.isfile(path):
@@ -22,8 +23,18 @@ def findCommand(cmd):
 
 
 class LineProcess(QProcess):
+	"""Process with stdout/stderr line handling
+
+	The process is run in background. Signals are emitted when full lines are read from stdout or stderr.
+	"""
+
 	stdoutLineRead = Signal(str)
+
+	"""Signal stdoutLineRead(str)"""
+
 	stderrLineRead = Signal(str)
+
+	"""Signal stderrLineRead(str)"""
 
 	def __init__(self, **kwargs):
 		super(LineProcess, self).__init__(**kwargs)
@@ -41,6 +52,7 @@ class LineProcess(QProcess):
 			self.error.connect(self.onError)
 
 	def stop(self, wait=0):
+		"""Terminate process"""
 		if wait and self.state() != self.NotRunning:
 			self.terminate()
 			self.waitForFinished(wait)
@@ -54,6 +66,7 @@ class LineProcess(QProcess):
 			LOGGER.debug('starting process %r', cmd)
 
 	def setEncoding(self, encoding):
+		"""Set encoding for reading stdout/stderr"""
 		self.encoding = encoding
 
 	def _perform(self, fd, incoming, sig):

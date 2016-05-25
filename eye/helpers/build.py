@@ -1,5 +1,11 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Builder processes helpers
+
+This module adds helpers for builders, programs which process source code and build a program out of it or simply
+check syntax, etc.
+"""
+
 from PyQt5.QtCore import QObject, pyqtSignal as Signal, pyqtSlot as Slot
 
 import logging
@@ -18,22 +24,85 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Builder(QObject, CategoryMixin):
-	errorPrinted = Signal(dict)
 	warningPrinted = Signal(dict)
+
+	"""Signal warningPrinted(info)
+
+	:param info: warning output by the builder
+	:type info: dict
+
+	This signal is emitted when a warning occurs.
+
+	The dict argument contains info about the warning. The keys can be arbitrary and everything is optional,
+	but the common keys are `"path"`, `"line"`, `"col"`, `"message"`.
+	"""
+
+	errorPrinted = Signal(dict)
+
+	"""Signal errorPrinted(info)
+
+	:param info: error output by the builder
+	:type info: dict
+
+	This signal is emitted when an error occurs.
+
+	See :any:`warningPrinted` about the dict argument.
+	"""
+
+	started = Signal()
+
+	"""Signal started()
+
+	This signal is emitted when the builder starts running.
+	"""
+
 	finished = Signal(int)
+
+	"""Signal finished(code)
+
+	:param code: the exit code of the builder
+	:type code: int
+
+	This signal is emitted when the build finishes running, and the overall return code is the argument.
+	By convention, a 0 code means successful end, while 1 and other values mean an error occured or at least
+	warnings.
+	"""
+
 	progress = Signal(int)
 
+	"""Signal progress(int)
+
+	This signal is emitted from time to time to indicate building progress. Some builders may not emit it at all.
+	The argument is a percentage of the progress.
+	"""
+
+	def __init__(self, **kwargs):
+		super(Builder, self).__init__(**kwargs)
+		self.addCategory('builder')
+
 	def columns(self):
+		"""Return the list of columns supported by this builder type
+
+		The columns are the keys of the dict emitted in :any:`warningPrinted` and :any:`errorPrinted`.
+		"""
 		raise NotImplementedError()
 
 	def interrupt(self):
+		"""Stop the builder process"""
 		pass
 
 	def run(self, *args, **kwargs):
+		"""Start the builder process"""
 		raise NotImplementedError()
 
 
 class SimpleBuilder(Builder):
+	"""Simple builder suitable for gcc-like programs
+
+	This builder is suitable for programs outputting lines in the format `"<path>:<line>:<col>: <message>"`.
+	Lines not matching this pattern are simply discarded (but the column is optional).
+	"""
+
 	reobj = re.compile('^(?P<path>[^:]+):(?P<line>\d+):(?:(?P<col>\d+):)? (?P<message>.*)$')
 
 	def __init__(self, **kwargs):
@@ -59,6 +128,8 @@ class SimpleBuilder(Builder):
 		obj['line'] = int(obj['line'])
 		if obj.get('col'):
 			obj['col'] = int(obj['col'])
+		if obj.get('message'):
+			obj['message'] = obj['message'].strip()
 		if self.rootpath:
 			# make path absolute and shortpath relative
 			obj['path'] = os.path.join(self.rootpath, obj['path'])
@@ -82,4 +153,3 @@ class PyFlakes(SimpleBuilder):
 		else:
 			self.rootpath = os.path.dirname(path)
 		self.run_cmd(['pyflakes', path])
-
