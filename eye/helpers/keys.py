@@ -35,13 +35,21 @@ from PyQt5.QtGui import QKeySequence
 
 from ..three import str
 from .actions import registerActionShortcut
+from ..pathutils import getConfigFilePath
 
 
-__all__ = ('loadKeysConfig',)
+__all__ = ('loadKeysConfig', 'DEFAULT_KEYS_FILE')
 
 
-def loadKeysConfig(path):
+DEFAULT_KEYS_FILE = 'keyboard.ini'
+
+
+def loadKeysConfig(path=None):
 	"""Load keys config file."""
+
+	if path is None:
+		path = getConfigFilePath(DEFAULT_KEYS_FILE)
+
 	cfg = ConfigParser()
 	cfg.optionxform = str
 	cfg.read([path])
