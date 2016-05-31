@@ -111,6 +111,7 @@ class SimpleBuilder(Builder):
 		self.proc = LineProcess()
 		self.proc.stdoutLineRead.connect(self.gotLine)
 		self.proc.finished.connect(self.finished)
+		self.proc.started.connect(self.started)
 
 	def columns(self):
 		return ('path', 'line', 'message')
@@ -124,17 +125,29 @@ class SimpleBuilder(Builder):
 
 		LOGGER.debug('%r received matching line %r', self, line)
 
+		signal = self.warningPrinted
+
 		obj = mtc.groupdict()
 		obj['line'] = int(obj['line'])
 		if obj.get('col'):
 			obj['col'] = int(obj['col'])
-		if obj.get('message'):
-			obj['message'] = obj['message'].strip()
+
+		msg = obj.get('message')
+		if msg:
+			msg = msg.strip()
+			if msg.startswith('warning: '):
+				msg = msg.replace('warning: ', '', 1)
+			elif msg.startwith('error: '):
+				signal = self.errorPrinted
+				msg = msg.replace('error: ', '', 1)
+			obj['message'] = msg
+
 		if self.rootpath:
 			# make path absolute and shortpath relative
 			obj['path'] = os.path.join(self.rootpath, obj['path'])
 			obj['shortpath'] = getRelativePathIn(obj['path'], self.rootpath) or obj['path']
-		self.warningPrinted.emit(obj)
+
+		signal.emit(obj)
 
 	def interrupt(self):
 		self.proc.stop()
