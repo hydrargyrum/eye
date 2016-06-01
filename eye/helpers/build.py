@@ -108,9 +108,9 @@ class SimpleBuilder(Builder):
 
 	def __init__(self, **kwargs):
 		super(SimpleBuilder, self).__init__(**kwargs)
-		self.rootpath = ''
 		self.proc = LineProcess()
 		self.proc.stdoutLineRead.connect(self.gotLine)
+		self.proc.stderrLineRead.connect(self.gotLine)
 		self.proc.finished.connect(self.finished)
 		self.proc.started.connect(self.started)
 
@@ -140,15 +140,18 @@ class SimpleBuilder(Builder):
 			msg = msg.strip()
 			if msg.startswith('warning: '):
 				msg = msg.replace('warning: ', '', 1)
-			elif msg.startwith('error: '):
+			elif msg.startswith('error: '):
 				signal = self.errorPrinted
 				msg = msg.replace('error: ', '', 1)
+			elif msg.startswith('note: '):
+				LOGGER.info('%r ignored note line %r', self, line)
+				return
 			obj['message'] = msg
 
-		if self.rootpath:
-			# make path absolute and shortpath relative
-			obj['path'] = os.path.join(self.rootpath, obj['path'])
-			obj['shortpath'] = getRelativePathIn(obj['path'], self.rootpath) or obj['path']
+		rootpath = self.proc.workingDirectory()
+		# make path absolute and shortpath relative
+		obj['path'] = os.path.join(rootpath, obj['path'])
+		obj['shortpath'] = getRelativePathIn(obj['path'], rootpath) or obj['path']
 
 		signal.emit(obj)
 
