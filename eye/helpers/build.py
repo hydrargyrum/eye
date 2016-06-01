@@ -25,6 +25,12 @@ DATA_LOGGER = LOGGER.getChild('simplebuilder')
 
 
 class Builder(QObject, CategoryMixin):
+	"""Abstract builder class
+
+	Subclasses should reimplement :any:`run` and :any:`columns`. They can reimplement :any:`interrupt` and
+	should emit various signals.
+	"""
+
 	warningPrinted = Signal(dict)
 
 	"""Signal warningPrinted(info)
@@ -85,15 +91,23 @@ class Builder(QObject, CategoryMixin):
 		"""Return the list of columns supported by this builder type
 
 		The columns are the keys of the dict emitted in :any:`warningPrinted` and :any:`errorPrinted`.
+
+		This method should be reimplemented in `Builder` subclasses.
 		"""
 		raise NotImplementedError()
 
 	def interrupt(self):
-		"""Stop the builder process"""
+		"""Stop the builder process
+
+		The default implementation does nothing.
+		"""
 		pass
 
 	def run(self, *args, **kwargs):
-		"""Start the builder process"""
+		"""Start the builder process
+
+		This method should be reimplemented in `Builder` subclasses.
+		"""
 		raise NotImplementedError()
 
 
