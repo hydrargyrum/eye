@@ -21,6 +21,7 @@ __all__ = ('Builder', 'SimpleBuilder')
 
 
 LOGGER = logging.getLogger(__name__)
+DATA_LOGGER = LOGGER.getChild('simplebuilder')
 
 
 class Builder(QObject, CategoryMixin):
@@ -118,6 +119,8 @@ class SimpleBuilder(Builder):
 
 	@Slot(str)
 	def gotLine(self, line):
+		DATA_LOGGER.info('%r', line)
+
 		mtc = self.reobj.match(line)
 		if not mtc:
 			LOGGER.info('%r received non-matching line %r', self, line)
