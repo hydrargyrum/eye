@@ -179,6 +179,10 @@ class Indicator(HasWeakEditorMixin):
 	In an editor, an indicator can be set for multiple ranges of characters in the text content, which will then
 	be displayed in the configured style.
 
+	Additionally, a numeric value can be associated when putting the indicator on a range. This allows to do
+	some kind of sub-indicators. Where the indicator is not set, the value is always 0.
+	The default value where an indicator is set is 1.
+
 	Example:
 
 		TODO
@@ -203,38 +207,52 @@ class Indicator(HasWeakEditorMixin):
 			del self.style
 
 	def getAtOffset(self, offset):
-		"""Return `True` if the indicator is present at byte `offset`"""
+		"""Return the value of the indicator is present at byte `offset`
+
+		If the indicator is not set at byte `offset`, 0 is returned, else the value of the indicator at this
+		offset is returned.
+		"""
 		return self.editor.indicatorValueAt(self.id, offset)
 
 	def getPreviousEdge(self, offset):
 		"""Return the offset of the first edge of this indicator before `offset`.
 
 		If `offset` is inside a range of characters with this indicator set, the start of the range is
-		returned. If `offset` is outside, the end of the previous range before `offset` is returned.
-		If there is no range before, -1 is returned.
+		returned. The returned start is inclusive: it is the first offset in the range.
 
-		.. TODO -1?
+		If `offset` is outside, the end of the previous range before `offset` is returned.
+		The returned end is exclusive: it's the first offset outside the range.
+
+		If there is no range before, -1 is returned.
 
 		Example:
 
 			>>> indicator.putAtOffset(4, 10)
 			>>> indicator.getPreviousEdge(12)
 			10
-			>>> indicator.getPreviousEdge(9)
+			>>> indicator.getPreviousEdge(10)
 			4
 			>>> indicator.getPreviousEdge(4)
 			-1
 		"""
 		if offset > 0:
 			offset -= 1
-			# in scintilla, 'end' always advances, but 'starts' blocks...
-		return self.editor.indicatorStart(self.id, offset)
+			# in scintilla, 'end' always advances, but 'start' blocks...
+
+		res = self.editor.indicatorStart(self.id, offset)
+		if res == 0 and not self.getAtOffset(0):
+			return -1
+		return res
 
 	def getNextEdge(self, offset):
 		"""Return the offset of the first edge of this indicator after `offset`.
 
-		If `offset` is inside a range of characters with this indicator srt, the end of the range is
-		returned. If `offset` is outside, the start of the next range after `offset` is returned.
+		If `offset` is inside a range of characters with this indicator set, the end of the range is
+		returned. The returned end is exclusive: it's the first offset outside the range.
+
+		If `offset` is outside a range, the start of the next range after `offset` is returned.
+		The returned start is inclusive: it is the first offset in the range.
+
 		If there is no range after, -1 is returned.
 
 		Example:
@@ -247,41 +265,77 @@ class Indicator(HasWeakEditorMixin):
 			>>> indicator.getNextEdge(10)
 			-1
 		"""
-		return self.editor.indicatorEnd(self.id, offset)
+		blen = self.editor.bytesLength()
+		if offset == blen:
+			return -1
+
+		res = self.editor.indicatorEnd(self.id, offset)
+		if res == 0:
+			# 0 is returned when indicator is never set
+			return -1
+		elif res == blen and not self.getAtOffset(offset):
+			# bytesLength() is returned after last range
+			return -1
+		return res
 
 	def iterRanges(self):
-		"""Return (start,end) tuples listing the ranges where the indicator is set.
+		"""Return (start, end, value) tuples listing the ranges where the indicator is set.
 
-		Returns an iterator of tuples. The tuples are byte-offset pairs.
+		Returns an iterator of `(start, end, value)` range tuple. For each tuple, `start` (inclusive) and
+		`end` (exclusive) are byte offsets. `value` is the value of the indicator in this range.
 		"""
-		start = 0
-		inrange = bool(self.getAtOffset(0))
-
 		ed_end = self.editor.bytesLength()
+
+		start = 0
+		value = self.getAtOffset(start)
 		while start < ed_end:
-			end = self.getNextEdge(start)
-			if inrange:
-				yield (start, end)
+			end = self.editor.indicatorEnd(self.id, start)
+			if value > 0:
+				yield (start, end, value)
 
-			inrange = not inrange
+			if end == 0:
+				# the indicator is set nowhere
+				break
+
 			start = end
+			value = self.getAtOffset(start)
 
-	def putAt(self, lineFrom, indexFrom, lineTo, indexTo):
-		"""Add the indicator to a range of characters (line-index based)"""
-		self.editor.fillIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, self.id)
 
-	def putAtOffset(self, start, end):
-		"""Add the indicator to a range of characters (byte offset based)"""
+	def putAt(self, lineFrom, indexFrom, lineTo, indexTo, value=1):
+		"""Add the indicator to a range of characters (line-index based)
+
+		The indicator is set from `(lineFrom, indexFrom)` (inclusive) to `(lineTo, indexTo)` (exclusive).
+		In this range, the indicator will have `value`.
+		"""
+		self.editor.fillIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, self.id, value)
+
+	def putAtOffset(self, start, end, value=1):
+		"""Add the indicator to a range of characters (byte offset based)
+
+		:param start: start offset (inclusive)
+		:param end: end offset (exclusive)
+		:param value: in the range, indicator will have this value
+		"""
 		startl, startc = self.editor.lineIndexFromPosition(start)
 		endl, endc = self.editor.lineIndexFromPosition(end)
-		self.putAt(startl, startc, endl, endc)
+		self.putAt(startl, startc, endl, endc, value)
 
 	def removeAt(self, lineFrom, indexFrom, lineTo, indexTo):
-		"""Remove the indicator from a range of characters (line-index based)"""
+		"""Remove the indicator from a range of characters (line-index based)
+
+		The indicator is unset from `(lineFrom, indexFrom)` (inclusive) to `(lineTo, indexTo)` (exclusive).
+		In this range, the indicator value will be reset to 0.
+		"""
 		self.editor.clearIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, self.id)
 
 	def removeAtOffset(self, start, end):
-		"""Remove the indicator from a range of characters (byte offset based)"""
+		"""Remove the indicator from a range of characters (byte offset based)
+
+		In this range, the indicator value will be reset to 0.
+
+		:param start: start offset (inclusive)
+		:param end: end offset (exclusive)
+		"""
 		startl, startc = self.editor.lineIndexFromPosition(start)
 		endl, endc = self.editor.lineIndexFromPosition(end)
 		self.removeAt(startl, startc, endl, endc)
@@ -299,7 +353,11 @@ class Indicator(HasWeakEditorMixin):
 		self.editor.setIndicatorOutlineColor(col, self.id)
 
 	def setStyle(self, style):
-		"""Set the visual style of the text marked by this indicator"""
+		"""Set the visual style of the text marked by this indicator
+
+		:param style: the new visual style to use
+		:type style: QsciScintilla.IndicatorStyle
+		"""
 		self.id = self.editor.indicatorDefine(style, self.id)
 
 
@@ -461,21 +519,21 @@ class BaseEditor(QsciScintilla):
 	Set if multiple ranges of characters can be selected. All ranges are selected in the same selection mode.
 	"""
 
-	multipleSelection = sciPropGet(QsciScintilla.SCI_GETMULTIPLESELECTION)
+	multipleSelection = sciProp0(QsciScintilla.SCI_GETMULTIPLESELECTION)
 	"""Return `True` if multiple selection is enabled"""
 
-	setAdditionalSelectionTyping = sciPropSet(QsciScintilla.SCI_SETADDITIONALSELECTIONTYPING)
-	additionalSelectionTyping = sciPropGet(QsciScintilla.SCI_GETADDITIONALSELECTIONTYPING)
+	setAdditionalSelectionTyping = sciProp(QsciScintilla.SCI_SETADDITIONALSELECTIONTYPING, (bool,))
+	additionalSelectionTyping = sciProp0(QsciScintilla.SCI_GETADDITIONALSELECTIONTYPING)
 
 	selectionsCount = sciPropGet(QsciScintilla.SCI_GETSELECTIONS)
 
 	"""Return the number of selection ranges (if multiple selections are enabled, else 1)"""
 
-	selectionsEmpty = sciPropGet(QsciScintilla.SCI_GETSELECTIONEMPTY)
-	clearSelections = sciPropGet(QsciScintilla.SCI_CLEARSELECTIONS)
+	selectionsEmpty = sciProp0(QsciScintilla.SCI_GETSELECTIONEMPTY)
+	clearSelections = sciProp0(QsciScintilla.SCI_CLEARSELECTIONS)
 
-	setMainSelection = sciPropSet(QsciScintilla.SCI_SETMAINSELECTION)
-	mainSelection = sciPropGet(QsciScintilla.SCI_GETMAINSELECTION)
+	setMainSelection = sciProp(QsciScintilla.SCI_SETMAINSELECTION, (six.integer_types,))
+	mainSelection = sciProp0(QsciScintilla.SCI_GETMAINSELECTION)
 
 	# virtual space
 	VsNone = QsciScintilla.SCVS_NONE
@@ -506,7 +564,7 @@ class BaseEditor(QsciScintilla):
 
 	# character representation
 	setRepresentation = sciProp2(QsciScintilla.SCI_SETREPRESENTATION)
-	getRepresentation = sciPropGet(QsciScintilla.SCI_GETREPRESENTATION)
+	getRepresentation = sciProp2(QsciScintilla.SCI_GETREPRESENTATION)
 	clearRepresentation = sciProp1(QsciScintilla.SCI_CLEARREPRESENTATION)
 
 	# fold
@@ -518,14 +576,14 @@ class BaseEditor(QsciScintilla):
 	FoldFlagLineState = QsciScintilla.SC_FOLDFLAG_LINESTATE
 
 	setFoldFlags = sciPropSet(QsciScintilla.SCI_SETFOLDFLAGS)
-	setFoldLevel = sciProp2(QsciScintilla.SCI_SETFOLDLEVEL)
+	setFoldLevel = sciProp(QsciScintilla.SCI_SETFOLDLEVEL, (six.integer_types, six.integer_types))
 
 	"""Set fold level of a line
 
 	Set fold level `arg2` for line `arg1`.
 	"""
 
-	getFoldLevel = sciProp1(QsciScintilla.SCI_GETFOLDLEVEL)
+	getFoldLevel = sciProp(QsciScintilla.SCI_GETFOLDLEVEL, (six.integer_types,))
 
 	"""Get fold level of line `value`"""
 
@@ -534,24 +592,27 @@ class BaseEditor(QsciScintilla):
 	_stopMacroRecord = sciProp0(QsciScintilla.SCI_STOPRECORD)
 
 	# markers
-	_getMarkerPrevious = sciProp2(QsciScintilla.SCI_MARKERPREVIOUS)
-	_getMarkerNext = sciProp2(QsciScintilla.SCI_MARKERNEXT)
+	_getMarkerPrevious = sciProp(QsciScintilla.SCI_MARKERPREVIOUS, (six.integer_types, six.integer_types))
+	_getMarkerNext = sciProp(QsciScintilla.SCI_MARKERNEXT, (six.integer_types, six.integer_types))
 
 	# indicators
-	indicatorValueAt = sciProp2(QsciScintilla.SCI_INDICATORVALUEAT)
-	indicatorStart = sciProp2(QsciScintilla.SCI_INDICATORSTART)
-	indicatorEnd = sciProp2(QsciScintilla.SCI_INDICATOREND)
+	indicatorValueAt = sciProp(QsciScintilla.SCI_INDICATORVALUEAT, (six.integer_types, six.integer_types))
+	indicatorStart = sciProp(QsciScintilla.SCI_INDICATORSTART, (six.integer_types, six.integer_types))
+	indicatorEnd = sciProp(QsciScintilla.SCI_INDICATOREND, (six.integer_types, six.integer_types))
+	_setIndicatorValue = sciProp(QsciScintilla.SCI_SETINDICATORVALUE, (six.integer_types,))
+	_setIndicatorCurrent = sciProp(QsciScintilla.SCI_SETINDICATORCURRENT, (six.integer_types,))
+	_fillIndicatorRange = sciProp(QsciScintilla.SCI_INDICATORFILLRANGE, (six.integer_types, six.integer_types))
 
 	# search
-	setTargetStart = sciPropSet(QsciScintilla.SCI_SETTARGETSTART)
-	targetStart = sciPropGet(QsciScintilla.SCI_GETTARGETSTART)
-	setTargetEnd = sciPropSet(QsciScintilla.SCI_SETTARGETEND)
-	targetEnd = sciPropGet(QsciScintilla.SCI_GETTARGETEND)
-	setTargetRange = sciProp2(QsciScintilla.SCI_SETTARGETRANGE)
-	_searchInTarget = sciProp(QsciScintilla.SCI_SEARCHINTARGET, (int, bytes))
+	setTargetStart = sciProp(QsciScintilla.SCI_SETTARGETSTART, (six.integer_types,))
+	targetStart = sciProp0(QsciScintilla.SCI_GETTARGETSTART)
+	setTargetEnd = sciProp(QsciScintilla.SCI_SETTARGETEND, (six.integer_types,))
+	targetEnd = sciProp0(QsciScintilla.SCI_GETTARGETEND)
+	setTargetRange = sciProp(QsciScintilla.SCI_SETTARGETRANGE, (six.integer_types, six.integer_types))
+	_searchInTarget = sciProp(QsciScintilla.SCI_SEARCHINTARGET, (six.integer_types, bytes))
 
 	setSearchFlags = sciPropSet(QsciScintilla.SCI_SETSEARCHFLAGS)
-	searchFlags = sciPropGet(QsciScintilla.SCI_GETSEARCHFLAGS)
+	searchFlags = sciProp0(QsciScintilla.SCI_GETSEARCHFLAGS)
 
 	# caret
 	CaretStyleInvisible = QsciScintilla.CARETSTYLE_INVISIBLE
@@ -661,9 +722,17 @@ class BaseEditor(QsciScintilla):
 			return self.indicators[indicator].id
 		return indicator
 
-	def fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic):
+	def fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic, value=1):
 		indic = self._indicatorToId(indic)
-		return QsciScintilla.fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic)
+		if indic < 0:
+			return QsciScintilla.fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic)
+
+		offset_start = self.positionFromLineIndex(lineFrom, indexFrom)
+		offset_end = self.positionFromLineIndex(lineTo, indexTo)
+
+		self._setIndicatorCurrent(indic)
+		self._setIndicatorValue(value)
+		self._fillIndicatorRange(offset_start, offset_end - offset_start)
 
 	def clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic):
 		indic = self._indicatorToId(indic)
