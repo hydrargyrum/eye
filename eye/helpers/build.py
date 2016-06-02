@@ -11,13 +11,15 @@ from PyQt5.QtCore import QObject, pyqtSignal as Signal, pyqtSlot as Slot
 import logging
 import os
 import re
+import shlex
 
 from ..connector import CategoryMixin
 from ..procutils import LineProcess
 from ..pathutils import getRelativePathIn
 
 
-__all__ = ('Builder', 'SimpleBuilder')
+__all__ = ('Builder', 'registerPlugin',
+           'SimpleBuilder')
 
 
 LOGGER = logging.getLogger(__name__)
@@ -110,7 +112,19 @@ class Builder(QObject, CategoryMixin):
 		"""
 		raise NotImplementedError()
 
+	def workingDirectory(self):
+		pass
 
+
+PLUGINS = {}
+
+
+def registerPlugin(cls):
+	PLUGINS[cls.id] = cls
+	return cls
+
+
+@registerPlugin
 class SimpleBuilder(Builder):
 	"""Simple builder suitable for gcc-like programs
 
@@ -119,6 +133,8 @@ class SimpleBuilder(Builder):
 	"""
 
 	reobj = re.compile('^(?P<path>[^:]+):(?P<line>\d+):(?:(?P<col>\d+):)? (?P<message>.*)$')
+
+	id = 'command'
 
 	def __init__(self, **kwargs):
 		super(SimpleBuilder, self).__init__(**kwargs)
@@ -175,14 +191,27 @@ class SimpleBuilder(Builder):
 	def setWorkingDirectory(self, path):
 		self.proc.setWorkingDirectory(path)
 
-	def run_cmd(self, cmd):
+	def workingDirectory(self):
+		return self.proc.workingDirectory()
+
+	def run(self, cmd):
+		"""Run `cmd` as builder command
+
+		:type cmd: list
+
+		This method should be called by subclasses in :any:`run`.
+		"""
 		self.proc.start(cmd[0], cmd[1:])
+
+	def run_conf(self, command, dir, file):
+		vars = dict(dir=dir, file=file)
+		args = shlex.split(command)
+		args = [arg.format(**vars) for arg in args]
+
+		self.proc.setWorkingDirectory(dir)
+		self.run(args)
 
 
 class PyFlakes(SimpleBuilder):
 	def run(self, path):
-		if os.path.isdir(path):
-			self.rootpath = path
-		else:
-			self.rootpath = os.path.dirname(path)
-		self.run_cmd(['pyflakes', path])
+		super(PyFlakes, self).run(['pyflakes', path])
