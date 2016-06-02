@@ -28,6 +28,8 @@ from PyQt5.Qsci import QsciScintilla
 import sip
 Signal = pyqtSignal
 
+import six
+
 import os
 import re
 import contextlib
@@ -596,6 +598,10 @@ class BaseEditor(QsciScintilla):
 
 	"""Delete characters in byte offset range"""
 
+	insertBytes = sciProp(QsciScintilla.SCI_INSERTTEXT, (six.integer_types, bytes))
+
+	"""Insert byte characters at byte offset"""
+
 	def __init__(self, **kwargs):
 		super(BaseEditor, self).__init__(**kwargs)
 
@@ -1003,6 +1009,10 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	def cursorColumn(self):
 		"""Return the column number of the cursor position (starting from 0)"""
 		return self.getCursorPosition()[1]
+
+	def cursorOffset(self):
+		"""Return the byte offset of the cursor position (starting from 0)"""
+		return self.positionFromLineIndex(*self.getCursorPosition())
 
 	def setLexer(self, lexer):
 		QsciScintilla.setLexer(self, lexer)
