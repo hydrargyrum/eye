@@ -37,10 +37,13 @@ class LogWidget(QPlainTextEdit):
 
 
 class PositionIndicator(QLabel, WidgetMixin):
-	format = '%(percent)3d%% %(line)5d:%(col)3d'
+	format = '{percent:3.0f}% {line:5d}:{col:3d}'
 
-	def __init__(self, **kwargs):
+	def __init__(self, format=None, **kwargs):
 		super(PositionIndicator, self).__init__(**kwargs)
+		if format is not None:
+			self.format = format
+
 		self.lastFocus = lambda: None
 
 		qApp().focusChanged.connect(self.focusChanged)
@@ -74,9 +77,19 @@ class PositionIndicator(QLabel, WidgetMixin):
 
 	@Slot()
 	def updateLabel(self):
-		line, col = self.lastFocus().getCursorPosition()
+		ed = self.lastFocus()
+		line, col = ed.getCursorPosition()
+		offset = ed.cursorOffset()
 		line, col = line + 1, col + 1
-		lines = self.lastFocus().lines()
+		lines = ed.lines()
 
-		d = dict(line=line, col=col, percent=line * 100. / lines)
-		self.setText(self.format % d)
+		d = {
+			'line': line,
+			'col': col,
+			'percent': line * 100. / lines,
+			'offset': offset,
+			'path': ed.path,
+			'title': ed.title(),
+			'editor': ed,
+		}
+		self.setText(self.format.format(**d))
