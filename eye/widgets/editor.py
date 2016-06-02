@@ -31,6 +31,7 @@ Signal = pyqtSignal
 import os
 import re
 import contextlib
+from collections import namedtuple
 from weakref import ref
 from logging import getLogger
 
@@ -41,7 +42,7 @@ from .. import structs
 from .. import io
 
 
-__all__ = ('Editor', 'Marker', 'Indicator', 'Margin', 'BaseEditor', 'QsciScintilla')
+__all__ = ('Editor', 'Marker', 'Indicator', 'Margin', 'BaseEditor', 'QsciScintilla', 'SciModification')
 
 
 LOGGER = getLogger(__name__)
@@ -397,6 +398,11 @@ def sipvoid_as_str(v):
         i += 1
 
 
+SciModification = namedtuple('SciModification',
+	('position', 'modificationType', 'text', 'length', 'linesAdded',
+	 'line', 'foldLevelNow', 'foldLevelPrev', 'token', 'annotationLinesAdded'))
+
+
 class BaseEditor(QsciScintilla):
 	"""Editor class adding missing Scintilla features
 
@@ -730,7 +736,7 @@ class BaseEditor(QsciScintilla):
 
 	@Slot(int, int, 'const char*', int, int, int, int, int, int, int)
 	def scn_modified(self, *args):
-		self.sciModified.emit(args)
+		self.sciModified.emit(SciModification(*args))
 
 	macroRecordStarted = Signal()
 
