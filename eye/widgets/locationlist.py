@@ -86,7 +86,7 @@ class LocationList(QTreeWidget, WidgetMixin):
 
 		path = qitem.data(0, absolutePathRole) # TODO use roles to have shortname vs longname
 		line = qitem.data(0, lineRole) or None
-		self.locationActivated.emit(path, line)
+		self.locationActivated.emit(path, (line,))
 
 
 @registerSignal('location_list', 'locationActivated')
