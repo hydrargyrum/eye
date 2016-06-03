@@ -13,7 +13,8 @@ from ..connector import registerSignal, categoryObjects, CONNECTOR
 
 
 __all__ = ('registerActionShortcut', 'unregisterActionShortcut',
-           'registerShortcut', 'registerActionSlot',
+           'registerShortcut',
+           'registerActionSlot', 'registerAction',
            'getAction')
 
 
@@ -229,17 +230,29 @@ class ActionStore(CategoryStore):
 	def registerActionSci(self, categories, name):
 		self.registerCategories(categories, name, ('scicommand', name))
 
-	def registerActionFunc(self, categories, cb):
-		self.func_counter += 1
-		autoname = '%s_%d' % (cb.__name__, self.func_counter)
+	def registerActionFunc(self, categories, cb, name=None):
+		if name is None:
+			self.func_counter += 1
+			name = '%s_%d' % (cb.__name__, self.func_counter)
 
-		LOGGER.info('registering function action %r (autoname=%r) for categories %r', cb, autoname, categories)
-		cb.action_name = autoname
-		self.registerCategories(categories, autoname, ('func', cb))
-		return autoname
+		LOGGER.info('registering function action %r (name=%r) for categories %r', cb, name, categories)
+		cb.action_name = name
+		self.registerCategories(categories, name, ('func', cb))
+		return name
 
 	def hasAction(self, category, actionName):
 		return actionName in self.by_cat.get(category, {})
+
+
+def registerAction(categories, actionName):
+	"""Decorate a function to be registered as an action"""
+
+	categories = set(to_stringlist(categories))
+	def decorator(cb):
+		newcb = lambda: cb(SHORTCUTS.sender().parent())
+		ACTIONS.registerActionFunc(categories, newcb, name=actionName)
+		return cb
+	return decorator
 
 
 def registerActionShortcut(categories, actionName, keyseq, context=Qt.WidgetShortcut):
@@ -261,13 +274,14 @@ def unregisterActionShortcut(categories, keyseq, context=Qt.WidgetShortcut):
 	SHORTCUTS.unregisterShortcut(categories, key)
 
 
-def registerShortcut(categories, keyseq, context=Qt.WidgetShortcut):
+def registerShortcut(categories, keyseq, context=Qt.WidgetShortcut, actionName=None):
 	key = (QKeySequence(keyseq), context)
 
 	def decorator(cb):
+		name = actionName
 		newcb = lambda: cb(SHORTCUTS.sender().parent())
-		actionName = ACTIONS.registerActionFunc(categories, newcb)
-		SHORTCUTS.registerShortcut(categories, key, actionName)
+		name = ACTIONS.registerActionFunc(categories, newcb, name=name)
+		SHORTCUTS.registerShortcut(categories, key, name)
 		return cb
 	return decorator
 
