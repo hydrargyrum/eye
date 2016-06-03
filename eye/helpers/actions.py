@@ -1,5 +1,36 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Module for registering actions on widgets
+
+This module helps in the creation of `QAction`s. The `actions` module is to `QAction`s what the :any:`eye.connector`
+is to Qt signal and slots.
+
+An action is registered with a name for a set of categories. The action can be triggered when a particular shortcut
+is pressed, which are registered with :any:`registerActionShortcut`. When the action is triggered, in turn it can
+trigger a callback (with :any:`registerAction`) or a slot (with :any:`registerActionSlot`, but this one is optional),
+or a Scintilla editor action.
+
+The use of categories lets the register be done once, not for every widget instance. Internally, `QAction`s are
+created automatically by the module in each instance.
+
+For example, an action `printConsoleFile` could be created for editor widgets and bound to `Ctrl+P`::
+
+	@registerAction('editor', 'printConsoleFile')
+	def myActionFunc(ed):
+		print(ed.text())
+
+	registerActionShortcut('editor', 'printConsoleFile', 'Ctrl+P')
+
+The same can be done in a single step::
+
+	@registerShortcut('editor', 'Ctrl+P')
+	def myActionFunc(ed):
+		print(ed.text())
+
+This way is simpler but less re-usable because the action is unnamed. A plugin can register actions but should not
+bind keyboard shortcuts to it and let user configuration do it.
+"""
+
 from collections import OrderedDict
 import logging
 
@@ -22,11 +53,32 @@ LOGGER = logging.getLogger(__name__)
 
 
 def setupActionSlot(obj, slotName):
+	"""Setup an object QAction triggering a slot, named after that slot
+
+	The slot `slotName` will be called when the `QAction` is triggered
+
+	:param obj: the object in which to add the `QAction`
+	:type obj: QObject
+	:param slotName: name of the slot and name of the action to add
+	:type slotName: str
+	"""
 	slot = getattr(obj, slotName)
 	buildAction(obj, slotName, slot)
 
 
 def buildAction(obj, actionName, target):
+	"""Setup an object QAction triggering a callable
+
+	A `QAction` will be created with name `actionName`, added as a child of `obj`.
+	When the action's `triggered()` signal is emitted, the `target` will be called.
+
+	See :any:`QObject.setObjectName`.
+
+	:param obj: the object in which to add the QAction
+	:type obj: QObject
+	:param target: the function/method to call when action is triggered
+	:type target: callable or Slot
+	"""
 	action = QAction(obj)
 	action.setObjectName(actionName)
 	obj.addAction(action)
@@ -36,6 +88,11 @@ def buildAction(obj, actionName, target):
 
 
 def disableShortcut(obj, keyseq):
+	"""Disable actions children of `obj` using shortcut `keyseq`
+
+	If a children QAction of `obj` has a shortcut set to `keyseq`, the shortcut is disabled.
+	This function will not work for internal Scintilla actions, see :any:`disableSciShortcut`.
+	"""
 	qkeyseq = QKeySequence(keyseq)
 
 	for child in obj.children():
@@ -45,6 +102,14 @@ def disableShortcut(obj, keyseq):
 
 
 def disableSciShortcut(obj, keyseq):
+	"""Disable Scintilla action shortcuts
+
+	If `obj` is an :any:`eye.widgets.editor.Editor` and `keyseq` is a shortcut triggering a Scintilla editor action,
+	the shortcut is disabled.
+	This function only works for internal editor actions, like `PyQt5.Qsci.QsciCommand.Undo`.
+
+	See :any:`QsciCommand`. The reverse function is :any:`setSciShortcut`.
+	"""
 	assert keyseq.count() == 1
 	qcmd = obj.standardCommands().boundTo(keyseq[0])
 	if qcmd is not None:
@@ -52,6 +117,14 @@ def disableSciShortcut(obj, keyseq):
 
 
 def setSciShortcut(obj, actionName, keyseq):
+	"""Set shortcut for internal Scintilla editor action.
+
+	If `obj` is an :any:`eye.widgets.editor.Editor`, the editor action `actionName` will be linked to keyboard
+	shortcut `keyseq`.
+	This function only works for internal editor actions, like `PyQt5.Qsci.QsciCommand.Undo`.
+
+	See :any:`QsciCommand`.
+	"""
 	assert keyseq.count() == 1
 	qval = getattr(QsciCommand, actionName)
 	qcmd = obj.standardCommands().find(qval)
@@ -59,16 +132,28 @@ def setSciShortcut(obj, actionName, keyseq):
 
 
 def getAction(obj, actionName):
+	"""Return children QAction of `obj` named `actionName`."""
 	return obj.findChild(QAction, actionName, Qt.FindDirectChildrenOnly)
 
 
 def disableAction(obj, actionName):
+	"""Remove children QAction named"""
 	action = getAction(actionName)
 	if action:
 		obj.removeAction(action)
 
 
 def registerActionSlot(categories, slotName):
+	"""Register an action named `slotName`, triggering slot `slotName`
+
+	An action named `slotName` is registered for `categories`. When the action is triggered, it will call the
+	slot `slotName` of the object where the action is triggered. So, objects matching `categories` should have
+	a slot `slotName`.
+
+	It's not required to call this function: when a keyboard shortcut is triggered, and the shortcut was bound
+	to an action (with :any:`registerActionShortcut`) which had no callable registered (i.e. :any:`registerAction`
+	or similar functions were never called), then it tries to call a slot named the same as the action name.
+	"""
 	ACTIONS.registerActionSlot(categories, slotName)
 
 
@@ -245,8 +330,10 @@ class ActionStore(CategoryStore):
 
 
 def registerAction(categories, actionName):
-	"""Decorate a function to be registered as an action"""
+	"""Decorate a function to be registered as an action
 
+	The decorated function will be registered as action `actionName` for objects matching the `categories`
+	"""
 	categories = set(to_stringlist(categories))
 	def decorator(cb):
 		newcb = lambda: cb(SHORTCUTS.sender().parent())
@@ -256,6 +343,15 @@ def registerAction(categories, actionName):
 
 
 def registerActionShortcut(categories, actionName, keyseq, context=Qt.WidgetShortcut):
+	"""Register a shortcut for an action
+
+	:param categories: the categories of the widgets where to watch the shortcut
+	:param actionName: the name of the action to trigger when the shortcut is triggered
+	:type actionName: str
+	:param keyseq: the shortcut description
+	:type keyseq: str, int or QKeySequence
+	:param context: the context where to listen to the shortcut, relative to the widgets matching the categories
+	"""
 	categories = set(to_stringlist(categories))
 	key = (QKeySequence(keyseq), context)
 
@@ -270,11 +366,31 @@ def registerActionShortcut(categories, actionName, keyseq, context=Qt.WidgetShor
 
 
 def unregisterActionShortcut(categories, keyseq, context=Qt.WidgetShortcut):
+	"""Unregister a keyboard shortcut previously registered
+
+	After this call, current widgets matching `categories` will not have the keyboard shortcut anymore, and it
+	won't be bound to new widgets matching `categories`.
+	"""
 	key = (QKeySequence(keyseq), context)
 	SHORTCUTS.unregisterShortcut(categories, key)
 
 
 def registerShortcut(categories, keyseq, context=Qt.WidgetShortcut, actionName=None):
+	"""Decorate a function to be called when a keyboard shortcut is typed
+
+	When the keyboard shortcut `keyseq` is pressed in any widget matching `categories`, the decorated
+	function will be called, with the widget passed as first parameter.
+
+	Internally, when a widget matches the `categories`, a QAction is created for it and the shortcut is set.
+	See :any:`buildAction`.
+
+	:param categories: the categories of the widgets where to watch the shortcut
+	:type categories: str or list
+	:param keyseq: the shortcut description
+	:type keyseq: str, int or QKeySequence
+	:param context: the context where to listen to the shortcut, relative to the widgets matching the categories
+	"""
+
 	key = (QKeySequence(keyseq), context)
 
 	def decorator(cb):
