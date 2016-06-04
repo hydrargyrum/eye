@@ -24,7 +24,7 @@ Module contents
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from PyQt5.Qsci import QsciScintilla
+from PyQt5.Qsci import QsciScintilla, QsciStyledText
 import sip
 Signal = pyqtSignal
 
@@ -809,6 +809,42 @@ class BaseEditor(QsciScintilla):
 			s = s.encode('utf-8')
 		return self._searchInTarget(len(s), s)
 
+	## annotations
+	def annotationStyledText(self, line):
+		"""Return styled text annotations of a line
+
+		Each line can have annotations compound of multiple pieces of text styled differently.
+		This method retrieves all text parts along with their styles of the annotations of `line`.
+
+		It can be seen as the "get" counterpart of the :any:`annotate` function taking a list of
+		:any:`QsciStyledText`.
+
+		:rtype: list of `QsciStyledText`
+		"""
+		bufsize = self.SendScintilla(self.SCI_ANNOTATIONGETTEXT, line, 0)
+		if not bufsize:
+			return []
+
+		text = bytearray(bufsize)
+		self.SendScintilla(self.SCI_ANNOTATIONGETTEXT, line, text)
+
+		styles = bytearray(bufsize)
+		self.SendScintilla(self.SCI_ANNOTATIONGETSTYLES, line, styles)
+
+		oldn = 0
+		oldst = styles[0]
+		res = []
+		for n, st in enumerate(styles):
+			if oldst != st:
+				part = text[oldn:n].decode('utf-8')
+				res.append(QsciStyledText(part, oldst))
+				oldn = n
+				oldst = st
+		part = text[oldn:].decode('utf-8')
+		res.append(QsciStyledText(part, oldst))
+
+		return res
+
 	@Slot(int, int, 'const char*', int, int, int, int, int, int, int)
 	def scn_modified(self, *args):
 		self.sciModified.emit(SciModification(*args))
@@ -1192,6 +1228,43 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 	def wordAtCursor(self):
 		return self.wordAtLineIndex(*self.getCursorPosition())
+
+	## annotations
+	def annotateAppend(self, line, item, style=None):
+		"""Append a new annotation
+
+		Add an annotation for `line`. If there was an existing annotation at this line, unlike
+		:any:`annotate`, the old annotation is not overwritten, but the new annotation is appended to the
+		old one.
+
+		If `item` is a string, it should be the text of the annotation to add, and `style` argument must be
+		given.
+		`item` can be a `QsciStyledText` object, which comprises both the text and the style, so the `style`
+		argument should not be passed.
+
+		:param line: the line of the editor where to add the annotation
+		:type line: int
+		"""
+		annotations = self.annotationStyledText(line)
+
+		if isinstance(item, bytes):
+			item = [QsciStyledText(item.decode('utf-8'), style)]
+		elif isinstance(item, str):
+			item = [QsciStyledText(item, style)]
+		elif isinstance(item, QsciStyledText):
+			assert style is None
+			item = [item]
+
+		self.annotate(line, annotations + item)
+
+	def annotateAppendLine(self, line, item, style=None):
+		"""Append a new annotation on a line
+
+		"""
+		current = self.annotation(line)
+		if len(current) and not current.endswith('\n'):
+			self.annotateAppend(line, '\n', 0)
+		return self.annotateAppend(line, item, style)
 
 	## signals
 	titleChanged = Signal()
