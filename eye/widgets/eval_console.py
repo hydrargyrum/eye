@@ -116,8 +116,8 @@ class EvalConsole(QWidget, WidgetMixin):
 		text = self.line.text()
 		self.line.setText('')
 
-		output = '>>> %s\n' % text
-		output += capture_output(self._exec, text)
+		output = u'>>> %s\n' % text
+		output += capture_output(self._exec, text).decode('utf-8', 'replace')
 		self.display.appendPlainText(output)
 
 
