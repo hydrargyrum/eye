@@ -27,9 +27,10 @@ def ignoreExceptions(return_value, logger=None, level=logging.ERROR):
 			try:
 				return f(*a, **kw)
 			except Exception:
-				if logger is None:
-					logger = QApplication.instance().logger
-				logger.log(level, 'an exception occured when calling %r', f, exc_info=True)
+				real_logger = logger
+				if real_logger is None:
+					real_logger = QApplication.instance().logger
+				real_logger.log(level, 'an exception occured when calling %r', f, exc_info=True)
 				return return_value
 
 		return decorator

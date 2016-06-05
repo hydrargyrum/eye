@@ -4,7 +4,7 @@ import logging
 import shlex
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
-from PyQt5.QtNetwork import QLocalServer, QLocalSocket
+from PyQt5.QtNetwork import QLocalServer
 
 from ..widgets.helpers import CategoryMixin
 from ..connector import registerSignal, disabled

@@ -5,7 +5,7 @@ from PyQt5.QtGui import QIcon
 Signal = pyqtSignal
 Slot = pyqtSlot
 
-from ..connector import CONNECTOR, CategoryMixin
+from ..connector import CategoryMixin
 
 __all__ = ('acceptIf', 'CategoryMixin', 'WidgetMixin', 'CentralWidgetMixin')
 

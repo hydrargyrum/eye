@@ -7,7 +7,7 @@ It's typically used for displaying search results, where the list will contain t
 in a grep fashion. It could also display compile errors, with the files and their erroneous lines.
 """
 
-from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QModelIndex
+from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
 from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem
 
 from ..three import str

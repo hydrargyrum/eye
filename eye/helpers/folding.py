@@ -12,7 +12,7 @@ Simple usage:
 	>>> eye.helpers.folding.setMarkerFolder.enabled = True
 """
 
-from PyQt5.QtCore import QObject, QTimer, pyqtSignal as Signal
+from PyQt5.QtCore import QObject, QTimer
 from PyQt5.Qsci import QsciScintilla
 
 import re

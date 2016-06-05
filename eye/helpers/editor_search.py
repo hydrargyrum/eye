@@ -1,13 +1,12 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 Signal = pyqtSignal
 Slot = pyqtSlot
 
 import bisect
 import re
 import unittest
-from weakref import ref
 
 from ..connector import registerSignal, CategoryMixin
 from ..widgets.editor import HasWeakEditorMixin

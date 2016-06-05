@@ -20,7 +20,7 @@ import fnmatch
 import os
 from six.moves.configparser import RawConfigParser, NoOptionError, Error
 from logging import getLogger
-from weakref import WeakValueDictionary, ref
+from weakref import WeakValueDictionary
 from six import StringIO
 
 from ..connector import registerSignal, disabled

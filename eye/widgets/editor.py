@@ -22,7 +22,7 @@ Module contents
 ---------------
 """
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.Qsci import QsciScintilla, QsciStyledText
 import sip
@@ -1114,10 +1114,6 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	def cursorColumn(self):
 		"""Return the column number of the cursor position (starting from 0)"""
 		return self.getCursorPosition()[1]
-
-	def cursorOffset(self):
-		"""Return the byte offset of the cursor position (starting from 0)"""
-		return self.positionFromLineIndex(*self.getCursorPosition())
 
 	def setLexer(self, lexer):
 		QsciScintilla.setLexer(self, lexer)

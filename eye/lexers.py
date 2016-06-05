@@ -13,7 +13,6 @@ from PyQt5.Qsci import (
 	QsciLexerPython, QsciLexerRuby, QsciLexerSQL, QsciLexerTCL, QsciLexerTeX, QsciLexerYAML,
 )
 
-import re
 import mimetypes
 
 
