@@ -2,7 +2,7 @@
 
 import os
 
-from ..connector import registerSignal, disabled, categoryObjects
+from ..connector import registerSignal, disabled
 from . import buffers
 
 from .file_search_plugins.base import enabledPlugins, getPlugin

@@ -40,7 +40,7 @@ from PyQt5.QtWidgets import QAction
 from PyQt5.Qsci import QsciCommand, QsciScintilla
 
 from ..three import bytes, str
-from ..connector import registerSignal, categoryObjects, CONNECTOR
+from ..connector import categoryObjects, CONNECTOR
 
 
 __all__ = ('registerActionShortcut', 'unregisterActionShortcut',

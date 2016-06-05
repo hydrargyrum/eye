@@ -48,9 +48,7 @@ Module contents
 ---------------
 """
 
-from PyQt5.QtCore import Qt, QObject, pyqtSignal as Signal
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QShortcut
+from PyQt5.QtCore import QObject, pyqtSignal as Signal
 
 import inspect
 from logging import getLogger
