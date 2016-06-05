@@ -62,7 +62,7 @@ from .utils import exceptionLogging
 
 __all__ = ('registerSignal', 'registerEventFilter', 'disabled',
            'defaultEditorConfig', 'defaultWindowConfig', 'defaultLexerConfig',
-           'categoryObjects')
+           'categoryObjects', 'CategoryMixin')
 
 
 LOGGER = getLogger(__name__)
