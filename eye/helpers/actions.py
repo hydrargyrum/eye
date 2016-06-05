@@ -184,7 +184,7 @@ class CategoryStore(QObject):
 		keys = self.by_cat.get(cat, {})
 		for key in keys:
 			key_cats = set(self.by_key.get(key, []))
-			if not (obj_cats & sh_cats):
+			if not (obj_cats & key_cats):
 				self.unregisterObject(obj, key)
 
 	def registerCategories(self, categories, key, value):
@@ -262,7 +262,7 @@ class ShortcutStore(CategoryStore):
 		self.registerCategories(categories, key, value)
 
 	def unregisterShortcut(self, categories, key):
-		LOGGER.info('unregistering shortcut %r with %r for categories %r', key, value, categories)
+		LOGGER.info('unregistering shortcut %r for categories %r', key, categories)
 		self.unregisterCategories(categories, key)
 
 
@@ -273,7 +273,7 @@ class ActionStore(CategoryStore):
 
 	@Slot()
 	def placeholder(self):
-		LOGGER.warning("placeholder function shouldn't be called %r", actionName)
+		LOGGER.warning("placeholder function shouldn't be called: %r", self.sender.objectName())
 
 	def hasSlot(self, obj, slotName):
 		return callable(getattr(obj, slotName, None))

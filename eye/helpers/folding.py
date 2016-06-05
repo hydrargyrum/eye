@@ -103,4 +103,4 @@ class MarkerFolder(QObject, HasWeakEditorMixin):
 @disabled
 def setMarkerFolder(editor):
 	"""Enable folding based on markers for an editor widget"""
-	editor.folding = eye.helpers.folding.MarkerFolder(editor=editor)
+	editor.folding = MarkerFolder(editor=editor)

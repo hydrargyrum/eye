@@ -11,7 +11,7 @@ from ...procutils import findCommand
 from ..build import SimpleBuilder
 
 
-__all__ = ('AckGrep', 'AgGrep', 'BasicGrep', 'GitGrep')
+__all__ = ('AckGrep', 'AgGrep', 'BasicGrep')
 
 
 LOGGER = getLogger(__name__)

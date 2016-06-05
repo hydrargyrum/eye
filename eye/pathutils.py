@@ -43,7 +43,7 @@ def findAncestorContaining(path, patterns):
 	Like :any:`findInAncestors`, but returns the directory containing the
 	matched file.
 	"""
-	found = findFileInAncestors(path, patterns)
+	found = findInAncestors(path, patterns)
 	if found:
 		return os.path.dirname(found)
 
