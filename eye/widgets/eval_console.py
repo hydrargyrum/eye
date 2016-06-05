@@ -81,6 +81,7 @@ class EvalConsole(QWidget, WidgetMixin):
 		self.setLayout(layout)
 
 		self.display = QPlainTextEdit(self)
+		self.display.setReadOnly(True)
 		self.line = HistoryLine()
 		self.line.returnPressed.connect(self.execLine)
 
