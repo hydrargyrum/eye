@@ -535,6 +535,21 @@ class BaseEditor(QsciScintilla):
 	setMainSelection = sciProp(QsciScintilla.SCI_SETMAINSELECTION, (six.integer_types,))
 	mainSelection = sciProp0(QsciScintilla.SCI_GETMAINSELECTION)
 
+	setMultiPaste = sciProp1(QsciScintilla.SCI_SETMULTIPASTE)
+
+	"""Set whether pasting in a multi-selection should paste in all selections
+
+	If set to `True`, when multiple regions are selected, pasting will paste in all selections instead of the main
+	selection only.
+	"""
+
+	multiPaste = sciProp0(QsciScintilla.SCI_GETMULTIPASTE)
+
+	"""Return True if pasting operates on all selections.
+
+	See :any:`setMultiPaste`.
+	"""
+
 	# virtual space
 	VsNone = QsciScintilla.SCVS_NONE
 
