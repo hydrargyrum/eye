@@ -23,18 +23,33 @@ import os
 sys.path.insert(0, os.path.abspath('..'))
 
 if os.environ.get('READTHEDOCS') == 'True':
-    from mock import Mock as MagicMock
+    # this is a bit hackish...
+    class Mixin(object):
+        def __getattr__(self, name):
+            if name.startswith('Q'):
+                return Meta(name, (Mock,), {})
+            elif name.startswith('__') and name.endswith('__'):
+                return super(Mixin, self).__getattr__(name)
+            else:
+                return Mock(_mock=name)
 
-    class Mock(MagicMock):
-        @classmethod
-        def __getattr__(cls, name):
-            return Mock()
+
+    class Meta(type, Mixin):
+        pass
+
+
+    class Mock(Mixin, object):
+        def __init__(self, *args, **kwargs):
+            self.__name__ = kwargs.pop('_mock', '__name__')
+
+        def __call__(self, *args, **kwargs):
+            return Mock(_mock='function')
 
 
     MOCK_MODULES = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtNetwork',
                     'PyQt5.QtWidgets', 'PyQt5.Qsci', 'sip',
                    ]
-    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+    sys.modules.update((mod_name, Mock(_mock=mod_name)) for mod_name in MOCK_MODULES)
 
 # -- General configuration ------------------------------------------------
 

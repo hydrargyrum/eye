@@ -27,3 +27,10 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+
+.. note::
+
+   If you're reading the modules documentation on readthedocs.org, there may be glitches (like seeing `<Mock ...>`)
+   due to the fact that readthedocs builds the docs **without** Qt support so there is hacks to workaround it (quite
+   harshly).
+   The best way to view the documentation is to build it on the local machine and view from there.
