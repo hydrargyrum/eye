@@ -163,8 +163,11 @@ class TabWidget(QTabWidget, WidgetMixin, DropAreaMixin):
 
 	@Slot(int)
 	def _currentChanged(self, idx):
+		hadFocus = self.hasFocus()
 		self.setFocusProxy(self.widget(idx))
 		self.tabBar().setFocusProxy(self.widget(idx))
+		if hadFocus:
+			self.setFocus()
 
 	@Slot()
 	def _subTitleChanged(self):
