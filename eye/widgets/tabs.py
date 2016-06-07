@@ -93,6 +93,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 		idx = self.tabAt(ev.pos())
 		assert isinstance(self.parent(), TabWidget)
 		self.parent().insertWidget(idx, widget)
+		self.parent().setCurrentWidget(widget)
 
 
 class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
