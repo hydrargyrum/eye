@@ -93,7 +93,8 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 	def bufferOpenDialog(self):
 		path, qfilter = QFileDialog.getOpenFileName(self, self.tr('Open file'), os.path.expanduser('~'))
 		if path:
-			self.currentBuffer().openFile(path)
+			ed = self.bufferNew()
+			ed.openFile(path)
 
 	@Slot()
 	def bufferOpen(self, path):
