@@ -2,6 +2,7 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
 import argparse
+import glob
 import logging
 import os
 import sys
@@ -43,8 +44,7 @@ class App(QApplication):
 		win.quitRequested.connect(self.quit)
 		return win
 
-	def _startupScripts(self):
-		import glob
+	def startupScripts(self):
 		files = glob.glob(os.path.join(pathutils.getConfigPath('startup'), '*.py'))
 		files.sort()
 		return files
@@ -53,19 +53,15 @@ class App(QApplication):
 		return {'qApp': QApplication.instance()}
 
 	def runStartScripts(self):
-		for f in self._startupScripts():
-			self.logger.debug('execing startup script %s', f)
-			try:
-				execfile(f, self._scriptDict())
-			except Exception:
-				self.logger.error('cannot execute startup script %r', f, exc_info=True)
+		for f in self.startupScripts():
+			self.runScript(f)
 
-	def rerun(self, path):
-		connector.deleteCreatedBy(path)
+	def runScript(self, f):
+		self.logger.debug('execing script %s', f)
 		try:
-			execfile(path, self._scriptDict())
+			execfile(f, self._scriptDict())
 		except Exception:
-			self.logger.error('cannot execute startup script %r', path, exc_info=True)
+			self.logger.error('cannot execute startup script %r', f, exc_info=True)
 
 	def run(self):
 		"""Run app until exit

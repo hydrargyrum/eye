@@ -60,6 +60,7 @@ from .utils import exceptionLogging
 
 __all__ = ('registerSignal', 'registerEventFilter', 'disabled',
            'registerSetup', 'registerTeardown',
+           'deleteCreatedBy',
            'defaultEditorConfig', 'defaultWindowConfig', 'defaultLexerConfig',
            'categoryObjects', 'CategoryMixin')
 
@@ -229,6 +230,7 @@ class EventConnector(QObject):
 		return [obj for obj in self.allObjects if categories <= obj.categories()]
 
 	def deleteCreatedBy(self, caller):
+		"""Unregister listeners registered in file `caller`."""
 		newListeners = []
 		for lis in self.allListeners:
 			if lis.caller == caller:
@@ -289,6 +291,17 @@ def categoryObjects(cats, ancestor=None):
 
 
 def deleteCreatedBy(caller):
+	"""Unregister listeners registered by script `caller`.
+
+	If `caller` script file had registered any listeners (as with :any:`registerSignal`), this method
+	unregisters them.
+
+	This can be useful to unregister all listeners from a script to re-run the script afterwards, to
+	avoid listeners be registered (and listening) twice.
+
+	:param caller: path of the script that registered listeners
+	:type caller: str
+	"""
 	CONNECTOR.deleteCreatedBy(caller)
 
 
