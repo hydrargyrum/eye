@@ -247,7 +247,7 @@ def registerSignal(categories, signal):
 	If ``signal`` is ``"connected"``, the decorated function will be called for all objects
 	matching the specified `categories`.
 
-	:Example:
+	Example::
 
 		@registerSignal('editor', 'fileSaved')
 		def foo(editor_obj, path):

@@ -77,7 +77,7 @@ class Marker(HasWeakEditorMixin):
 	In an editor, a Marker can be set or unset for multiple lines, in which cases the configured symbol will be
 	shown in the margin of the lines where the marker has been set.
 
-	Example:
+	Example::
 
 		marker = editor.createMarker('breakpoint', editor.Circle)
 		# declare a marker type called 'breakpoint' which will show a circle in the margin
@@ -225,7 +225,7 @@ class Indicator(HasWeakEditorMixin):
 
 		If there is no range before, -1 is returned.
 
-		Example:
+		Example::
 
 			>>> indicator.putAtOffset(4, 10)
 			>>> indicator.getPreviousEdge(12)
@@ -255,7 +255,7 @@ class Indicator(HasWeakEditorMixin):
 
 		If there is no range after, -1 is returned.
 
-		Example:
+		Example::
 
 			>>> indicator.putAtOffset(4, 10)
 			>>> indicator.getNextEdge(0)
