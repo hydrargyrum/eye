@@ -53,3 +53,4 @@ def searchWithPlugin(plugin_id, path, pattern, find_root=False, **options):
 
 def setupLocationList(plugin, loclist):
 	plugin.found.connect(loclist.addItem)
+	plugin.finished.connect(loclist.resizeAllColumns)
