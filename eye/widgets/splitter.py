@@ -219,7 +219,7 @@ class SplitManager(QWidget, WidgetMixin):
 		return QRect(widget.mapTo(self, QPoint()), widget.size())
 
 	def childId(self, widget):
-		spl = widget
+		spl = widget.parent()
 		while not isinstance(spl, QSplitter):
 			spl = spl.parent()
 		return (spl, spl.indexOf(widget))
