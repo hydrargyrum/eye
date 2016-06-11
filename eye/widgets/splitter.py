@@ -206,6 +206,56 @@ class SplitManager(QWidget, WidgetMixin):
 	def balanceSplits(self, spl):
 		spl.setSizes([1] * spl.count())  # qt redistributes space
 
+	## neighbours
+	def _neighbour_up(self, widget, direction):
+		if widget is None or widget is self.root:
+			return None
+
+		spl, idx = self.childId(widget)
+
+		orientation = consts.ORIENTATIONS[direction]
+		new_idx = idx + consts.MOVES[direction]
+		if spl.orientation() != orientation or not (0 <= new_idx < spl.count()):
+			return self._neighbour_up(spl, direction)
+		return spl.widget(new_idx)
+
+	def _neighbour_down(self, spl, direction, pos):
+		orientation = consts.ORIENTATIONS[direction]
+		if spl.orientation() == orientation:
+			if direction in (consts.DOWN, consts.RIGHT):
+				child = spl.widget(0)
+			else:
+				child = spl.widget(spl.count() - 1)
+		else:
+			for child in spl.children():
+				if spl.orientation() == Qt.Vertical:
+					end = QPoint(0, child.height())
+					if child.mapTo(self, end).y() >= pos.y():
+						break
+				else:
+					end = QPoint(child.width(), 0)
+					if child.mapTo(self, end).x() >= pos.x():
+						break
+			else:
+				return
+
+		if isinstance(child, QSplitter):
+			return self._neighbour_down(child, direction, pos)
+		else:
+			return child
+
+	def neighbour(self, widget, direction):
+		res = self._neighbour_up(widget, direction)
+		LOGGER.debug('neighbour_up %r of %r: %r', direction, widget, res)
+		if not isinstance(res, QSplitter):
+			return res
+
+		wcenter = widget.rect().center()
+		pos = widget.mapTo(self, wcenter)
+		res = self._neighbour_down(res, direction, pos)
+		LOGGER.debug('neighbour_down %r of %r: %r', direction, widget, res)
+		return res
+
 	## getters
 	def allChildren(self):
 		"""Get all non-splitter children widgets
