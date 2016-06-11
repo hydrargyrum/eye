@@ -2,12 +2,12 @@
 
 """Location list widget
 
-A location list widget displays a list of files and some lines in this file.
-It's typically used for displaying search results, where the list will contain the lines of files matching a pattern,
-in a grep fashion. It could also display compile errors, with the files and their erroneous lines.
+A location is a file path and an optional line number. Locations are typically used for directory-wide search
+results (like with grep), or for compile errors/warnings messages, since a location can be accompanied with various
+attributes, like a message or a search snippet.
 """
 
-from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
+from PyQt5.QtCore import pyqtSignal as Signal
 from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem
 
 from ..three import str
@@ -15,6 +15,7 @@ from .helpers import WidgetMixin
 from .. import consts
 from ..connector import registerSignal, disabled
 from ..helpers import buffers
+from ..qt import Slot
 
 
 __all__ = ('absolutePathRole', 'lineRole', 'columnRole', 'LocationList')
@@ -25,7 +26,22 @@ columnRole = consts.registerRole()
 
 
 class LocationList(QTreeWidget, WidgetMixin):
+	"""Location list widget
+
+	A location is a file path, an optional line number, and various optional attributes.
+	A location list widgets displays clickable locations coming from a search, or a compilation.
+	"""
+
 	locationActivated = Signal(str, object)
+
+	"""
+	Signal locationActivated(path, line)
+
+	:param path: the path of the activated location
+	:type path: str
+	:param line: the file line number of the activated location
+	:type line: int or None
+	"""
 
 	def __init__(self, **kwargs):
 		super(LocationList, self).__init__(**kwargs)

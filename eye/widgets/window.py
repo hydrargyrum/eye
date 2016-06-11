@@ -29,7 +29,12 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 	"""Main window type.
 
 	This window type should typically be used for editing windows.
-	As a QMainWindow, it supports menus, dock widgets and a status bar.
+
+	A Window contains a central widget (which is a :any:`SplitManager`), a menu bar, a status bar, toolbars, and
+	dock widgets. Dock widgets are widgets which can be placed on the 4 sides of the central widget.
+
+	Access to menu bar, status bar and toolbars is the same as with a :any:`QMainWindow`. Dock widgets access can
+	be done with the :any:`addDockable` helper.
 	"""
 
 	EditorClass = Editor
@@ -68,6 +73,13 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		menu.addAction('Quit').triggered.connect(self.quitRequested)
 
 	def addDockable(self, area, widget, title=''):
+		"""Add a widget to a dock of this window
+
+		:param area: the area where to dock the widget
+		:type area: Qt.DockWidgetArea
+		:param widget: the widget to add
+		:param title: the (optional) title of the widget in the dock
+		"""
 		dw = DockWidget()
 		if title:
 			dw.setWindowTitle(title)

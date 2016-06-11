@@ -185,9 +185,14 @@ class Indicator(HasWeakEditorMixin):
 
 	Example:
 
-		TODO
+		indic = editor.createIndicator('highlight', editor.BoxIndicator)
+		# declare an indicator named 'highlight' with a "box" style (the text will be surrounded by a box)
+		# the Indicator instance can be retrieved later:
+		# indic = editor.indicators['highlight']
+		indic.putAt(0, 0, 1, 0) # the first line will be styled with this indicator
 
 	Like :any:`eye.widgets.editor.Marker`, `Indicator`s are associated to an `Editor` and have an arbitrary name.
+	There can be at most 40 different indicator types per editor widget.
 	"""
 	def __init__(self, style, editor=None, id=-1):
 		self.editor = editor

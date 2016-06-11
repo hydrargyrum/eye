@@ -52,10 +52,11 @@ class Splitter(QSplitter, WidgetMixin):
 	def childAt(self, pos):
 		"""Return child widget at position
 
-		`pos` should be a `QPoint` relative to the top-left corner of this `Splitter` (which is at `(0, 0)`).
-		The return value will be `HandleBar` if `pos` is right on a handle bar of this splitter.
-		If the final widget under `pos` is contained in a sub-`Splitter` or sub-sub-`Splitter`, it won't be
-		returned, only the direct child, the direct sub-`Splitter` will be returned.
+		:type pos: QPoint
+		:param pos: relative to the top-left corner of this `Splitter` (which is at `(0, 0)`).
+		:return: return value will be `HandleBar` if `pos` is right on a handle bar of this splitter.
+		         If the final widget under `pos` is contained in a sub-`Splitter` or sub-sub-`Splitter`,
+		         it won't be returned, only the direct child, the direct sub-`Splitter` will be returned.
 		"""
 		if not self.rect().contains(pos):
 			return None
@@ -66,14 +67,21 @@ class Splitter(QSplitter, WidgetMixin):
 		return self.HandleBar
 
 	def parentManager(self):
-		"""Returns the :any:`SplitManager` managing this splitter"""
+		"""Returns the :any:`SplitManager` managing this splitter
+
+		:rtype: SplitManager
+		"""
 		w = self.parent()
 		while not isinstance(w, SplitManager):
 			w = w.parent()
 		return w
 
 	def widgets(self):
-		"""Return all direct children widgets"""
+		"""Return all direct children widgets
+
+		Children returned by this method may be `Splitter` widgets if there are sub-splitters.
+		:rtype: list
+		"""
 		return [self.widget(i) for i in range(self.count())]
 
 	def removeChild(self, widget):
@@ -194,6 +202,11 @@ class SplitManager(QWidget, WidgetMixin):
 
 	## getters
 	def allChildren(self):
+		"""Get all non-splitter children widgets
+
+		:return: the direct children of `Splitter`s that are not `Splitter`s themselves
+		:rtype: list
+		"""
 		return [w for w in self._iterRecursive() if not isinstance(w, self.SplitterClass)]
 
 	def childRect(self, widget):
@@ -206,6 +219,14 @@ class SplitManager(QWidget, WidgetMixin):
 		return (spl, spl.indexOf(widget))
 
 	def deepChildAt(self, pos):
+		"""Get the non-splitter widget at `pos`
+
+		:param pos: the point where to look a widget, in coordinates relative to top-left corner of
+		              this `SplitManager`
+		:type pos: QPoint
+		:return: the first child at position `pos` that is not a splitter, unlike :any:`Splitter.childAt`.
+		:rtype: QWidget
+		"""
 		widget = self.root
 		while isinstance(widget, QSplitter):
 			widget = widget.childAt(widget.mapFrom(self, pos))
