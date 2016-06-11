@@ -166,11 +166,17 @@ class SplitManager(QWidget, WidgetMixin):
 				idx += 1
 			parent.insertWidget(idx, newWidget)
 		else:
+			# currentWidget is moved, so it may lose focus
+			refocus = currentWidget.hasFocus()
+
 			newSplit = self.SplitterClass(orientation=orientation)
 			parent.insertWidget(idx, newSplit)
 			if currentWidget:
 				newSplit.addWidget(currentWidget)
 			newSplit.addWidget(newWidget)
+
+			if refocus:
+				currentWidget.setFocus()
 
 	def moveWidget(self, currentWidget, direction, newWidget):
 		if currentWidget is newWidget:
