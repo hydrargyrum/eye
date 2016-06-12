@@ -10,7 +10,7 @@ import re
 
 __all__ = ('parseFilename', 'findAncestorContaining', 'findInAncestors',
            'getCommonPrefix', 'getRelativePathIn', 'isIn',
-           'getConfigPath', 'getConfigFilePath')
+           'getConfigPath', 'getConfigFilePath', 'dataPath')
 
 
 def parseFilename(filepath):
@@ -146,3 +146,9 @@ def getConfigFilePath(*args):
 	dir = getConfigPath(os.path.dirname(subpath))
 	file = os.path.basename(subpath)
 	return os.path.join(dir, file)
+
+
+def dataPath(*args):
+	dir = os.path.join(os.path.dirname(__file__), '..', 'data')
+	dir = os.path.abspath(dir)
+	return os.path.join(dir, *args)
