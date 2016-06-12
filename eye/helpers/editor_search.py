@@ -18,9 +18,9 @@ __all__ = ('SearchObject', 'openSearchLine')
 
 
 class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
-	searchStart = Signal()
+	started = Signal()
 	found = Signal(int, int)
-	searchEnd = Signal()
+	finished = Signal()
 
 	def __init__(self, editor=None, indicatorName=None, **kwargs):
 		super(SearchObject, self).__init__(**kwargs)
@@ -38,13 +38,13 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 		cache = TextCache(self.editor.text())
 
 		self.indicator.clear()
-		self.searchStart.emit()
+		self.started.emit()
 		for mtc in reobj.finditer(cache.text):
 			startl, startc = cache.lineIndexFromOffset(mtc.start())
 			endl, endc = cache.lineIndexFromOffset(mtc.end())
 			self.indicator.putAt(startl, startc, endl, endc)
 			self.found.emit(mtc.start(), mtc.end())
-		self.searchEnd.emit()
+		self.finished.emit()
 
 	def searchAll(self, text):
 		self.indicator.clear()
@@ -52,7 +52,7 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 		end = self.editor.bytesLength()
 		self.editor.setTargetRange(0, end)
 
-		self.searchStart.emit()
+		self.started.emit()
 		while True:
 			if self.editor.searchInTarget(text) < 0:
 				break
@@ -60,7 +60,7 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 			self.indicator.putAtOffset(self.editor.targetStart(), self.editor.targetEnd())
 			self.found.emit(self.editor.targetStart(), self.editor.targetEnd())
 			self.editor.setTargetRange(self.editor.targetEnd(), end)
-		self.searchEnd.emit()
+		self.finished.emit()
 
 	def getRanges(self):
 		return list(self.indicator.iterRanges())
