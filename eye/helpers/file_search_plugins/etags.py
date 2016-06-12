@@ -109,7 +109,10 @@ class ETagSearch(SearchPlugin):
 		# TODO cache tag db per project/dir?
 
 	def search(self, root, pattern, **options):
-		db = self._dbInDir(root)
-		for match in db.find_tag(pattern):
-			self.found.emit(match)
-		self.finished.emit()
+		self.started.emit()
+		try:
+			db = self._dbInDir(root)
+			for match in db.find_tag(pattern):
+				self.found.emit(match)
+		finally:
+			self.finished.emit()

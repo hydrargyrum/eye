@@ -27,6 +27,7 @@ class GrepLike(SearchPlugin):
 	def __init__(self, **kwargs):
 		super(GrepLike, self).__init__(**kwargs)
 		self.runner = GrepProcess()
+		self.runner.started.connect(self.started)
 		self.runner.warningPrinted.connect(self._gotResult)
 		self.runner.finished.connect(self.finished)
 

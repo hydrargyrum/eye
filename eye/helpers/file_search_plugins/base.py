@@ -14,6 +14,7 @@ def registerPlugin(cls):
 
 
 class SearchPlugin(QObject):
+	started = Signal()
 	found = Signal(dict)
 	finished = Signal(int)
 
