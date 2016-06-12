@@ -51,3 +51,6 @@ token.String.fg=%(cyan)s
 token.Number.fg=%(cyan)s
 
 token.Operator.fg=%(green)s
+
+indicator.search.fg=%(yellow)s80
+indicator.search.style=StraightBoxIndicator
