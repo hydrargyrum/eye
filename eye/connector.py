@@ -254,9 +254,23 @@ def peekSet(s):
 	return next(iter(s))
 
 
-def categoryObjects(cats):
-	"""Return objects matching all specified categories."""
-	return CONNECTOR.objectsMatching(cats)
+def isAncestorOf(ancestor, child):
+	while child is not None:
+		if child == ancestor:
+			return True
+		child = child.parent()
+	return False
+
+
+def categoryObjects(cats, ancestor=None):
+	"""Return objects matching all specified categories.
+
+	:param ancestor: if not None, only objects that are children of `ancestor` are returned
+	"""
+	if ancestor is None:
+		return CONNECTOR.objectsMatching(cats)
+	else:
+		return [obj for obj in CONNECTOR.objectsMatching(cats) if isAncestorOf(ancestor, obj)]
 
 
 def deleteCreatedBy(caller):
