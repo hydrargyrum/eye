@@ -65,26 +65,37 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 	def getRanges(self):
 		return list(self.indicator.iterRanges())
 
-	def seekSelect(self, start=0, wrap=True):
-		if self.indicator.getAtOffset(start):
-			isMiddle = start > 0 and self.indicator.getAtOffset(start - 1)
-			if isMiddle:
-				start = self.indicator.getNextEdge(start)
-				start = self.indicator.getNextEdge(start)
-		else:
-			start = self.indicator.getNextEdge(start)
+	def _seekForward(self, start, wrap):
+		r = self.indicator.getNextRange(start)
 
-		if start == self.editor.bytesLength():
+		if r is None:
 			if wrap:
-				return self.seekSelect(0, wrap=False)
-			else:
-				return
+				self._seekForward(0, wrap=False)
+			return
 
-		end = self.indicator.getNextEdge(start)
+		start, end, _ = r
 		startl, startc = self.editor.lineIndexFromPosition(start)
 		endl, endc = self.editor.lineIndexFromPosition(end)
-		self.editor.setCursorPosition(endl, endc)
 		self.editor.setSelection(startl, startc, endl, endc)
+
+	def _seekBackward(self, end, wrap):
+		r = self.indicator.getPreviousRange(end)
+
+		if r is None:
+			if wrap:
+				self._seekBackward(self.editor.bytesLength(), wrap=False)
+			return
+
+		start, end, _ = r
+		startl, startc = self.editor.lineIndexFromPosition(start)
+		endl, endc = self.editor.lineIndexFromPosition(end)
+		self.editor.setSelection(endl, endc, startl, startc)
+
+	def seekSelect(self, start=0, forward=True, wrap=True):
+		if forward:
+			self._seekForward(start, wrap)
+		else:
+			self._seekBackward(start, wrap)
 
 
 class TextCache(object):

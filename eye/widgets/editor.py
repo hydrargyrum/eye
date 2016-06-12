@@ -219,6 +219,12 @@ class Indicator(HasWeakEditorMixin):
 		"""
 		return self.editor.indicatorValueAt(self.id, offset)
 
+	def isOnEdge(self, offset):
+		if offset == 0:
+			return bool(self.getAtOffset(offset))
+		else:
+			return self.getAtOffset(offset) != self.getAtOffset(offset - 1)
+
 	def getPreviousEdge(self, offset):
 		"""Return the offset of the first edge of this indicator before `offset`.
 
@@ -248,6 +254,22 @@ class Indicator(HasWeakEditorMixin):
 		if res == 0 and not self.getAtOffset(0):
 			return -1
 		return res
+
+	def getPreviousRange(self, offset, expected=None):
+		end = self.getPreviousEdge(offset)
+		if end < 0:
+			return None
+
+		while True:
+			start = self.getPreviousEdge(end)
+			if start < 0:
+				return None
+
+			value = self.getAtOffset(start)
+			if value and (expected is None or expected == value):
+				return (start, end, value)
+
+			end = start
 
 	def getNextEdge(self, offset):
 		"""Return the offset of the first edge of this indicator after `offset`.
@@ -282,6 +304,22 @@ class Indicator(HasWeakEditorMixin):
 			# bytesLength() is returned after last range
 			return -1
 		return res
+
+	def getNextRange(self, offset, expected=None):
+		start = self.getNextEdge(offset)
+		if start < 0:
+			return None
+
+		while True:
+			end = self.getNextEdge(start)
+			if end < 0:
+				return None
+
+			value = self.getAtOffset(start)
+			if value and (expected is None or expected == value):
+				return (start, end, value)
+
+			start = end
 
 	def iterRanges(self):
 		"""Return (start, end, value) tuples listing the ranges where the indicator is set.
