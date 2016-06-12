@@ -104,9 +104,55 @@ class LocationList(QTreeWidget, WidgetMixin):
 		line = qitem.data(0, lineRole) or None
 		self.locationActivated.emit(path, (line,))
 
+	@Slot()
+	def activatePrevious(self):
+		"""Select and activate previous item
+
+		If an item is selected in this LocationList, selects the previous item and activates it. If no item
+		was currently select, uses the last element.
+		"""
+		count = self.topLevelItemCount()
+		if not count:
+			return
+
+		current = self.currentIndex()
+		if not current.isValid():
+			item = self.topLevelItem(count - 1)
+		elif current.row() > 0:
+			item = self.topLevelItem(current.row() - 1)
+		else:
+			return
+		self.setCurrentItem(item)
+
+		self.setCurrentItem(item)
+		self.activated.emit(self.indexFromItem(item))
+		self.itemActivated.emit(item, 0)
+
+	@Slot()
+	def activateNext(self):
+		"""Select and activate next item
+
+		If an item is selected in this LocationList, selects the next item and activates it. If no item
+		was currently select, uses the first element.
+		"""
+		count = self.topLevelItemCount()
+		if not count:
+			return
+
+		current = self.currentIndex()
+		if not current.isValid():
+			item = self.topLevelItem(0)
+		elif current.row() < count - 1:
+			item = self.topLevelItem(current.row() + 1)
+		else:
+			return
+
+		self.setCurrentItem(item)
+		self.activated.emit(self.indexFromItem(item))
+		self.itemActivated.emit(item, 0)
+
 
 @registerSignal('location_list', 'locationActivated')
 @disabled
 def locationListOpen(widget, path, loc):
 	buffers.openEditor(path, loc)
-
