@@ -35,13 +35,13 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 	def searchAllPy(self, text):
 		reobj = re.compile(text)
 
-		self.cache = TextCache(self.editor.text())
+		cache = TextCache(self.editor.text())
 
 		self.indicator.clear()
 		self.searchStart.emit()
-		for mtc in reobj.finditer(self.cache.text):
-			startl, startc = self.cache.lineIndexFromCp(mtc.start())
-			endl, endc = self.cache.lineIndexFromCp(mtc.end())
+		for mtc in reobj.finditer(cache.text):
+			startl, startc = cache.lineIndexFromOffset(mtc.start())
+			endl, endc = cache.lineIndexFromOffset(mtc.end())
 			self.indicator.putAt(startl, startc, endl, endc)
 			self.found.emit(mtc.start(), mtc.end())
 		self.searchEnd.emit()
@@ -92,7 +92,7 @@ class TextCache(object):
 		self.text = text
 		self.lines = [0]
 
-	def lineIndexFromCp(self, pos):
+	def lineIndexFromOffset(self, pos):
 		line = bisect.bisect(self.lines, pos) - 1
 		if line + 1 >= len(self.lines):
 			while pos > self.lines[-1]:
@@ -163,18 +163,18 @@ class CacheTests(unittest.TestCase):
 5
 78
 0""")
-		self.assertEquals((0, 0), cache.lineIndexFromCp(0))
-		self.assertEquals((0, 1), cache.lineIndexFromCp(1))
-		self.assertEquals((1, 0), cache.lineIndexFromCp(3))
-		self.assertEquals((1, 2), cache.lineIndexFromCp(5))
-		self.assertEquals((2, 0), cache.lineIndexFromCp(8))
-		self.assertEquals((2, 1), cache.lineIndexFromCp(9))
-		self.assertEquals((2, 1), cache.lineIndexFromCp(9))
-		self.assertEquals((3, 0), cache.lineIndexFromCp(12))
+		self.assertEquals((0, 0), cache.lineIndexFromOffset(0))
+		self.assertEquals((0, 1), cache.lineIndexFromOffset(1))
+		self.assertEquals((1, 0), cache.lineIndexFromOffset(3))
+		self.assertEquals((1, 2), cache.lineIndexFromOffset(5))
+		self.assertEquals((2, 0), cache.lineIndexFromOffset(8))
+		self.assertEquals((2, 1), cache.lineIndexFromOffset(9))
+		self.assertEquals((2, 1), cache.lineIndexFromOffset(9))
+		self.assertEquals((3, 0), cache.lineIndexFrom(Offset12))
 		#~ self.assertEquals((3, 1), cache.lineIndexFromCp(0xD))
-		self.assertEquals((4, 0), cache.lineIndexFromCp(15))
-		self.assertEquals((4, 0), cache.lineIndexFromCp(15))
-		self.assertEquals((6, 0), cache.lineIndexFromCp(20))
+		self.assertEquals((4, 0), cache.lineIndexFromOffset(15))
+		self.assertEquals((4, 0), cache.lineIndexFromOffset(15))
+		self.assertEquals((6, 0), cache.lineIndexFromOffset(20))
 
 
 if __name__ == '__main__':
