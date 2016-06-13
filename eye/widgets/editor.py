@@ -726,12 +726,14 @@ class BaseEditor(QsciScintilla):
 
 		self.SCN_MACRORECORD.connect(self.scn_macro)
 		self.SCN_MODIFIED.connect(self.scn_modified)
+		self.SCN_AUTOCCANCELLED.connect(self.scn_autoccancelled)
 
 		self.freeMarkers = []
 		self.markers = {}
 		self.freeIndicators = []
 		self.indicators = {}
 		self.margins = {}
+		self.autoCompListId = 0
 
 		self.createMargin('lines', Margin.NumbersMargin())
 		self.createMargin('folding', Margin.FoldMargin())
@@ -906,6 +908,14 @@ class BaseEditor(QsciScintilla):
 	@Slot(int, int, 'const char*', int, int, int, int, int, int, int)
 	def scn_modified(self, *args):
 		self.sciModified.emit(SciModification(*args))
+
+	@Slot()
+	def scn_autoccancelled(self):
+		self.autoCompListId = 0
+
+	def showUserList(self, id, items):
+		self.autoCompListId = id
+		super(BaseEditor, self).showUserList(id, items)
 
 	macroRecordStarted = Signal()
 
