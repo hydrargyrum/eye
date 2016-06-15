@@ -29,7 +29,6 @@ class App(QApplication):
 		super(App, self).__init__(argv)
 		self.setApplicationName('eye')
 
-		logging.basicConfig()
 		self.logger = logging.getLogger()
 
 		self.argsFiles = None
@@ -92,7 +91,7 @@ class App(QApplication):
 		args = parser.parse_args(argv)
 
 		if args.debug:
-			self.logger.setLevel(logging.DEBUG)
+			self.logger.handlers[0].setLevel(logging.DEBUG)
 
 		self.argsFiles = args.files
 
@@ -120,6 +119,13 @@ class App(QApplication):
 		self.lastWindow = new
 
 
+def setupLogging():
+	logging.basicConfig()
+	root = logging.getLogger()
+	root.setLevel(logging.DEBUG)
+	root.handlers[0].setLevel(logging.WARNING)
+
+
 def main():
 	"""Run eye app"""
 
@@ -129,6 +135,8 @@ def main():
 
 	if sys.excepthook is sys.__excepthook__:
 		sys.excepthook = lambda *args: sys.__excepthook__(*args)
+
+	setupLogging()
 
 	app = App(sys.argv)
 	app.run()
