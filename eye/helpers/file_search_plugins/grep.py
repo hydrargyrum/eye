@@ -62,7 +62,7 @@ class GrepLike(SearchPlugin):
 		cmd.append(path)
 		self.runner.rootpath = path
 		self.runner.setWorkingDirectory(path)
-		self.runner.run_cmd(cmd)
+		self.runner.run(cmd)
 
 
 @registerPlugin
