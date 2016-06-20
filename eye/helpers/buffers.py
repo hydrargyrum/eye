@@ -22,8 +22,16 @@ def findEditor(path):
 			return ed
 
 
-def _createEditor(path):
+def _getWindow():
 	win = qApp().lastWindow
+	if win is None:
+		for win in connector.categoryObjects('window'):
+			break
+	return win
+
+
+def _createEditor(path):
+	win = _getWindow()
 	cur = win.currentBuffer()
 	tabs = cur.parentTabBar()
 
@@ -58,12 +66,12 @@ def listEditors():
 
 def currentBuffer():
 	"""Get currently focused editor"""
-	win = qApp().lastWindow
+	win = _getWindow()
 	return win.currentBuffer()
 
 
 def _defaultTabs():
-	win = qApp().lastWindow
+	win = _getWindow()
 	cur = win.currentBuffer()
 	return cur.parentTabBar()
 

@@ -101,13 +101,18 @@ class App(QApplication):
 
 		win = connector.categoryObjects('window')[0]
 
+		from .helpers.intent import sendIntent
+
 		for name in self.args.files:
 			path, row, col = pathutils.parseFilename(name)
 			path = os.path.abspath(path)
 
-			ed = win.bufferOpen(path)
-			if row is not None:
-				ed.goto1(row, col)
+			loc = None
+			if row and col:
+				loc = (row - 1, col - 1)
+			elif row:
+				loc = (row - 1,)
+			sendIntent(win, 'openEditor', path=path, loc=loc)
 
 	@Slot(QWidget, QWidget)
 	def _appFocusChanged(self, old, new):

@@ -12,7 +12,7 @@ import re
 from ..three import str
 from ..structs import PropDict
 from .helpers import WidgetMixin
-from ..helpers import buffers
+from ..helpers.intent import sendIntent
 
 
 __all__ = ('FileChooser', 'SubSequenceFileChooser')
@@ -260,4 +260,4 @@ class FileChooser(BaseFileChooser):
 		if info.isDir():
 			return
 		path = info.absoluteFilePath()
-		buffers.openEditor(path)
+		sendIntent(self, 'openEditor', path=path)

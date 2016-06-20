@@ -14,8 +14,8 @@ from ..three import str
 from .helpers import WidgetMixin
 from .. import consts
 from ..connector import registerSignal, disabled
-from ..helpers import buffers
 from ..qt import Slot
+from ..helpers.intent import sendIntent
 
 
 __all__ = ('absolutePathRole', 'lineRole', 'columnRole', 'LocationList')
@@ -155,4 +155,5 @@ class LocationList(QTreeWidget, WidgetMixin):
 @registerSignal('location_list', 'locationActivated')
 @disabled
 def locationListOpen(widget, path, loc):
-	buffers.openEditor(path, loc)
+	sendIntent(widget, 'openEditor', path=path, loc=loc)
+
