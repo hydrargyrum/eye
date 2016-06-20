@@ -37,7 +37,17 @@ class LogWidget(QPlainTextEdit):
 
 
 class PositionIndicator(QLabel, WidgetMixin):
+	"""Widget indicating cursor position of currently focused editor
+
+	When cursor position changes or focus goes to another editor widget, the text of this label is refreshed.
+	"""
+
 	format = '{percent:3.0f}% {line:5d}:{col:3d}'
+
+	"""Text format of the label
+
+	Uses PEP-3101 string formatting. Usable keys are `line`, `col`, `percent`, `offset`, `path`, `title` and `editor`.
+	"""
 
 	def __init__(self, format=None, **kwargs):
 		super(PositionIndicator, self).__init__(**kwargs)
