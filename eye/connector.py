@@ -154,13 +154,13 @@ class EventConnector(QObject):
 		self.allObjects = weakref.WeakSet()
 		self.allListeners = []
 
-	def doConnect(self, obj, lis, cat=''):
-		LOGGER.debug('connecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
+	def doConnect(self, obj, lis, cats=None):
+		LOGGER.debug('connecting %r to %r (from file %r) in %r categories', obj, lis.cb, inspect.getfile(lis.cb), cats)
 		with exceptionLogging(reraise=False, logger=LOGGER):
 			lis.doConnect(obj)
 
-	def doDisconnect(self, obj, lis, cat=''):
-		LOGGER.debug('disconnecting %r to %r (from file %r) in %r category', obj, lis.cb, inspect.getfile(lis.cb), cat)
+	def doDisconnect(self, obj, lis, cats=None):
+		LOGGER.debug('disconnecting %r to %r (from file %r) in %r categories', obj, lis.cb, inspect.getfile(lis.cb), cats)
 		with exceptionLogging(reraise=False, logger=LOGGER):
 			lis.doDisconnect(obj)
 
@@ -169,42 +169,30 @@ class EventConnector(QObject):
 
 		# iterate on list copy to avoid concurrent access
 		for obj in list(self.allObjects):
-			matches = categories & obj.categories()
-			if not matches:
-				continue
-			else:
-				self.doConnect(obj, lis, peekSet(matches))
+			if categories <= obj.categories():
+				self.doConnect(obj, lis, categories)
 
 	def addObject(self, obj):
 		self.allObjects.add(obj)
 
 		oc = obj.categories()
 		for lis in self.allListeners:
-			matches = lis.categories & oc
-			if not matches:
-				continue
-			else:
-				self.doConnect(obj, lis, peekSet(matches))
+			if lis.categories <= oc:
+				self.doConnect(obj, lis, lis.categories)
 
 	def addCategory(self, obj, cat):
-		prev = obj.categories().copy()
-		prev.remove(cat)
+		oc = obj.categories()
 
 		for lis in self.allListeners:
 			if cat in lis.categories:
-				if prev & lis.categories:
-					continue # object is already connected
-				else:
+				if lis.categories <= oc:
 					self.doConnect(obj, lis, cat)
 		self.categoryAdded.emit(obj, cat)
 
 	def removeCategory(self, obj, cat):
 		for lis in self.allListeners:
 			if cat in lis.categories:
-				if obj.categories() & lis.categories:
-					continue # object is still connected
-				else:
-					self.doDisconnect(obj, lis, cat)
+				self.doDisconnect(obj, lis, cat)
 		self.categoryRemoved.emit(obj, cat)
 
 	def objectsMatching(self, categories):
