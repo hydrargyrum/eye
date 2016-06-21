@@ -12,7 +12,7 @@ from PyQt5.QtCore import QEvent
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QRubberBand
 
-from eye.connector import registerSignal, registerEventFilter, CategoryMixin, disabled
+from eye.connector import registerSetup, registerEventFilter, CategoryMixin, disabled
 from eye.app import qApp
 from eye.colorutils import QColorAlpha
 
@@ -76,7 +76,7 @@ def focusChanged(old, new):
 qApp().focusChanged.connect(focusChanged)
 
 
-@registerSignal('tabwidget', 'connected')
+@registerSetup('tabwidget')
 @disabled
 def onCreate(tw):
 	if not tw.isAncestorOf(qApp().focusWidget()):

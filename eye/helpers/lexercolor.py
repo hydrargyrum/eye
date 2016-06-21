@@ -4,7 +4,7 @@ from six.moves.configparser import SafeConfigParser
 from logging import getLogger
 
 from ..three import str
-from ..connector import categoryObjects, registerSignal, disabled
+from ..connector import categoryObjects, registerSignal, registerSetup, disabled
 from ..colorutils import QColorAlpha
 from ..lexers import stylesFromLexer
 from ._lexercolorgroups import getIdAndAliases
@@ -289,7 +289,7 @@ def addSchemeFile(path, applyToAll=True):
 			applySchemeToEditor(SCHEME, ed)
 
 
-@registerSignal('editor', 'connected')
+@registerSetup('editor')
 @disabled
 def applySchemeOnCreate(editor):
 	if SCHEME:

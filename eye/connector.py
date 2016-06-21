@@ -59,6 +59,7 @@ from .three import bytes, str
 from .utils import exceptionLogging
 
 __all__ = ('registerSignal', 'registerEventFilter', 'disabled',
+           'registerSetup', 'registerTeardown',
            'defaultEditorConfig', 'defaultWindowConfig', 'defaultLexerConfig',
            'categoryObjects', 'CategoryMixin')
 
@@ -111,16 +112,39 @@ class SignalListener(QObject, ListenerMixin):
 			self.cb(sender, *args)
 
 	def doConnect(self, obj):
-		if self.signal == 'connected':
-			self.map(sender=obj)
-		else:
-			getattr(obj, self.signal).connect(self.map)
+		getattr(obj, self.signal).connect(self.map)
 
 	def doDisconnect(self, obj):
-		if self.signal == 'disconnected':
-			self.map(sender=obj)
-		else:
-			getattr(obj, self.signal).disconnect(self.map)
+		getattr(obj, self.signal).disconnect(self.map)
+
+
+class ConnectListener(ListenerMixin):
+	def __init__(self, cb, categories, parent=None):
+		super(ConnectListener, self).__init__()
+		self.cb = cb
+		self.categories = categories
+		self.caller = None
+
+	def map(self, obj):
+		if getattr(self.cb, 'enabled', True):
+			with exceptionLogging(reraise=False, logger=LOGGER):
+				self.cb(obj)
+
+
+class SetupListener(ConnectListener):
+	def doConnect(self, obj):
+		self.map(obj)
+
+	def doDisconnect(self, obj):
+		pass
+
+
+class TearListener(ConnectListener):
+	def doConnect(self, obj):
+		pass
+
+	def doDisconnect(self, obj):
+		self.map(obj)
 
 
 class EventFilter(QObject, ListenerMixin):
@@ -270,8 +294,6 @@ def registerSignal(categories, signal):
 
 	When the `signal` of all existing and future objects matching all specified `categories`
 	is emitted, the decorated function will be called.
-	If ``signal`` is ``"connected"``, the decorated function will be called for all objects
-	matching the specified `categories`.
 
 	Example::
 
@@ -292,6 +314,49 @@ def registerSignal(categories, signal):
 	return deco
 
 
+def registerSetup(categories):
+	"""Decorate a function that should be run for all objects matching categories.
+
+	When an object is created that matches `categories` or an object is being added new categories and they match
+	the specified `categories`, the decorated function will be called.
+	Also, when the function is decorated, it is called for all existing objects matching `categories`.
+
+	:param categories: the categories to match
+
+	Example::
+
+		@registerConnect('editor')
+		def foo(editor_obj):
+			print('an editor has been created')
+	"""
+	categories = frozenset(to_stringlist(categories))
+
+	def deco(func):
+		caller = inspect.stack()[1][1]
+
+		lis = SetupListener(func, categories)
+		lis.caller = caller
+		CONNECTOR.addListener(categories, lis)
+		return func
+
+	return deco
+
+
+def registerTeardown(categories):
+	categories = frozenset(to_stringlist(categories))
+
+	def deco(func):
+		caller = inspect.stack()[1][1]
+
+		lis = TearListener(func, categories)
+		lis.caller = caller
+		CONNECTOR.addListener(categories, lis)
+		return func
+
+	return deco
+
+
+
 def registerEventFilter(categories, eventTypes):
 	categories = frozenset(to_stringlist(categories))
 
@@ -309,14 +374,14 @@ def disabled(func):
 	return func
 
 
-defaultEditorConfig = registerSignal(['editor'], 'connected')
+defaultEditorConfig = registerSetup('editor')
 
 """Decorate a function that should be called for every editor.
 
 This decorator is intended for functions to configure editor widgets.
 """
 
-defaultWindowConfig = registerSignal(['window'], 'connected')
+defaultWindowConfig = registerSetup('window')
 
 """Decorate a function that should be called for every EYE window.
 
