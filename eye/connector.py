@@ -200,6 +200,9 @@ class EventConnector(QObject):
 		self.allObjects.add(obj)
 
 		oc = obj.categories()
+		if not oc:
+			return
+
 		for lis in self.allListeners:
 			if lis.categories <= oc:
 				self.doConnect(obj, lis, lis.categories)
