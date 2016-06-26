@@ -31,7 +31,7 @@ class App(QApplication):
 
 		self.logger = logging.getLogger()
 
-		self.argsFiles = None
+		self.args = None
 
 		self.lastWindow = None
 		self.focusChanged.connect(self._appFocusChanged)
@@ -78,7 +78,8 @@ class App(QApplication):
 		self._handleArguments()
 		win = self.initUi()
 		win.show()
-		self.runStartScripts()
+		if not self.args.no_config:
+			self.runStartScripts()
 		self.openCommandLineFiles()
 		self.exec_()
 
@@ -86,22 +87,21 @@ class App(QApplication):
 		parser = argparse.ArgumentParser()
 		parser.add_argument('files', metavar='FILE', nargs='*')
 		parser.add_argument('--debug', action='store_true', default=False)
+		parser.add_argument('--no-config', action='store_true', default=False)
 
 		argv = self.arguments()[1:]
-		args = parser.parse_args(argv)
+		self.args = parser.parse_args(argv)
 
-		if args.debug:
+		if self.args.debug:
 			self.logger.handlers[0].setLevel(logging.DEBUG)
 
-		self.argsFiles = args.files
-
 	def openCommandLineFiles(self):
-		if not self.argsFiles:
+		if not self.args.files:
 			return
 
 		win = connector.categoryObjects('window')[0]
 
-		for name in self.argsFiles:
+		for name in self.args.files:
 			path, row, col = pathutils.parseFilename(name)
 			path = os.path.abspath(path)
 
