@@ -668,6 +668,7 @@ class BaseEditor(QsciScintilla):
 	targetEnd = sciProp0(QsciScintilla.SCI_GETTARGETEND)
 	setTargetRange = sciProp(QsciScintilla.SCI_SETTARGETRANGE, (six.integer_types, six.integer_types))
 	_searchInTarget = sciProp(QsciScintilla.SCI_SEARCHINTARGET, (six.integer_types, bytes))
+	replaceTarget = sciProp2(QsciScintilla.SCI_REPLACETARGET)
 
 	setSearchFlags = sciPropSet(QsciScintilla.SCI_SETSEARCHFLAGS)
 	searchFlags = sciProp0(QsciScintilla.SCI_GETSEARCHFLAGS)
