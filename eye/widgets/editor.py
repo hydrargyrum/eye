@@ -622,8 +622,19 @@ class BaseEditor(QsciScintilla):
 
 	# character representation
 	setRepresentation = sciProp2(QsciScintilla.SCI_SETREPRESENTATION)
-	getRepresentation = sciProp2(QsciScintilla.SCI_GETREPRESENTATION)
-	clearRepresentation = sciProp1(QsciScintilla.SCI_CLEARREPRESENTATION)
+
+	def getRepresentation(self, s):
+		bufsize = self.SendScintilla(self.SCI_GETREPRESENTATION, s, b'') + 1
+		if not bufsize:
+			return []
+
+		res = bytearray(bufsize)
+		self.SendScintilla(self.SCI_GETREPRESENTATION, s, res)
+		return bytes(res[:-1])
+
+	def clearRepresentation(self, s):
+		# for unknown reasons, s is passed as lParam instead of wParam, so force it
+		self.SendScintilla(QsciScintilla.SCI_CLEARREPRESENTATION, s, b'')
 
 	# fold
 	FoldFlagLineBeforeExpanded = QsciScintilla.SC_FOLDFLAG_LINEBEFORE_EXPANDED
