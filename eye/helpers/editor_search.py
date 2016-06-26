@@ -11,10 +11,35 @@ import unittest
 from ..connector import registerSignal, CategoryMixin
 from ..widgets.editor import HasWeakEditorMixin
 from ..widgets import minibuffer
+from .. import structs
 from . import buffers
 
 
-__all__ = ('SearchObject', 'openSearchLine')
+__all__ = ('openSearchLine', 'searchForward', 'searchBackward',
+           'SearchObject', 'SearchProps', 'performSearch')
+
+
+class SearchProps(structs.PropDict):
+	def __init__(self, **kwargs):
+		self.isRe = False
+		self.caseSensitive = False
+		self.whole = False
+
+		self.update(**kwargs)
+
+
+def props_to_re(props):
+	re_flags = 0
+	if props.caseSensitive:
+		re_flags |= re.I
+
+	if props.isRe:
+		return re.compile(props.expr, re_flags)
+	else:
+		re_text = re.escape(props.expr)
+		if props.whole:
+			re_text = r'\b%s\b' % re_text
+		return re.compile(re_text, re_flags)
 
 
 class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
@@ -22,9 +47,10 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 	found = Signal(int, int)
 	finished = Signal()
 
-	def __init__(self, editor=None, indicatorName=None, **kwargs):
+	def __init__(self, editor=None, indicatorName=None, props=None, **kwargs):
 		super(SearchObject, self).__init__(**kwargs)
 		self.editor = editor
+		self.props = props
 
 		self.indicator = editor.indicators.get(indicatorName)
 		if not self.indicator:
@@ -32,8 +58,8 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 
 		self.addCategory('search_object')
 
-	def searchAllPy(self, text):
-		reobj = re.compile(text)
+	def searchAllPy(self):
+		reobj = props_to_re(self.props)
 
 		cache = TextCache(self.editor.text())
 
@@ -46,7 +72,7 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 			self.found.emit(mtc.start(), mtc.end())
 		self.finished.emit()
 
-	def searchAll(self, text):
+	def searchAll(self):
 		self.indicator.clear()
 
 		end = self.editor.bytesLength()
@@ -54,7 +80,7 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 
 		self.started.emit()
 		while True:
-			if self.editor.searchInTarget(text) < 0:
+			if self.editor.searchInTarget(self.pops.expr) < 0:
 				break
 
 			self.indicator.putAtOffset(self.editor.targetStart(), self.editor.targetEnd())
@@ -138,16 +164,15 @@ def onSearchTextEdited(ls, text):
 	if not editor.search.get('incremental', False):
 		return
 
-	performSearch(editor, text)
+	performSearch(editor, SearchProps(expr=text))
 	if not hasattr(editor, 'incSearchStart'):
 		editor.incSearchStart = editor.cursorOffset()
 	editor.searchObj.seekSelect(editor.incSearchStart)
 
 
-def performSearch(editor, text):
-	if not hasattr(editor, 'searchObj'):
-		editor.searchObj = SearchObject(editor=editor, indicatorName='search')
-	editor.searchObj.searchAllPy(text)
+def performSearch(editor, props):
+	editor.searchObj = SearchObject(editor=editor, indicatorName='search', props=props)
+	editor.searchObj.searchAllPy()
 
 
 @registerSignal('linesearch', 'textEntered')
@@ -159,9 +184,27 @@ def searchText(ls, text):
 	if not editor:
 		return
 
-	performSearch(editor, text)
+	performSearch(editor, SearchProps(expr=text))
 	editor.searchObj.seekSelect(editor.cursorOffset())
 	editor.incSearchStart = editor.cursorOffset()
+
+
+def _searchNext(editor, forward):
+	try:
+		searchObj = editor.searchObj
+	except AttributeError:
+		return
+
+	editor.searchObj.seekSelect(editor.cursorOffset(), forward=forward)
+	editor.incSearchStart = editor.cursorOffset()
+
+
+def searchForward(editor):
+	_searchNext(editor, True)
+
+
+def searchBackward(editor):
+	_searchNext(editor, False)
 
 
 class CacheTests(unittest.TestCase):
