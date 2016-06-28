@@ -19,7 +19,8 @@ from .file_search_plugins.base import enabledPlugins, getPlugin
 from ..reutils import csToQtEnum, qtEnumToCs, qreToPattern
 
 
-__all__ = ('enabledPlugins', 'searchWithPlugin', 'searchStart')
+__all__ = ('enabledPlugins', 'searchWithPlugin', 'searchStart',
+           'setupLocationList')
 
 
 @registerSignal('file_search_widget', 'returnPressed')
@@ -55,5 +56,6 @@ def searchWithPlugin(plugin_id, path, pattern, find_root=False, **options):
 
 
 def setupLocationList(plugin, loclist):
+	plugin.started.connect(loclist.clear)
 	plugin.found.connect(loclist.addItem)
 	plugin.finished.connect(loclist.resizeAllColumns)
