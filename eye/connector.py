@@ -76,9 +76,7 @@ def to_stringlist(obj):
 
 class ListenerMixin(object):
 	def unregister(self):
-		objects = set()
-		for cat in self.categories:
-			objects.update(CONNECTOR.objectsMatching(cat))
+		objects = CONNECTOR.objectsMatching(self.categories)
 		for obj in objects:
 			self.doDisconnect(obj)
 
