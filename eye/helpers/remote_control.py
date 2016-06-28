@@ -1,101 +1,107 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+from functools import wraps
 import logging
-import shlex
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
-from PyQt5.QtNetwork import QLocalServer
+from PyQt5.QtCore import QObject, pyqtSlot as Slot, Q_CLASSINFO
+from PyQt5.QtDBus import QDBusConnection, QDBusVariant, QDBusMessage
 
-from ..widgets.helpers import CategoryMixin
-from ..connector import registerSignal, disabled
+from ..three import str
+from ..connector import disabled, CategoryMixin
 from ..app import qApp
+from .intent import registerIntentListener, sendIntent
 
-Signal = pyqtSignal
-Slot = pyqtSlot
 
-__all__ = ('ServerSocket', 'SERVER', 'onRequestOpen')
+__all__ = ('registerRemoteRequest', 'onRequestOpen', 'SimpleHandler')
 
 
 LOGGER = logging.getLogger(__name__)
-MAX_REQUEST_SIZE = 4096
 
 
-class ClientSession(QObject, CategoryMixin):
-	receivedRequest = Signal(object)
-	error = Signal()
-
-	def __init__(self, sock):
-		super(ClientSession, self).__init__(parent=sock)
-		self.sock = sock
-		self.buffer = ''
-
-		sock.readyRead.connect(self.onReadyRead)
-
-		self.addCategory('remote_socket')
-
-	@Slot()
-	def onReadyRead(self):
-		nb = self.sock.bytesAvailable()
-		self.buffer += self.sock.read(nb)
-		LOGGER.debug('received %d bytes', nb)
-
-		if len(self.buffer) > MAX_REQUEST_SIZE:
-			return self.error()
-		elif '\n' in self.buffer:
-			self.handle_requests()
-
-	def handle_requests(self):
-		while '\n' in self.buffer:
-			pos = self.buffer.find('\n')
-			assert pos >= 0
-			line, self.buffer = self.buffer[:pos], self.buffer[pos + 1:]
-			self.handle_request(line)
-
-	def handle_request(self, line):
-		try:
-			request = shlex.split(line)
-		except ValueError as exc:
-			LOGGER.warning('received malformed request %r: %s', line, exc)
-			self.error.emit()
-		else:
-			LOGGER.info('received request %r', request)
-			self.receivedRequest.emit(request)
+ROOT_OBJ = None
+BUS = None
 
 
-class ServerSocket(QObject):
-	def __init__(self):
-		super(ServerSocket, self).__init__()
+class SimpleHandler(QObject, CategoryMixin):
+	Q_CLASSINFO('D-Bus Interface', 're.indigo.eye')
 
-		self.server = QLocalServer(self)
-		self.server.newConnection.connect(self.clientConnected)
+	def __init__(self, **kwargs):
+		super(SimpleHandler, self).__init__(**kwargs)
+		self.addCategory('remote_control')
 
-		self.socketPath = 'eye-control'
+	@Slot(str, result=QDBusVariant)
+	@Slot(str, QDBusVariant, result=QDBusVariant)
+	@Slot(str, QDBusVariant, QDBusVariant, result=QDBusVariant)
+	@Slot(str, QDBusVariant, QDBusVariant, QDBusVariant, result=QDBusVariant)
+	@Slot(str, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, result=QDBusVariant)
+	@Slot(str, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, result=QDBusVariant)
+	@Slot(str, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant,
+	      result=QDBusVariant)
+	@Slot(str, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant,
+	      result=QDBusVariant)
+	@Slot(str, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant,
+	      QDBusVariant, result=QDBusVariant)
+	def request(self, request_type, *args):
+		args = tuple(arg.variant() for arg in args)
 
-	def listen(self):
-		# TODO allow multiple instances? multiple sockets, but clean on exit
-		QLocalServer.removeServer(self.socketPath)
-		if not self.server.listen(self.socketPath):
-			LOGGER.error('could not listen: %s', self.server.errorString())
+		LOGGER.debug('received request %r%r', request_type, args)
+		result = sendIntent(self, 'remoteRequest', request_type=request_type, args=args)
+		if result is None:
+			result = False
 
-	@Slot()
-	def clientConnected(self):
-		sock = self.server.nextPendingConnection()
-		session = ClientSession(sock)
-		session.error.connect(sock.abort)
-
-
-@registerSignal(['remote_socket'], 'receivedRequest')
-@disabled
-def onRequestOpen(sock, request):
-	# TODO a decorator for handling this
-	if len(request) != 2 or request[0] != 'open':
-		return
-
-	win = qApp().lastWindow
-	win.bufferOpen(request[1])
-
-# TODO json requests?
-# TODO responses?
+		LOGGER.debug('replying %r to request %r%r', result, request_type, args)
+		return QDBusVariant(result)
 
 
-SERVER = ServerSocket()
+def registerRemoteRequest(request_type, stackoffset=0):
+	def decorator(func):
+		@registerIntentListener('remoteRequest', categories='remote_control', stackoffset=(1 + stackoffset))
+		@wraps(func)
+		def wrapper(remote, intent):
+			if intent.info.request_type == request_type and getattr(func, 'enabled', True):
+				result = func(intent.info.args)
+				intent.accept(result)
+				return True
+			return False
+
+		return func
+	return decorator
+
+
+def createServer():
+	global BUS, ROOT_OBJ
+
+	ROOT_OBJ = SimpleHandler()
+
+	BUS = QDBusConnection.sessionBus()
+	BUS.registerService('re.indigo.eye')
+	BUS.registerObject('/', ROOT_OBJ, QDBusConnection.ExportAllContents)
+
+
+def sendRequest(req, *args):
+	global BUS
+
+	LOGGER.debug('sending request %r%r', req, args)
+
+	method_args = [req]
+	method_args.extend(args)
+
+	msg = QDBusMessage.createMethodCall('re.indigo.eye', '/', 're.indigo.eye', 'request')
+	msg.setArguments(method_args)
+
+	BUS = QDBusConnection.sessionBus()
+	reply = BUS.call(msg)
+
+	if reply.type() == QDBusMessage.ErrorMessage:
+		raise ValueError(reply.errorMessage())
+	return list(reply.arguments())
+
+
+@registerRemoteRequest('ping')
+def onRequestPing(args):
+	return True
+
+
+@registerRemoteRequest('open')
+def onRequestOpen(args):
+	sendIntent(ROOT_OBJ, 'openEditor', path=args[0])
