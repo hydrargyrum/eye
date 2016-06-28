@@ -10,6 +10,7 @@ from six import StringIO, exec_
 import sys
 import traceback
 
+from ..three import bytes
 from ..app import qApp
 from .helpers import WidgetMixin
 
@@ -117,7 +118,7 @@ class EvalConsole(QWidget, WidgetMixin):
 		self.line.setText('')
 
 		output = u'>>> %s\n' % text
-		output += capture_output(self._exec, text).decode('utf-8', 'replace')
+		output += capture_output(self._exec, text)
 		self.display.appendPlainText(output)
 
 
@@ -129,4 +130,8 @@ def capture_output(cb, *args, **kwargs):
 		res = cb(*args, **kwargs)
 	finally:
 		sys.stdout, sys.stderr = old
-	return sio.getvalue()
+
+	res = sio.getvalue()
+	if isinstance(res, bytes):
+		res = res.decode('utf-8', 'replace')
+	return res
