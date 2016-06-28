@@ -364,7 +364,10 @@ def registerEventFilter(categories, eventTypes):
 	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
+		caller = inspect.stack()[1][1]
+
 		lis = EventFilter(func, categories, eventTypes, CONNECTOR)
+		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
 		return func
 
