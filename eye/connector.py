@@ -292,7 +292,7 @@ def deleteCreatedBy(caller):
 	CONNECTOR.deleteCreatedBy(caller)
 
 
-def registerSignal(categories, signal):
+def registerSignal(categories, signal, stackoffset=0):
 	"""Decorate a function that should be run when a signal is emitted.
 
 	When the `signal` of all existing and future objects matching all specified `categories`
@@ -307,7 +307,7 @@ def registerSignal(categories, signal):
 	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
-		caller = inspect.stack()[1][1]
+		caller = inspect.stack()[1 + stackoffset][1]
 
 		lis = SignalListener(func, categories, signal, CONNECTOR)
 		lis.caller = caller
@@ -317,7 +317,7 @@ def registerSignal(categories, signal):
 	return deco
 
 
-def registerSetup(categories):
+def registerSetup(categories, stackoffset=0):
 	"""Decorate a function that should be run for all objects matching categories.
 
 	When an object is created that matches `categories` or an object is being added new categories and they match
@@ -335,7 +335,7 @@ def registerSetup(categories):
 	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
-		caller = inspect.stack()[1][1]
+		caller = inspect.stack()[1 + stackoffset][1]
 
 		lis = SetupListener(func, categories)
 		lis.caller = caller
@@ -345,11 +345,11 @@ def registerSetup(categories):
 	return deco
 
 
-def registerTeardown(categories):
+def registerTeardown(categories, stackoffset=0):
 	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
-		caller = inspect.stack()[1][1]
+		caller = inspect.stack()[1 + stackoffset][1]
 
 		lis = TearListener(func, categories)
 		lis.caller = caller
@@ -360,11 +360,11 @@ def registerTeardown(categories):
 
 
 
-def registerEventFilter(categories, eventTypes):
+def registerEventFilter(categories, eventTypes, stackoffset=0):
 	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
-		caller = inspect.stack()[1][1]
+		caller = inspect.stack()[1 + stackoffset][1]
 
 		lis = EventFilter(func, categories, eventTypes, CONNECTOR)
 		lis.caller = caller

@@ -91,7 +91,7 @@ class IntentEvent(QEvent):
 		return '<IntentEvent type=%r source=%r info=%r>' % (self.intent_type, self.source, self.info)
 
 
-def registerIntentListener(intent_type, categories=None):
+def registerIntentListener(intent_type, categories=None, stackoffset=0):
 	"""Decorate a callback to be registered as an intent listener
 
 	See :any:`dummyListener` for documentation of how the callback should be.
@@ -105,7 +105,7 @@ def registerIntentListener(intent_type, categories=None):
 		categories = []
 
 	def decorator(cb):
-		@registerEventFilter(categories, [IntentEvent.Type])
+		@registerEventFilter(categories, [IntentEvent.Type], stackoffset=(1 + stackoffset))
 		@wraps(cb)
 		def wrapper(obj, ev):
 			if getattr(cb, 'enabled', True) and ev.intent_type == intent_type:
