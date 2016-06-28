@@ -1,22 +1,25 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Helper for searching in multiple files, like recursive grep.
+
+The `file_search` plugins allow to perform pattern search in multiple files and directories.
+
+.. seealso::
+
+	The abstract plugin is in :any:`eye.helpers.file_search_plugins.base`.
+"""
+
+
 import os
 
 from ..connector import registerSignal, disabled
-from . import buffers
 
 from .file_search_plugins.base import enabledPlugins, getPlugin
 
 from ..reutils import csToQtEnum, qtEnumToCs, qreToPattern
 
 
-__all__ = ('enabledPlugins', 'searchWithPlugin', 'resultActivated', 'searchStart')
-
-
-@registerSignal('search_results', 'resultActivated')
-@disabled
-def resultActivated(widget, path, loc):
-	buffers.openEditor(path, loc)
+__all__ = ('enabledPlugins', 'searchWithPlugin', 'searchStart')
 
 
 @registerSignal('file_search_widget', 'returnPressed')
