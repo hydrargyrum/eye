@@ -330,7 +330,8 @@ def getModificator(name):
 
 
 def applySchemeDictToEditor(dct, editor):
-	for key, value in dct.items():
+	for key in sorted(dct):
+		value = dct[key]
 		try:
 			styletype, subkey = key.split('.', 1)
 		except ValueError:
@@ -347,6 +348,9 @@ def applySchemeDictToEditor(dct, editor):
 			mod.apply()
 		except UnsupportedModification as exc:
 			LOGGER.warning('%s is not supported: %s', key, exc.message)
+			continue
+
+		LOGGER.debug('applied %r=%r to %r', key, value, editor)
 
 
 def applySchemeToEditor(parser, editor):
