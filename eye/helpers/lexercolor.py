@@ -10,8 +10,9 @@ from ..lexers import stylesFromLexer
 from ._lexercolorgroups import getIdAndAliases
 from .styles import STYLES
 
-__all__ = ('applySchemeToEditor', 'applySchemeDictToEditor',
-           'applySchemeOnLexerChange', 'useSchemeFile', 'addSchemeFile')
+__all__ = ('setEnabled', 'useSchemeFile', 'addSchemeFile',
+           'applySchemeToEditor', 'applySchemeDictToEditor',
+           'applySchemeOnLexerChange', 'applySchemeOnCreate')
 
 
 LOGGER = getLogger(__name__)
@@ -301,3 +302,8 @@ def applySchemeOnCreate(editor):
 def applySchemeOnLexerChange(editor, lexer):
 	if SCHEME:
 		applySchemeToEditor(SCHEME, editor)
+
+
+def setEnabled(enabled=True):
+	applySchemeOnCreate.enabled = enabled
+	applySchemeOnLexerChange.enabled = enabled
