@@ -1,5 +1,103 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Color scheme application
+
+This plugin allows to load color scheme definition from a file and apply them to editor and syntax coloring.
+
+Color scheme format
+===================
+
+Color scheme files are in INI format (as read by `configparser`). A scheme file sets style attributes for multiples
+lexers and such descriptions can be applied to an editor.
+
+Sections
+--------
+
+A color scheme file consist in one or more INI sections, each corresponding to a lexer.
+The special section `*` applies to all lexers. When applying a color scheme to an editor, the `*` section is applied
+first if it exists, then the section for the lexer of the editor is applied, if it exists and if the editor has
+a lexer.
+
+Attributes
+----------
+
+Within a section, there are multiple entries in the form: `item_kind.item_name.style_property = style_value`.
+
+The `item_kind.item_name` part specifies for which items of the lexer it should apply, for example:
+the "keyword" token, the "search" indicator, or simply the caret style.
+
+The `style_property` indicates what attribute should be set, for example: the font size, the background color.
+
+Finally, the `style_value` is the value the `style_property` should be set to, for example: a color, a size, a
+font name.
+
+Item types
+----------
+
+Editor properties
++++++++++++++++++
+
+If `item_kind` is `base`, `item_name` can be:
+
+* `text`: applies to normal text
+* `selection`': applies to selected text
+* `whitespace`
+* `caret`: applies to caret, for `foreground`, or whole line under cursor, for `background` (if set visible)
+* `hotspot`
+* `matchedbrace`: for a brace under cursor, which has a corresponding matching brace
+* `unmatchedbrace`: for a brace under cursor, which doesn't have a corresponding matching brace
+* `margin`: for the margin column
+
+The valid `style_property` are `foreground`, `background`, `font`, `points`, `bold`, `italic`, `underline`.
+
+Tokens
+++++++
+
+If `item_kind` is `token`, `item_name` is the token name, which corresponds to one style in `QsciLexer`.
+
+The token name `*` is special: it matches all tokens, and is applied first, so it can be overwritten by more
+specific color scheme entries.
+
+The valid `style_property` are `foreground`, `background`, `font`, `points`, `bold`, `italic`, `underline`.
+
+Styles
+++++++
+
+If `item_kind` is `style`, `item_name` is the style name, as registered in :any:`eye.helpers.styles`.
+
+The valid `style_property` are `foreground`, `background`, `font`, `points`, `bold`, `italic`, `underline` and
+`eolfill`.
+
+Indicators
+++++++++++
+
+If `item_kind` is `indicator`, `item_name` is the indicator name (see :any:`eye.widgets.editor.Editor.indicators`)
+
+The valid `style_property` are: `foreground`, `background` and `style`.
+
+Property types
+--------------
+
+* `foreground` (or `fg`, or `color`) specifies the text color
+* `background` (or `bg`) specifies the background color
+
+* `font` specifies the font family (font name)
+* `points` specifies the font size in points
+
+* `bold` specifies whether the font is bold
+* `italic` specifies whether the font is italic
+* `underline` specifies whether the font is underline
+
+* `eolfill` specifies whether the background color applies to the rest of the line, after last character
+
+* `style` specifies which indicator style should be used, e.g. `StraightBoxIndicator`
+
+
+Module contents
+===============
+
+"""
+
 from six.moves.configparser import SafeConfigParser
 from logging import getLogger
 
@@ -128,7 +226,7 @@ class EditorModificator(Modificator):
 			qc = QColorAlpha(strvalue)
 			self.editor.setCaretLineBackgroundColor(qc)
 		else:
-			raise UnsupportedModification()
+			raise UnsupportedModification('only elements in %s are supported for caret' % (FG_ATTRS + BG_ATTRS))
 
 	def setColor(self, qc, element):
 		attrs = {
@@ -160,7 +258,7 @@ class EditorModificator(Modificator):
 
 	def setFont(self, fontAttr, value, element):
 		if element != 'text':
-			raise UnsupportedModification()
+			raise UnsupportedModification('only "text" is supported')
 		# margin.* lacks a Editor.marginsFont()
 
 		font = self.editor.font()
@@ -247,8 +345,8 @@ def applySchemeDictToEditor(dct, editor):
 		mod = modificator_type(editor, subkey, value)
 		try:
 			mod.apply()
-		except UnsupportedModification:
-			LOGGER.warning('%s is not supported', key)
+		except UnsupportedModification as exc:
+			LOGGER.warning('%s is not supported: %s', key, exc.message)
 
 
 def applySchemeToEditor(parser, editor):
@@ -264,6 +362,13 @@ def applySchemeToEditor(parser, editor):
 
 
 def useSchemeFile(path, applyToAll=True):
+	"""Use a color scheme file
+
+	Reset current color scheme and load a new scheme file.
+
+	:param path: color scheme file
+	:param applyToAll: if True, apply to existing editor widgets
+	"""
 	global SCHEME
 
 	if path is None:
@@ -276,6 +381,15 @@ def useSchemeFile(path, applyToAll=True):
 
 
 def addSchemeFile(path, applyToAll=True):
+	"""Load a color scheme file
+
+	Unlike :any:`useSchemeFile`, it does not reset the current color scheme but adds new definitions.
+	If a previous scheme file had some definitions which are redefined in the new scheme, they are replaced by the
+	new one.
+
+	:param path: color scheme file
+	:param applyToAll: if True, apply to existing editor widgets
+	"""
 	global SCHEME
 
 	if SCHEME is None:
@@ -305,5 +419,6 @@ def applySchemeOnLexerChange(editor, lexer):
 
 
 def setEnabled(enabled=True):
+	"""Enabled/disable automatic color scheme application to editors"""
 	applySchemeOnCreate.enabled = enabled
 	applySchemeOnLexerChange.enabled = enabled
