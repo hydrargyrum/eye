@@ -87,6 +87,7 @@ class App(QApplication):
 		parser = argparse.ArgumentParser()
 		parser.add_argument('files', metavar='FILE', nargs='*')
 		parser.add_argument('--debug', action='store_true', default=False)
+		parser.add_argument('--debug-only', action='append', default=[])
 		parser.add_argument('--no-config', action='store_true', default=False)
 
 		argv = self.arguments()[1:]
@@ -94,6 +95,13 @@ class App(QApplication):
 
 		if self.args.debug:
 			self.logger.handlers[0].setLevel(logging.DEBUG)
+		for logger_name in self.args.debug_only:
+			handler = logging.StreamHandler()
+			handler.setFormatter(logging.Formatter('%(levelname)s:%(name)s:%(message)s'))
+			handler.setLevel(logging.DEBUG)
+
+			logger = logging.getLogger(logger_name)
+			logger.addHandler(handler)
 
 	def openCommandLineFiles(self):
 		if not self.args.files:
