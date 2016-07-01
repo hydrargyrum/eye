@@ -115,7 +115,7 @@ def registerIntentListener(intent_type, categories=None, stackoffset=0):
 				return bool(res)
 			return False
 
-		return wrapper
+		return cb
 	return decorator
 
 
