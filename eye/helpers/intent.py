@@ -109,7 +109,10 @@ def registerIntentListener(intent_type, categories=None, stackoffset=0):
 		@wraps(cb)
 		def wrapper(obj, ev):
 			if getattr(cb, 'enabled', True) and ev.intent_type == intent_type:
-				return cb(obj, ev)
+				res = cb(obj, ev)
+				if res and not ev.isAccepted():
+					ev.accept(res)
+				return bool(res)
 			return False
 
 		return wrapper
@@ -144,6 +147,10 @@ def dummyListener(source, intent):
 	If the function handled the intent, it should return True to mark the intent has having been already processed.
 	Consequently, no more callbacks are called for this intent, to avoid it being handled multiple times.
 
+	If the function handled the intent and returned a "truthy" value, but it did not call :any:`Intent.accept`,
+	the Intent is automatically accepted and the value returned by the function is considered to be the `Intent`
+	result (:any:`Intent.result`).
+
 	If the function didn't handle the intent, it should return False, so other callbacks have a chance
 	to handle it.
 
@@ -162,6 +169,5 @@ def dummyListener(source, intent):
 def defaultOpenEditor(source, ev):
 	from .buffers import openEditor
 
-	openEditor(ev.info.path, ev.info.get('loc'))
-	ev.accept()
-	return True
+	editor = openEditor(ev.info.path, ev.info.get('loc'))
+	return editor
