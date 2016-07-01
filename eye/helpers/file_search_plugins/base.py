@@ -2,6 +2,10 @@
 
 from PyQt5.QtCore import QObject, pyqtSignal as Signal
 
+from ...three import str
+from ...qt import Slot
+
+
 __all__ = ('registerPlugin', 'SearchPlugin', 'enabledPlugins', 'getPlugin')
 
 
@@ -87,10 +91,12 @@ class SearchPlugin(QObject):
 	def searchRootPath(cls, path):
 		raise NotImplementedError()
 
+	@Slot()
 	def interrupt(self):
 		"""Interrupt a running search"""
 		pass
 
+	@Slot(str, str)
 	def search(self, path, pattern, **options):
 		raise NotImplementedError()
 
