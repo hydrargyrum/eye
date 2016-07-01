@@ -20,6 +20,10 @@ LOGGER = getLogger(__name__)
 class GrepProcess(SimpleBuilder):
 	reobj = re.compile('^(?P<path>.+):(?P<line>\d+):(?P<snippet>.*)$')
 
+	def __init__(self, **kwargs):
+		super(GrepProcess, self).__init__(**kwargs)
+		self.removeCategory('builder')
+
 
 class GrepLike(SearchPlugin):
 	cmd_base = None
