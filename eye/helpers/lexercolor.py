@@ -109,6 +109,7 @@ from ._lexercolorgroups import getIdAndAliases
 from .styles import STYLES
 
 __all__ = ('setEnabled', 'useSchemeFile', 'addSchemeFile',
+           'lexerSetFontFamily', 'lexerSetFontPointSize',
            'applySchemeToEditor', 'applySchemeDictToEditor',
            'applySchemeOnLexerChange', 'applySchemeOnCreate')
 
@@ -426,3 +427,46 @@ def setEnabled(enabled=True):
 	"""Enabled/disable automatic color scheme application to editors"""
 	applySchemeOnCreate.enabled = enabled
 	applySchemeOnLexerChange.enabled = enabled
+
+
+def _lexerSetFont(lexer, cb, style):
+	if style >= 0:
+		font = lexer.font(style)
+		cb(font)
+		lexer.setFont(font, style)
+		return
+
+	for i in range(1 << lexer.styleBitsNeeded()):
+		desc = lexer.description(i)
+		if desc:
+			_lexerSetFont(lexer, cb, i)
+
+
+def lexerSetFontFamily(lexer, family, style=-1):
+	"""Set the font family of a lexer
+
+	Set just the font family for `style` of `lexer`.
+	Like :any:`QsciLexer.setFont`, but only change the font family, not font size or weight.
+
+	:param lexer: the lexer to change
+	:type lexer: QsciLexer
+	:param family: font family to use
+	:param style: if negative, modifies all styles of `lexer`
+	"""
+	cb = lambda font: font.setFamily(family)
+	_lexerSetFont(lexer, cb, style)
+
+
+def lexerSetFontPointSize(lexer, size, style=-1):
+	"""Set the font size of a lexer
+
+	Set just the font size for `style` of `lexer`.
+	Like :any:`QsciLexer.setFont`, but only change the font size, not font family or weight.
+
+	:param lexer: the lexer to change
+	:type lexer: QsciLexer
+	:param size: font size to use (in points)
+	:param style: if negative, modifies all styles of `lexer`
+	"""
+	cb = lambda font: font.setPointSize(size)
+	_lexerSetFont(lexer, cb, style)
