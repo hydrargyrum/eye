@@ -142,6 +142,7 @@ def getStyleByDesc(lexer, desc, fuzzy=False):
 
 
 def parseBool(s):
+	s = s.lower()
 	if s in ['1', 'true', 'yes', 'y', 'on']:
 		return True
 	elif s in ['0', 'false', 'no', 'n', 'off']:
