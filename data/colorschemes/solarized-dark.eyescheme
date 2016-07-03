@@ -24,11 +24,13 @@ cyan=#2aa198
 green=#859900
 
 [*]
+base.margin.bg=%(base02)s
 base.text.bg=%(base03)s
 token._default.bg=%(base03)s
 token.*.bg=%(base03)s
 base.caret.bg=%(base02)s
 
+base.margin.fg=%(base0)s
 base.text.fg=%(base0)s
 token._default.fg=%(base0)s
 token.*.fg=%(base0)s
