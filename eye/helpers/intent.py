@@ -13,12 +13,12 @@ When the intent has been handled, callback processing for this intent stops.
 Internally, intents are events and intent listeners are event filters.
 """
 
-from PyQt5.QtCore import QCoreApplication, QEvent
+from PyQt5.QtCore import QCoreApplication, QEvent, QObject
 
 from functools import wraps
 import logging
 
-from ..connector import registerEventFilter
+from ..connector import registerEventFilter, CategoryMixin
 from ..structs import PropDict
 
 
@@ -130,6 +130,9 @@ def sendIntent(source, intent_type, **kwargs):
 	:param kwargs: extra info about the intent
 	:returns: the result of the intent, if any
 	"""
+	if source is None:
+		source = DefaultSender()
+
 	event = IntentEvent(intent_type, source=source, **kwargs)
 	QCoreApplication.sendEvent(source, event)
 	if not event.isAccepted():
@@ -171,3 +174,9 @@ def defaultOpenEditor(source, ev):
 
 	editor = openEditor(ev.info.path, ev.info.get('loc'))
 	return editor
+
+
+class DefaultSender(QObject, CategoryMixin):
+	def __init__(self):
+		super(DefaultSender, self).__init__()
+		self.addCategory('default_sender')
