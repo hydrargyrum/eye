@@ -14,16 +14,18 @@ __all__ = ('ETagSearch',)
 LOGGER = logging.getLogger(__name__)
 
 
-class TagParser(object):
+class ETagsParser(object):
 	START = 0
 	SECTION_HEADER = 1
 	SECTION_DATA = 2
 	END = 3
 
-	def __init__(self, file, db):
-		super(TagParser, self).__init__()
-		self.file = file
-		self.db = db
+	def __init__(self, path):
+		super(ETagsParser, self).__init__()
+		self.path = path
+
+		self.state = None
+		self.fd = None
 		self.current_filename = None
 
 	def parse(self):
@@ -33,42 +35,61 @@ class TagParser(object):
 			self.SECTION_DATA: self.parse_data
 		}
 
-		state = TagParser.START
-		while state != TagParser.END:
-			state = funcs[state]()
+		LOGGER.debug('parsing tags database %r', self.path)
+
+		with open(self.path, 'rb') as self.fd:
+			self.state = self.START
+			while self.state != self.END:
+				res = funcs[self.state]()
+				if res is not None:
+					yield res
 
 	def parse_start(self):
-		return self.SECTION_DATA
+		self.state = self.SECTION_DATA
 
 	def parse_header(self):
-		line = self.file.readline().rstrip('\n')
-		self.current_filename, size = line.rsplit(',', 1)
-		return self.SECTION_DATA
+		line = self.fd.readline().rstrip(b'\n')
+		self.current_filename, size = line.rsplit(b',', 1)
+		self.current_filename = self.current_filename.decode('utf-8')
+		self.current_filename = os.path.join(os.path.dirname(self.path), self.current_filename)
+		self.state = self.SECTION_DATA
 
 	def parse_data(self):
-		line = self.file.readline().rstrip('\n')
+		line = self.fd.readline().rstrip(b'\n')
 		if not line:
-			return TagParser.END
-		elif line == '\x0c':
-			return self.SECTION_HEADER
+			self.state = self.END
+		elif line == b'\x0c':
+			self.state = self.SECTION_HEADER
 		else:
 			next = line
-			definition, next = next.split('\x7f', 1)
-			name, next = next.split('\x01', 1)
-			linenumber, offset = next.split(',')
+			definition, next = next.split(b'\x7f', 1)
+			name, next = next.split(b'\x01', 1)
+			linenumber, offset = next.split(b',')
 
-			self.db.add_tag(name, self.current_filename, linenumber, offset, definition)
-			return TagParser.SECTION_DATA
+			linenumber = int(linenumber)
+			#definition = definition.decode('utf-8')
+			try:
+				name = name.decode('utf-8')
+			except UnicodeDecodeError:
+				name = name.decode('latin-1')
+
+			self.state = self.SECTION_DATA
+			return {
+				'tag': name,
+				'path': self.current_filename,
+				'line': linenumber,
+			}
 
 
-class ETagDb(object):
+class TagDb(object):
 	def __init__(self):
-		super(ETagDb, self).__init__()
+		super(TagDb, self).__init__()
 		self.db = {}
 
-	def add_tag(self, name, filename, line, offset, definition):
-		d = {'path': filename, 'line': line, 'tag_name': name, 'col': offset, 'definition': definition}
-		occurences = self.db.setdefault(name, [])
+	def add_tag(self, d):
+		LOGGER.debug('adding tag %r', d)
+
+		occurences = self.db.setdefault(d['tag'], [])
 		occurences.append(d)
 
 	def find_tag(self, name):
@@ -89,7 +110,7 @@ def findTagFile(path):
 
 
 @registerPlugin
-class ETagSearch(SearchPlugin):
+class ETagsSearch(SearchPlugin):
 	id = 'etags'
 
 	@classmethod
@@ -100,19 +121,22 @@ class ETagSearch(SearchPlugin):
 	def searchRootPath(cls, path):
 		return findTagDir(path)
 
-	def _dbInDir(self, root):
-		f = os.path.join(root, 'TAGS')
-		db = ETagDb()
-		parser = TagParser(f, db)
-		parser.parse()
-		return db
-		# TODO cache tag db per project/dir?
+	def loadDb(self, dbpath):
+		self.db = TagDb()
+		self.parser = ETagsParser(dbpath)
+		for taginfo in self.parser.parse():
+			self.db.add_tag(taginfo)
 
 	def search(self, root, pattern, **options):
 		self.started.emit()
+
 		try:
-			db = self._dbInDir(root)
-			for match in db.find_tag(pattern):
+			dbpath = findTagFile(root)
+			if not dbpath:
+				return
+
+			self.loadDb(dbpath)
+			for match in self.db.find_tag(pattern):
 				self.found.emit(match)
 		finally:
-			self.finished.emit()
+			self.finished.emit(0)
