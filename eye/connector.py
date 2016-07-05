@@ -209,9 +209,11 @@ class EventConnector(QObject):
 		oc = obj.categories()
 
 		for lis in self.allListeners:
-			if cat in lis.categories:
-				if lis.categories <= oc:
+			if lis.categories:
+				if cat in lis.categories and lis.categories <= oc:
 					self.doConnect(obj, lis, cat)
+			elif len(obj.categories()) == 1:
+				self.doConnect(obj, lis, cat)
 		self.categoryAdded.emit(obj, cat)
 
 	def removeCategory(self, obj, cat):
