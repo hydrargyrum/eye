@@ -1,12 +1,9 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
-Signal = pyqtSignal
-Slot = pyqtSlot
-
-import bisect
+from contextlib import contextmanager
 import re
-import unittest
+
+from PyQt5.QtCore import QObject, QTimer, pyqtSignal as Signal, pyqtSlot as Slot, QElapsedTimer
 
 from ..connector import registerSignal, CategoryMixin
 from ..widgets.editor import HasWeakEditorMixin
@@ -21,10 +18,11 @@ __all__ = ('openSearchLine', 'searchForward', 'searchBackward',
 
 class SearchProps(structs.PropDict):
 	def __init__(self, **kwargs):
+		super(SearchProps, self).__init__()
+
 		self.isRe = False
 		self.caseSensitive = False
 		self.whole = False
-
 		self.update(**kwargs)
 
 
@@ -45,7 +43,7 @@ def props_to_re(props):
 class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 	started = Signal()
 	found = Signal(int, int)
-	finished = Signal()
+	finished = Signal(int)
 
 	def __init__(self, editor=None, indicatorName=None, props=None, **kwargs):
 		super(SearchObject, self).__init__(**kwargs)
@@ -56,21 +54,55 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 		if not self.indicator:
 			self.indicator = editor.createIndicator(indicatorName, 0)
 
+		self.timer = QTimer(self)
+		self.timer.timeout.connect(self._searchBatch)
+
+		self.start_line = 0
+		self.reobj = None
+
 		self.addCategory('search_object')
 
+	@contextmanager
+	def safeBatch(self):
+		try:
+			yield
+		except:
+			self.timer.stop()
+			self.finished.emit(0)
+			raise
+
 	def searchAllPy(self):
-		reobj = props_to_re(self.props)
+		if not self.props.expr:
+			return
 
-		cache = TextCache(self.editor.text())
+		self.reobj = props_to_re(self.props)
+		self.start_line = 0
 
-		self.indicator.clear()
 		self.started.emit()
-		for mtc in reobj.finditer(cache.text):
-			startl, startc = cache.lineIndexFromOffset(mtc.start())
-			endl, endc = cache.lineIndexFromOffset(mtc.end())
-			self.indicator.putAt(startl, startc, endl, endc)
-			self.found.emit(mtc.start(), mtc.end())
-		self.finished.emit()
+
+		with self.safeBatch():
+			self.indicator.clear()
+			self.timer.start()
+
+	@Slot()
+	def _searchBatch(self):
+		with self.safeBatch():
+			start_time = QElapsedTimer()
+			start_time.start()
+
+			for self.start_line in range(self.start_line, self.editor.lines()):
+				if start_time.hasExpired(10):
+					return
+
+				linetext = self.editor.text(self.start_line)
+				for mtc in self.reobj.finditer(linetext):
+					offset_start = self.editor.positionFromLineIndex(self.start_line, mtc.start())
+					offset_end = self.editor.positionFromLineIndex(self.start_line, mtc.end())
+					self.indicator.putAtOffset(offset_start, offset_end)
+					self.found.emit(offset_start, offset_end)
+
+			self.timer.stop()
+			self.finished.emit(0)
 
 	def searchAll(self):
 		self.indicator.clear()
@@ -122,29 +154,6 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 			self._seekForward(start, wrap)
 		else:
 			self._seekBackward(start, wrap)
-
-
-class TextCache(object):
-	def __init__(self, text):
-		self.text = text
-		self.lines = [0]
-
-	def lineIndexFromOffset(self, pos):
-		line = bisect.bisect(self.lines, pos) - 1
-		if line + 1 >= len(self.lines):
-			while pos > self.lines[-1]:
-				newpos = self.text.find('\n', self.lines[-1])
-				if newpos < 0:
-					newpos = len(self.text)
-				else:
-					newpos += 1
-				self.lines.append(newpos)
-
-			line = bisect.bisect(self.lines, pos) - 1
-
-		line_pos = self.lines[line]
-		index = pos - line_pos
-		return line, index
 
 
 def openSearchLine():
@@ -205,31 +214,3 @@ def searchForward(editor):
 
 def searchBackward(editor):
 	_searchNext(editor, False)
-
-
-class CacheTests(unittest.TestCase):
-	def test_base(self):
-		cache = TextCache(
-"""01
-3456
-890
-23
-5
-78
-0""")
-		self.assertEquals((0, 0), cache.lineIndexFromOffset(0))
-		self.assertEquals((0, 1), cache.lineIndexFromOffset(1))
-		self.assertEquals((1, 0), cache.lineIndexFromOffset(3))
-		self.assertEquals((1, 2), cache.lineIndexFromOffset(5))
-		self.assertEquals((2, 0), cache.lineIndexFromOffset(8))
-		self.assertEquals((2, 1), cache.lineIndexFromOffset(9))
-		self.assertEquals((2, 1), cache.lineIndexFromOffset(9))
-		self.assertEquals((3, 0), cache.lineIndexFrom(Offset12))
-		#~ self.assertEquals((3, 1), cache.lineIndexFromCp(0xD))
-		self.assertEquals((4, 0), cache.lineIndexFromOffset(15))
-		self.assertEquals((4, 0), cache.lineIndexFromOffset(15))
-		self.assertEquals((6, 0), cache.lineIndexFromOffset(20))
-
-
-if __name__ == '__main__':
-	unittest.main()
