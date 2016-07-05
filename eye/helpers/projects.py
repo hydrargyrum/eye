@@ -21,7 +21,6 @@ import os
 import re
 from six.moves.configparser import RawConfigParser, NoOptionError, Error
 from logging import getLogger
-from weakref import WeakValueDictionary
 from six import StringIO
 
 from ..connector import registerSignal, disabled
@@ -29,6 +28,7 @@ from ..utils import exceptionLogging
 from ..reutils import glob2re
 from .. import pathutils
 from .. import lexers
+from .confcache import ConfCache
 
 
 __all__ = ('Project', 'findProjectForFile', 'getProjectForFile',
@@ -44,8 +44,10 @@ __all__ = ('Project', 'findProjectForFile', 'getProjectForFile',
 # TODO: use a negative cache? to avoid looking each time if no project
 
 LOGGER = getLogger(__name__)
-PROJECT_CACHE = WeakValueDictionary()
+
+
 PROJECT_FILENAME = '.editorconfig'
+
 
 class Project(QObject):
 	def __init__(self):
@@ -160,6 +162,13 @@ class Project(QObject):
 			applyPreOptionsDict(editor, options)
 		else:
 			LOGGER.debug('no options apply to editor %r', editor.path)
+
+
+class ProjectCache(ConfCache):
+	pass
+
+
+PROJECT_CACHE = ProjectCache()
 
 
 TRUE_STRINGS = ['true', 'yes', 'on', '1']
@@ -303,7 +312,7 @@ def openProjectFile(filepath):
 	project = Project()
 	if not project.load(filepath):
 		return None
-	PROJECT_CACHE[filepath] = project
+	PROJECT_CACHE.addConf(filepath, project)
 
 	return project
 
