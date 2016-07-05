@@ -13,10 +13,10 @@ When the intent has been handled, callback processing for this intent stops.
 Internally, intents are events and intent listeners are event filters.
 """
 
-from PyQt5.QtCore import QCoreApplication, QEvent, QObject
-
 from functools import wraps
 import logging
+
+from PyQt5.QtCore import QCoreApplication, QEvent, QObject
 
 from ..connector import registerEventFilter, CategoryMixin
 from ..structs import PropDict
@@ -26,7 +26,7 @@ __all__ = ('IntentEvent', 'registerIntentListener', 'dummyListener', 'sendIntent
            'defaultOpenEditor')
 
 
-LOGGER = logging.getLogger()
+LOGGER = logging.getLogger(__name__)
 
 
 class IntentEvent(QEvent):
