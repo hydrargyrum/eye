@@ -1,0 +1,5 @@
+[FORMAT]
+indent-string = "\t"
+
+[TYPECHECK]
+ignored-modules = PyQt5.QtWidgets, PyQt5.QtGui, PyQt5.QtCore, sip, PyQt5.Qsci
