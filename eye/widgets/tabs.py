@@ -3,10 +3,9 @@
 """Tab widget
 """
 
-from PyQt5.QtCore import pyqtSignal, Qt, QMimeData
+from PyQt5.QtCore import pyqtSignal as Signal, Qt, QMimeData
 from PyQt5.QtGui import QPolygon, QDrag
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget
-Signal = pyqtSignal
 
 from .. import consts
 from ..three import str
@@ -246,7 +245,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 
 		See :any:`closeTab`.
 		"""
-		for i in range(self.count()):
+		for _ in range(self.count()):
 			w = self.widget(0)
 			if w.closeFile():
 				self.removeTab(0)

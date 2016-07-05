@@ -1,8 +1,8 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtWidgets import QRubberBand
-
 from logging import getLogger
+
+from PyQt5.QtWidgets import QRubberBand
 
 
 LOGGER = getLogger(__name__)

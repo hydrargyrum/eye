@@ -1,9 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLabel
-Signal = pyqtSignal
-Slot = pyqtSlot
 
 from .helpers import CategoryMixin
 

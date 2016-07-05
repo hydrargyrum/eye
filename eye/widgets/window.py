@@ -1,11 +1,10 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDockWidget, QWidget
-Signal = pyqtSignal
-
 import os
 from weakref import ref
+
+from PyQt5.QtCore import Qt, pyqtSignal as Signal
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDockWidget, QWidget
 
 from ..three import str
 from ..qt import Slot

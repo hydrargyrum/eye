@@ -1,9 +1,9 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import QProcess, pyqtSignal as Signal, pyqtSlot as Slot
-
 import logging
 import os
+
+from PyQt5.QtCore import QProcess, pyqtSignal as Signal, pyqtSlot as Slot
 
 from .three import str, bytes
 

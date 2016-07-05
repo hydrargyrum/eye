@@ -3,18 +3,18 @@
 """Interactive evaluator console
 """
 
-from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget
+from __future__ import print_function
 
-from six import StringIO, exec_
 import sys
 import traceback
+
+from PyQt5.QtCore import pyqtSlot as Slot, Qt
+from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget
+from six import StringIO, exec_
 
 from ..three import bytes
 from ..app import qApp
 from .helpers import WidgetMixin
-
-Slot = pyqtSlot
 
 __all__ = ('EvalConsole',)
 
@@ -101,7 +101,7 @@ class EvalConsole(QWidget, WidgetMixin):
 					print(repr(res))
 				return
 			exec_(line, self.namespace)
-		except Exception as e:
+		except Exception:
 			traceback.print_exc()
 
 	@Slot()

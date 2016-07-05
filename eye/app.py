@@ -9,9 +9,8 @@ import sys
 import sip
 sip.setapi('QString', 2)
 
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal as Signal
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow
-Signal = pyqtSignal
 
 qApp = lambda: QApplication.instance()
 

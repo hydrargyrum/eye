@@ -16,11 +16,10 @@ splits. For example, it's possible to have editors layed out this way in a windo
 Each split may contain a :any:`eye.widgets.tabs.TabWidget`, containing a single or multiple tabs.
 """
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QPoint, QRect, QTimer
-from PyQt5.QtWidgets import QSplitter, QWidget, QStackedLayout
-Signal = pyqtSignal
-
 import logging
+
+from PyQt5.QtCore import Qt, QPoint, QRect, QTimer
+from PyQt5.QtWidgets import QSplitter, QWidget, QStackedLayout
 
 from .. import consts
 from .helpers import WidgetMixin

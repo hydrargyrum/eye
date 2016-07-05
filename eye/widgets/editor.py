@@ -22,20 +22,18 @@ Module contents
 ---------------
 """
 
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from PyQt5.Qsci import QsciScintilla, QsciStyledText
-import sip
-Signal = pyqtSignal
-
-import six
-
 import os
 import re
 import contextlib
 from collections import namedtuple
 from weakref import ref
 from logging import getLogger
+
+from PyQt5.QtCore import pyqtSignal as Signal
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.Qsci import QsciScintilla, QsciStyledText
+import sip
+import six
 
 from ..three import bytes, str
 from .helpers import CentralWidgetMixin, acceptIf

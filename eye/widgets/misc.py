@@ -1,12 +1,10 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtWidgets import QPlainTextEdit, QLabel, QWidget
-Signal = pyqtSignal
-Slot = pyqtSlot
-
 import logging
 from weakref import ref
+
+from PyQt5.QtCore import pyqtSlot as Slot
+from PyQt5.QtWidgets import QPlainTextEdit, QLabel, QWidget
 
 from ..app import qApp
 from .helpers import WidgetMixin

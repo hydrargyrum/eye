@@ -48,11 +48,11 @@ Module contents
 ---------------
 """
 
-from PyQt5.QtCore import QObject, pyqtSignal as Signal
-
 import inspect
 from logging import getLogger
 import weakref
+
+from PyQt5.QtCore import QObject, pyqtSignal as Signal
 
 from .qt import Slot
 from .three import bytes, str
