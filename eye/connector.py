@@ -224,9 +224,7 @@ class EventConnector(QObject):
 		self.categoryRemoved.emit(obj, cat)
 
 	def objectsMatching(self, categories):
-		if isinstance(categories, (bytes, str)):
-			categories = (categories,)
-		categories = frozenset(categories)
+		categories = frozenset(to_stringlist(categories))
 		return [obj for obj in self.allObjects if categories <= obj.categories()]
 
 	def deleteCreatedBy(self, caller):
@@ -241,7 +239,10 @@ class EventConnector(QObject):
 
 
 class CategoryMixin(object):
-	"""Mixin class to support object categories."""
+	"""Mixin class to support object categories.
+
+	This class should be inherited by classes of objects which should have categories.
+	"""
 
 	def __init__(self, **kwargs):
 		super(CategoryMixin, self).__init__(**kwargs)
@@ -272,22 +273,25 @@ def peekSet(s):
 
 
 def isAncestorOf(ancestor, child):
+	"""Return True if `ancestor` is an ancestor of `child`, QObject-tree-wise."""
 	while child is not None:
-		if child == ancestor:
+		if child is ancestor:
 			return True
 		child = child.parent()
 	return False
 
 
-def categoryObjects(cats, ancestor=None):
+def categoryObjects(categories, ancestor=None):
 	"""Return objects matching all specified categories.
 
+	:param categories: matching object should match _all_ these categories
+	:type categories: list or str
 	:param ancestor: if not None, only objects that are children of `ancestor` are returned
 	"""
 	if ancestor is None:
-		return CONNECTOR.objectsMatching(cats)
+		return CONNECTOR.objectsMatching(categories)
 	else:
-		return [obj for obj in CONNECTOR.objectsMatching(cats) if isAncestorOf(ancestor, obj)]
+		return [obj for obj in CONNECTOR.objectsMatching(categories) if isAncestorOf(ancestor, obj)]
 
 
 def deleteCreatedBy(caller):
@@ -310,6 +314,12 @@ def registerSignal(categories, signal, stackoffset=0):
 
 	When the `signal` of all existing and future objects matching all specified `categories`
 	is emitted, the decorated function will be called.
+
+	When called, the decorated function will received the target object as first argument, then
+	the signal arguments as next arguments.
+
+	:param categories: the categories to match
+	:type categories: list or str
 
 	Example::
 
@@ -337,11 +347,14 @@ def registerSetup(categories, stackoffset=0):
 	the specified `categories`, the decorated function will be called.
 	Also, when the function is decorated, it is called for all existing objects matching `categories`.
 
+	The decorated function will received the matching object as only argument.
+
 	:param categories: the categories to match
+	:type categories: list or str
 
 	Example::
 
-		@registerConnect('editor')
+		@registerSetup('editor')
 		def foo(editor_obj):
 			print('an editor has been created')
 	"""
@@ -374,6 +387,37 @@ def registerTeardown(categories, stackoffset=0):
 
 
 def registerEventFilter(categories, eventTypes, stackoffset=0):
+	"""Decorate a function that should be run when an event is sent to an object.
+
+	When a :any:`PyQt5.QtCore.QEvent` object of a type in `eventTypes` is sent to an object
+	matching `categories`, the decorated function will be called.
+
+	The decorated function must take 2 parameters: the destination object to which the event
+	is sent and the event itself.
+
+	If the value returned by the decorated function is True, the sent event will be filtered:
+	it will not reach the destination object, and it will not be processed by any other
+	event-filters, registered by standard Qt functions or by :any:`registerEventFilter`.
+
+	If the value returned by the decorated function is False or is omitted (it is None then),
+	the event will continue its route through other event-filters and to the destination
+	object.
+
+	See also :any:`PyQt5.QtCore.QObject.eventFilter` and
+	:any:`PyQt5.QtCore.QObject.installEventFilter`.
+
+	Example::
+
+		@registerEventFilter('window', [QEvent.Close])
+		def onWinClose(window, event):
+			print('the %s window was closed' % window)
+
+	:param categories: the categories to match
+	:type categories: list or str
+	:param eventTypes: list of accepted ``QEvent.type()`` the sent event should match
+	:type eventTypes: list of ints
+	:rtype: bool
+	"""
 	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
@@ -388,7 +432,23 @@ def registerEventFilter(categories, eventTypes, stackoffset=0):
 
 
 def disabled(func):
-	"""Disable a function decorated with registerSignal."""
+	"""Disable a function previously decorated with a listener like registerSignal.
+
+	If the decorated function (`func`) has been decorated with :any:`registerSignal`,
+	:any:`registerEventFilter` or some other kind of listener decorator, the decorated function
+	will not be called anymore when a matching signal is emitted or a event has to pass in a
+	filter, until it is enabled again.
+
+	This decorator simply sets an ``enabled`` attribute on the decorated function to False.
+	To re-enable the disabled function, just set the ``enabled`` attribute to True.
+
+	When the function is re-enabled, missed signals and events will not cause the decorated
+	function to be called, but upcoming signals/events will trigger the decorated function.
+
+	Since functions decorated with :any:`registerSetup` can be triggered only when an object
+	_starts_ matching categories, re-enabling such a function will not catch-up the setup of
+	an object.
+	"""
 	func.enabled = False
 	return func
 
@@ -398,6 +458,7 @@ defaultEditorConfig = registerSetup('editor')
 """Decorate a function that should be called for every editor.
 
 This decorator is intended for functions to configure editor widgets.
+See also :any:`registerSetup`.
 """
 
 defaultWindowConfig = registerSetup('window')
@@ -405,6 +466,7 @@ defaultWindowConfig = registerSetup('window')
 """Decorate a function that should be called for every EYE window.
 
 This decorator is intended for functions to configure EYE windows.
+See also :any:`registerSetup`.
 """
 
 defaultLexerConfig = registerSignal(['editor'], 'lexerChanged')

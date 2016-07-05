@@ -1121,8 +1121,12 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		return ret
 
 	def _newlineString(self):
-		modes = {QsciScintilla.SC_EOL_LF: '\n', QsciScintilla.SC_EOL_CRLF: '\r\n',
-		         QsciScintilla.SC_EOL_CR: '\r'}
+		modes = {
+			QsciScintilla.SC_EOL_LF: '\n',
+			QsciScintilla.SC_EOL_CR: '\r',
+			QsciScintilla.SC_EOL_CRLF: '\r\n',
+		}
+
 		return modes.get(self.eolMode(), '\n')
 
 	def _readText(self, data):

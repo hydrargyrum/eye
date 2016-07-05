@@ -8,7 +8,7 @@ import re
 import unittest
 
 
-__all__ = ('csToQtEnum', 'qtEnumToCs', 'qreToPattern')
+__all__ = ('csToQtEnum', 'qtEnumToCs', 'qreToPattern', 'glob2re')
 
 
 def csToQtEnum(cs):
@@ -31,12 +31,12 @@ def glob2re(globstr, can_escape=False, dotslash=DOTSLASH_NO_SLASH_AND_HIDDEN,
             exact=False, double_star=False, sets=False):
 	"""Convert a globbing pattern to a Python regex pattern
 
-	If exact is True, the pattern will match the start and end of string
-	If double_star is True, "**" is interpreted to match a indefinite number
-	of path components.
-	If sets is True "{foo,bar}" will match "foo" or "bar"
-	If can_escape is True, backslashes can be used to escape other metacharacters,
-	else it will be literal
+	:param globstr: the glob pattern to convert
+	:param exact:  if True, the pattern will match the start and end of string (``^`` and ``$`` are added)
+	:param double_star: if True, "**" is interpreted to match a indefinite number of path components
+	:param sets: if True, "{foo,bar}" will match "foo" or "bar"
+	:param can_escape: if True, backslashes can be used to escape other metacharacters,
+	                   else it will be literal
 	"""
 	# fnmatch.translate uses python-specific syntax
 

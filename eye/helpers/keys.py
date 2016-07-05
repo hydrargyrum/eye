@@ -14,8 +14,15 @@ Within a section, each key is an action name, and the value is the description o
 Shortcut description
 ''''''''''''''''''''
 
-The shortcut description should be in a string format accepted by :doc:`QKeySequence`. Examples: ``Ctrl+S``, ``Alt+Up``.
-Optionnally, the shortcut description can be prefixed to describe the context in which the shortcut is accepted:
+The shortcut description should be in a string format accepted by :doc:`QKeySequence`.
+Examples:
+
+* ``Ctrl+S``: a simple keyboard shortcut where the S key is pressed while the Control key is held
+* ``Alt+Up``: another shortcut where the up arrow key is pressed while Alt is held
+* ``Ctrl+G,B``: a more complex shortcut, where G should be pressed while Ctrl is held, then B is
+  pressed with no other key held
+
+Optionally, the shortcut description can be prefixed to describe the context in which the shortcut is accepted:
 
 * ``widget:`` (the default): the shortcut is only recognized when the widget has focus
 * ``children:``: the shortcut is recognized if the widget or a children widget has focus
@@ -23,6 +30,30 @@ Optionnally, the shortcut description can be prefixed to describe the context in
 * ``application:``: the shortcut is recognized when the app has focus
 
 .. TODO if "window" context, can shortcut be recognized by a narrower context?
+
+File example
+''''''''''''
+
+Here's an example of a suitable ``keyboard.ini`` (see :any:`DEFAULT_KEYS_FILE`)::
+
+	# this is a comment
+
+	[editor]
+	# when Ctrl+S is pressed while a widget with "editor" category has focus,
+	# the saveFile slot of the editor is triggered
+	saveFile = Ctrl+S
+
+	[location_list]
+	# when Ctrl+P is pressed in the same window as a widget with the "location_list" widget,
+	# the activateNext slot of the location_list is triggered
+	activateNext = window:Ctrl+P
+	activatePrevious = window:Ctrl+Shift+P
+
+	[window]
+	# when Ctrl+N is pressed in any child or grandchild of a widget with "window" category,
+	# the bufferNew slot of the window is triggered
+	bufferNew = children:Ctrl+N
+	bufferClose = children:Ctrl+W
 
 Module contents
 ---------------
@@ -43,9 +74,17 @@ __all__ = ('loadKeysConfig', 'DEFAULT_KEYS_FILE')
 
 DEFAULT_KEYS_FILE = 'keyboard.ini'
 
+"""Default filename used by `loadKeysConfig`."""
+
 
 def loadKeysConfig(path=None):
-	"""Load keys config file."""
+	"""Load keys config file.
+
+	If path is ``None``, a file named :any:`DEFAULT_KEYS_FILE` will be looked for in the config
+	directory.
+
+	:param path: path of the keyboard configuration file
+	"""
 
 	if path is None:
 		path = getConfigFilePath(DEFAULT_KEYS_FILE)

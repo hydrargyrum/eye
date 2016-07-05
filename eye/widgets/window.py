@@ -82,12 +82,15 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		:type area: Qt.DockWidgetArea
 		:param widget: the widget to add
 		:param title: the (optional) title of the widget in the dock
+		:returns: the DockWidget wrapping `widget`
+		:rtype: QDockWidget
 		"""
 		dw = DockWidget()
 		if title:
 			dw.setWindowTitle(title)
-		self.addDockWidget(area, dw)
 		dw.setWidget(widget)
+		self.addDockWidget(area, dw)
+		return dw
 
 	## buffers
 	def currentBuffer(self):
