@@ -6,6 +6,7 @@ import os
 
 from .base import registerPlugin, SearchPlugin
 from ...pathutils import findAncestorContaining, findInAncestors
+from ..confcache import ConfCache
 
 
 __all__ = ('ETagSearch',)
@@ -109,6 +110,13 @@ def findTagFile(path):
 	return findInAncestors(path, ['TAGS'])
 
 
+class DbCache(ConfCache):
+	pass
+
+
+CACHE = DbCache(weak=False)
+
+
 @registerPlugin
 class ETagsSearch(SearchPlugin):
 	id = 'etags'
@@ -122,10 +130,15 @@ class ETagsSearch(SearchPlugin):
 		return findTagDir(path)
 
 	def loadDb(self, dbpath):
+		self.db = CACHE.get(dbpath)
+		if self.db:
+			return
+
 		self.db = TagDb()
 		self.parser = ETagsParser(dbpath)
 		for taginfo in self.parser.parse():
 			self.db.add_tag(taginfo)
+		CACHE.addConf(dbpath, self.db)
 
 	def search(self, root, pattern, **options):
 		self.started.emit()
