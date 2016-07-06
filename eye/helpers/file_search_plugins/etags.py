@@ -1,5 +1,8 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QTimer, QElapsedTimer
+
+from contextlib import contextmanager
 import fnmatch
 import logging
 import os
@@ -121,6 +124,16 @@ CACHE = DbCache(weak=False)
 class ETagsSearch(SearchPlugin):
 	id = 'etags'
 
+	def __init__(self, **kwargs):
+		super(ETagsSearch, self).__init__(**kwargs)
+		self.db = None
+		self.parser = None
+		self.parsing = None
+		self.request = None
+
+		self.timer = QTimer(self)
+		self.timer.timeout.connect(self._batchLoad)
+
 	@classmethod
 	def isAvailable(cls, path):
 		return bool(findTagDir(path))
@@ -129,27 +142,58 @@ class ETagsSearch(SearchPlugin):
 	def searchRootPath(cls, path):
 		return findTagDir(path)
 
+	@contextmanager
+	def safeBatch(self):
+		try:
+			yield
+		except:
+			self.timer.stop()
+			self.finished.emit(0)
+			raise
+
 	def loadDb(self, dbpath):
 		self.db = CACHE.get(dbpath)
 		if self.db:
+			self.searchInDb(self.request)
 			return
 
+		LOGGER.debug('loading db %r because it is not in cache', dbpath)
 		self.db = TagDb()
 		self.parser = ETagsParser(dbpath)
-		for taginfo in self.parser.parse():
-			self.db.add_tag(taginfo)
-		CACHE.addConf(dbpath, self.db)
+		self.parsing = self.parser.parse()
+		self.timer.start()
+
+	@Slot()
+	def _batchLoad(self):
+		with self.safeBatch():
+			duration = QElapsedTimer()
+			duration.start()
+
+			for taginfo in self.parsing:
+				self.db.add_tag(taginfo)
+
+				if duration.hasExpired(10):
+					return
+
+			CACHE.addConf(self.parser.path, self.db)
+			self.timer.stop()
+
+			LOGGER.debug('db %r has finished loading', self.parser.path)
+			self.searchInDb(self.request)
+
+	def searchInDb(self, pattern):
+		for match in self.db.find_tag(pattern):
+			self.found.emit(match)
+		self.finished.emit(0)
 
 	def search(self, root, pattern, **options):
+		self.request = pattern
 		self.started.emit()
 
-		try:
+		with self.safeBatch():
 			dbpath = findTagFile(root)
 			if not dbpath:
+				self.finished.emit(0)
 				return
 
 			self.loadDb(dbpath)
-			for match in self.db.find_tag(pattern):
-				self.found.emit(match)
-		finally:
-			self.finished.emit(0)
