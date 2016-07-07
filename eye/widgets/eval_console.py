@@ -8,7 +8,7 @@ from __future__ import print_function
 import sys
 import traceback
 
-from PyQt5.QtCore import pyqtSlot as Slot, Qt
+from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, Qt
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget
 from six import StringIO, exec_
 
@@ -20,40 +20,47 @@ __all__ = ('EvalConsole',)
 
 
 class HistoryLine(QLineEdit):
+	submitted = Signal(str)
+
 	def __init__(self, **kwargs):
 		super(HistoryLine, self).__init__(**kwargs)
-		self.lines = []
+		self.history = []
 		self.idx = None
-		self.returnPressed.connect(self._addHistory)
+		self.returnPressed.connect(self.submit)
 
 	@Slot()
+	def submit(self):
+		self._addHistory()
+		self.submitted.emit(self.text())
+		self.setText('')
+
 	def _addHistory(self):
 		self.idx = None
-		self.lines.insert(0, self.text())
+		self.history.append(self.text())
 
 	def keyPressEvent(self, ev):
 		if ev.key() == Qt.Key_Up:
 			if self.idx is None:
-				if not self.lines:
+				if not self.history:
 					return
-				self.idx = 0
-			elif self.idx + 1 < len(self.lines):
-				self.idx += 1
+				self.idx = len(self.history) - 1
+			elif self.idx > 0:
+				self.idx -= 1
 			else:
 				return
 
-			self.setText(self.lines[self.idx])
+			self.setText(self.history[self.idx])
 		elif ev.key() == Qt.Key_Down:
 			if self.idx is None:
 				return
-			elif self.idx <= 0:
+			elif self.idx + 1 >= len(self.history):
 				self.idx = None
 				self.setText('')
 				return
 			else:
-				self.idx -= 1
+				self.idx += 1
 
-			self.setText(self.lines[self.idx])
+			self.setText(self.history[self.idx])
 		else:
 			super(HistoryLine, self).keyPressEvent(ev)
 
@@ -84,7 +91,7 @@ class EvalConsole(QWidget, WidgetMixin):
 		self.display = QPlainTextEdit(self)
 		self.display.setReadOnly(True)
 		self.line = HistoryLine()
-		self.line.returnPressed.connect(self.execLine)
+		self.line.submitted.connect(self.execCode)
 
 		layout.addWidget(self.display)
 		layout.addWidget(self.line)
@@ -93,7 +100,7 @@ class EvalConsole(QWidget, WidgetMixin):
 		res = None
 		try:
 			try:
-				res = eval(line, self.namespace)
+				res = eval(line, self.namespace)  # pylint: disable=eval-used
 			except SyntaxError:
 				pass
 			else:
@@ -104,8 +111,8 @@ class EvalConsole(QWidget, WidgetMixin):
 		except Exception:
 			traceback.print_exc()
 
-	@Slot()
-	def execLine(self):
+	@Slot(str)
+	def execCode(self, code):
 		# TODO be able to define functions, do ifs, fors
 
 		import eye
@@ -114,11 +121,8 @@ class EvalConsole(QWidget, WidgetMixin):
 		self.namespace['window'] = qApp().lastWindow
 		self.namespace['editor'] = self.namespace['window'].currentBuffer()
 
-		text = self.line.text()
-		self.line.setText('')
-
-		output = u'>>> %s\n' % text
-		output += capture_output(self._exec, text)
+		output = u'>>> %s\n' % code
+		output += capture_output(self._exec, code)
 		self.display.appendPlainText(output)
 
 
