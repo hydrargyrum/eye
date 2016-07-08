@@ -5,6 +5,7 @@
 
 from __future__ import print_function
 
+import logging
 import sys
 import traceback
 
@@ -14,9 +15,13 @@ from six import StringIO, exec_
 
 from ..three import bytes
 from ..app import qApp
+from ..utils import exceptionLogging
 from .helpers import WidgetMixin
 
 __all__ = ('EvalConsole',)
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class HistoryLine(QLineEdit):
@@ -25,6 +30,7 @@ class HistoryLine(QLineEdit):
 	def __init__(self, **kwargs):
 		super(HistoryLine, self).__init__(**kwargs)
 		self.history = []
+		self.history_path = None
 		self.idx = None
 		self.returnPressed.connect(self.submit)
 
@@ -37,6 +43,17 @@ class HistoryLine(QLineEdit):
 	def _addHistory(self):
 		self.idx = None
 		self.history.append(self.text())
+
+		if self.history_path:
+			with exceptionLogging(reraise=False, logger=LOGGER):
+				with open(self.history_path, 'a') as fd:
+					print(self.text(), file=fd)
+
+	def setHistoryFile(self, path):
+		if path is not None:
+			with open(path, 'a+') as fd:
+				self.history = [line.strip() for line in fd]
+		self.history_path = path
 
 	def keyPressEvent(self, ev):
 		if ev.key() == Qt.Key_Up:
@@ -95,6 +112,8 @@ class EvalConsole(QWidget, WidgetMixin):
 
 		layout.addWidget(self.display)
 		layout.addWidget(self.line)
+
+		self.addCategory('eval_console')
 
 	def _exec(self, line):
 		res = None
