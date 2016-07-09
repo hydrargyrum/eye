@@ -5,6 +5,7 @@
 
 from __future__ import print_function
 
+import code
 import logging
 import sys
 import traceback
@@ -101,6 +102,7 @@ class EvalConsole(QWidget, WidgetMixin):
 	def __init__(self, **kwargs):
 		super(EvalConsole, self).__init__(**kwargs)
 		self.namespace = {}
+		self.interpreter = code.InteractiveInterpreter(self.namespace)
 
 		layout = QVBoxLayout()
 		self.setLayout(layout)
@@ -115,21 +117,6 @@ class EvalConsole(QWidget, WidgetMixin):
 
 		self.addCategory('eval_console')
 
-	def _exec(self, line):
-		res = None
-		try:
-			try:
-				res = eval(line, self.namespace)  # pylint: disable=eval-used
-			except SyntaxError:
-				pass
-			else:
-				if res is not None:
-					print(repr(res))
-				return
-			exec_(line, self.namespace)
-		except Exception:
-			traceback.print_exc()
-
 	@Slot(str)
 	def execCode(self, code):
 		# TODO be able to define functions, do ifs, fors
@@ -141,7 +128,7 @@ class EvalConsole(QWidget, WidgetMixin):
 		self.namespace['editor'] = self.namespace['window'].currentBuffer()
 
 		output = u'>>> %s\n' % code
-		output += capture_output(self._exec, code)
+		output += capture_output(self.interpreter.runsource, code)
 		self.display.appendPlainText(output)
 
 
