@@ -20,7 +20,6 @@ Submodules
 
    eye.helpers.actions
    eye.helpers.bookmarks
-   eye.helpers.bufferlist2
    eye.helpers.buffers
    eye.helpers.build
    eye.helpers.buildmenu
@@ -28,6 +27,7 @@ Submodules
    eye.helpers.file_monitor
    eye.helpers.file_search
    eye.helpers.folding
+   eye.helpers.intent
    eye.helpers.keys
    eye.helpers.lexer
    eye.helpers.lexercolor

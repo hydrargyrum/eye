@@ -27,6 +27,7 @@ Submodules
    eye.lexers
    eye.pathutils
    eye.procutils
+   eye.qt
    eye.reutils
    eye.structs
    eye.three
