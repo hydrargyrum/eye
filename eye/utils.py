@@ -9,6 +9,31 @@ __all__ = ('exceptionLogging', 'ignoreExceptions')
 
 @contextmanager
 def exceptionLogging(reraise=True, logger=None, level=logging.ERROR):
+	"""Context manager to log exceptions
+
+	.. py:function:: exceptionLogging(reraise=True, logger=None, level=logging.ERROR)
+
+	Within this context, if an exception is raised and not caught, the exception is logged, and the exception continues
+	upper in the stack frames.
+
+	:param reraise: if False, uncaught exceptions will be intercepted and not be raised to upper frames (but the code in
+	            this context is still interrupted and aborted)
+	:param logger: logger where to log the exceptions. If None, the root logger is used
+	:param level: level with which to log the exceptions
+
+	Example of exception interception::
+
+		try:
+			with exceptionLogging():
+				raise RuntimeError('Unexpected error')
+		except Exception as e:
+			pass
+
+		# is equivalent to
+
+		with exceptionLogging(reraise=False):
+			raise RuntimeError('Unexpected error')
+	"""
 	try:
 		yield
 	except Exception:

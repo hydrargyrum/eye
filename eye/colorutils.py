@@ -1,5 +1,7 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Utils for colors"""
+
 from __future__ import unicode_literals
 
 import unittest
@@ -12,6 +14,27 @@ from .three import bytes, str
 __all__ = ('QColorAlpha', 'QColor')
 
 def QColorAlpha(*args):
+	"""Build a QColor with alpha in one call
+
+	This function allows to create a `QColor` and set its alpha channel value in a single call.
+
+	If one argument is provided and it is a string parsable as hex, it is parsed as `#RRGGBBAA`.
+	Else, the single argument is passed to QColor and thus alpha is 255.
+	Examples::
+
+		QColorAlpha(Qt.red) # equivalent to QColor(Qt.red)
+		QColorAlpha('#ff0000') # same as previous
+		QColorAlpha('#ff00007f') # semi-transparent red
+
+	If two arguments are passed, the first is passed to QColor and the second is the alpha channel (`int` from 0 to 255)::
+
+		QColorAlpha(Qt.red, 127) # semi-transparent red
+
+	If there are more arguments, they are passed to `QColor`::
+
+		QColorAlpha(255, 0, 0) # opaque red
+		QColorAlpha(255, 0, 0, 127) # semi-transparent red
+	"""
 	if len(args) == 1:
 		if isinstance(args[0], (bytes, str)):
 			s = args[0]
