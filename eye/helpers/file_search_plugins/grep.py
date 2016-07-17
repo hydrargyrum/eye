@@ -18,7 +18,7 @@ LOGGER = getLogger(__name__)
 
 
 class GrepProcess(SimpleBuilder):
-	reobj = re.compile('^(?P<path>.+):(?P<line>\d+):(?P<snippet>.*)$')
+	pattern = '^(?P<path>.+):(?P<line>\d+):(?P<snippet>.*)$'
 
 	def __init__(self, **kwargs):
 		super(GrepProcess, self).__init__(**kwargs)

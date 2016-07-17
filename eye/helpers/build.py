@@ -128,16 +128,21 @@ def registerPlugin(cls):
 class SimpleBuilder(Builder):
 	"""Simple builder suitable for gcc-like programs
 
-	This builder is suitable for programs outputting lines in the format `"<path>:<line>:<col>: <message>"`.
+	This builder is suitable for programs outputting lines in the format specified by `pattern` attribute.
 	Lines not matching this pattern are simply discarded (but the column is optional).
+
+	The default pattern looks like `"<path>:<line>:<col>: <message>"`.
 	"""
 
-	reobj = re.compile('^(?P<path>[^:]+):(?P<line>\d+):(?:(?P<col>\d+):)? (?P<message>.*)$')
+	pattern = '^(?P<path>[^:]+):(?P<line>\d+):(?:(?P<col>\d+):)? (?P<message>.*)$'
+	pattern_flags = 0
 
 	id = 'command'
 
 	def __init__(self, **kwargs):
 		super(SimpleBuilder, self).__init__(**kwargs)
+		self.reobj = re.compile(self.pattern, self.pattern_flags)
+
 		self.proc = LineProcess()
 		self.proc.stdoutLineRead.connect(self.gotLine)
 		self.proc.stderrLineRead.connect(self.gotLine)
