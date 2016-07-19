@@ -18,6 +18,7 @@ Slot = pyqtSlot
 
 import fnmatch
 import os
+import re
 from six.moves.configparser import RawConfigParser, NoOptionError, Error
 from logging import getLogger
 from weakref import WeakValueDictionary
@@ -25,6 +26,7 @@ from six import StringIO
 
 from ..connector import registerSignal, disabled
 from ..utils import exceptionLogging
+from ..reutils import glob2re
 from .. import pathutils
 from .. import lexers
 
@@ -51,6 +53,7 @@ class Project(QObject):
 		self.dir = None
 		self.cfgpath = None
 		self.cfg = None
+		self.sections_re = None
 		self.parentProject = None
 
 	def _parseFile(self, cfgpath):
@@ -81,6 +84,13 @@ class Project(QObject):
 
 		self.dir = os.path.dirname(cfgpath)
 		self.cfgpath = cfgpath
+
+		self.sections_re = {}
+		for section in self.cfg.sections():
+			pattern = glob2re(section, double_star=True, sets=True, exact=True)
+			LOGGER.debug('parsing section %r as %r', section, pattern)
+			self.sections_re[section] = re.compile(pattern)
+
 		LOGGER.debug('loaded config %r', self.cfgpath)
 
 		try:
@@ -111,9 +121,8 @@ class Project(QObject):
 
 	def _sectionsForFile(self, relpath):
 		sections = []
-		# TODO: use glob2re to support "**" and "{}"
 		for section in self.cfg.sections():
-			if fnmatch.filter([relpath, os.path.basename(relpath)], section):
+			if self.sections_re[section].match(relpath) or self.sections_re[section].match(os.path.basename(relpath)):
 				sections.append(section)
 		sections.sort(key=len)
 
