@@ -31,8 +31,11 @@ class SimpleHandler(QObject, CategoryMixin):
 
 	@Slot(str, result=QDBusVariant)
 	@Slot(str, QDBusVariant, result=QDBusVariant)
+	@Slot(str, str, result=QDBusVariant)
 	@Slot(str, QDBusVariant, QDBusVariant, result=QDBusVariant)
+	@Slot(str, str, str, result=QDBusVariant)
 	@Slot(str, QDBusVariant, QDBusVariant, QDBusVariant, result=QDBusVariant)
+	@Slot(str, str, str, str, result=QDBusVariant)
 	@Slot(str, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, result=QDBusVariant)
 	@Slot(str, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, result=QDBusVariant)
 	@Slot(str, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant,
@@ -42,7 +45,7 @@ class SimpleHandler(QObject, CategoryMixin):
 	@Slot(str, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant, QDBusVariant,
 	      QDBusVariant, result=QDBusVariant)
 	def request(self, request_type, *args):
-		args = tuple(arg.variant() for arg in args)
+		args = tuple(arg.variant() if isinstance(arg, QDBusVariant) else arg for arg in args)
 
 		LOGGER.debug('received request %r%r', request_type, args)
 		result = sendIntent(self, 'remoteRequest', request_type=request_type, args=args)
