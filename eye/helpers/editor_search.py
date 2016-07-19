@@ -6,8 +6,9 @@ import re
 from PyQt5.QtCore import QObject, QTimer, pyqtSignal as Signal, pyqtSlot as Slot, QElapsedTimer
 
 from ..connector import registerSignal, CategoryMixin
-from ..widgets.editor import HasWeakEditorMixin
+from ..widgets.editor import HasWeakEditorMixin, SciModification
 from ..widgets import minibuffer
+from ..three import range
 from .. import structs
 from . import buffers
 
@@ -60,6 +61,8 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 		self.start_line = 0
 		self.reobj = None
 
+		self.editor.sciModified.connect(self.onModify)
+
 		self.addCategory('search_object')
 
 	@contextmanager
@@ -93,16 +96,21 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 			for self.start_line in range(self.start_line, self.editor.lines()):
 				if start_time.hasExpired(10):
 					return
-
-				linetext = self.editor.text(self.start_line)
-				for mtc in self.reobj.finditer(linetext):
-					offset_start = self.editor.positionFromLineIndex(self.start_line, mtc.start())
-					offset_end = self.editor.positionFromLineIndex(self.start_line, mtc.end())
-					self.indicator.putAtOffset(offset_start, offset_end)
-					self.found.emit(offset_start, offset_end)
+				self.searchInLine(self.start_line)
 
 			self.timer.stop()
 			self.finished.emit(0)
+
+	def searchInLine(self, lineno, erase_indicator=False):
+		if erase_indicator:
+			self.indicator.removeAt(lineno, 0, lineno + 1, 0)
+
+		linetext = self.editor.text(lineno)
+		for mtc in self.reobj.finditer(linetext):
+			offset_start = self.editor.positionFromLineIndex(lineno, mtc.start())
+			offset_end = self.editor.positionFromLineIndex(lineno, mtc.end())
+			self.indicator.putAtOffset(offset_start, offset_end)
+			self.found.emit(offset_start, offset_end)
 
 	def searchAll(self):
 		self.indicator.clear()
@@ -119,6 +127,14 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 			self.found.emit(self.editor.targetStart(), self.editor.targetEnd())
 			self.editor.setTargetRange(self.editor.targetEnd(), end)
 		self.finished.emit()
+
+	@Slot(SciModification)
+	def onModify(self, modif):
+		if modif.modificationType & (self.editor.SC_MOD_INSERTTEXT | self.editor.SC_MOD_DELETETEXT):
+			line_start, _ = self.editor.lineIndexFromPosition(modif.position)
+			line_end, _ = self.editor.lineIndexFromPosition(modif.position + modif.length)
+			for line in range(line_start, line_end + 1):
+				self.searchInLine(line, erase_indicator=True)
 
 	def getRanges(self):
 		return list(self.indicator.iterRanges())
