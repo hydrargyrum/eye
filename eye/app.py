@@ -85,24 +85,32 @@ class App(QApplication):
 		Does not return until app is quit.
 		"""
 
-		self._handleArguments()
-		win = self.initUi()
-		win.show()
+		self.parseArguments()
+		self.initLogging()
+
+		if self.args.remote and self.processRemote():
+			return
+
 		if not self.args.no_config:
 			self.runStartScripts()
+
+		win = self.initUi()
+		win.show()
 		self.openCommandLineFiles()
 		self.exec_()
 
-	def _handleArguments(self):
+	def parseArguments(self):
 		parser = argparse.ArgumentParser()
 		parser.add_argument('files', metavar='FILE', nargs='*')
 		parser.add_argument('--debug', action='store_true', default=False)
 		parser.add_argument('--debug-only', action='append', default=[])
 		parser.add_argument('--no-config', action='store_true', default=False)
+		parser.add_argument('--remote', action='store_true', default=False)
 
 		argv = self.arguments()[1:]
 		self.args = parser.parse_args(argv)
 
+	def initLogging(self):
 		if self.args.debug:
 			self.logger.handlers[0].setLevel(logging.DEBUG)
 		for logger_name in self.args.debug_only:
@@ -112,6 +120,20 @@ class App(QApplication):
 
 			logger = logging.getLogger(logger_name)
 			logger.addHandler(handler)
+
+	def processRemote(self):
+		from .helpers import remote_control
+
+		try:
+			remote_control.sendRequest('ping')
+		except ValueError as e:
+			remote_control.createServer()
+			return False
+
+		for path in self.args.files:
+			path = os.path.abspath(path)
+			remote_control.sendRequest('open', path)
+		return True
 
 	def openCommandLineFiles(self):
 		if not self.args.files:
