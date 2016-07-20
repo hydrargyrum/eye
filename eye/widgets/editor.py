@@ -29,7 +29,7 @@ from collections import namedtuple
 from weakref import ref
 from logging import getLogger
 
-from PyQt5.QtCore import pyqtSignal as Signal
+from PyQt5.QtCore import pyqtSignal as Signal, Qt
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.Qsci import QsciScintilla, QsciStyledText
 import sip
@@ -735,7 +735,6 @@ class BaseEditor(QsciScintilla):
 		super(BaseEditor, self).__init__(**kwargs)
 
 		self.SCN_MACRORECORD.connect(self.scn_macro)
-		self.SCN_MODIFIED.connect(self.scn_modified)
 		self.SCN_AUTOCCANCELLED.connect(self.scn_autoccancelled)
 
 		self.freeMarkers = []
@@ -918,6 +917,19 @@ class BaseEditor(QsciScintilla):
 	@Slot(int, int, 'const char*', int, int, int, int, int, int, int)
 	def scn_modified(self, *args):
 		self.sciModified.emit(SciModification(*args))
+
+	def connectNotify(self, sig):
+		super(BaseEditor, self).connectNotify(sig)
+		if sig.name() == b'sciModified':
+			try:
+				self.SCN_MODIFIED.connect(self.scn_modified, Qt.UniqueConnection)
+			except TypeError: # prevent duplicating connection
+				pass
+
+	def disconnectNotify(self, sig):
+		super(BaseEditor, self).disconnectNotify(sig)
+		if sig.name() == b'sciModified' and not self.isSignalConnected(sig):
+			self.SCN_MODIFIED.connect(self.scn_modified)
 
 	@Slot()
 	def scn_autoccancelled(self):
