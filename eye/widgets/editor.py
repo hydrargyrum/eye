@@ -29,20 +29,22 @@ from collections import namedtuple
 from weakref import ref
 from logging import getLogger
 
-from PyQt5.QtCore import pyqtSignal as Signal, Qt
+from PyQt5.QtCore import pyqtSignal as Signal, Qt, QEvent
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.Qsci import QsciScintilla, QsciStyledText
 import sip
 import six
 
 from ..three import bytes, str
+from ..connector import disabled, registerEventFilter
 from .helpers import CentralWidgetMixin, acceptIf
 from ..qt import Slot
 from .. import structs
 from .. import io
 
 
-__all__ = ('Editor', 'Marker', 'Indicator', 'Margin', 'BaseEditor', 'QsciScintilla', 'SciModification')
+__all__ = ('Editor', 'Marker', 'Indicator', 'Margin', 'BaseEditor', 'QsciScintilla', 'SciModification',
+           'zoomOnWheel')
 
 
 LOGGER = getLogger(__name__)
@@ -1509,3 +1511,17 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	## events
 	def closeEvent(self, ev):
 		acceptIf(ev, self.closeFile())
+
+
+@registerEventFilter('editor', [QEvent.Wheel])
+@disabled
+def zoomOnWheel(ed, ev):
+	if ev.modifiers() == Qt.ControlModifier:
+		delta = ev.angleDelta()
+		if delta.y() > 0:
+			ed.zoomIn()
+			return True
+		elif delta.y() < 0:
+			ed.zoomOut()
+			return True
+	return False
