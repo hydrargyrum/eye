@@ -155,7 +155,7 @@ class EventFilter(QObject, ListenerMixin):
 
 	def eventFilter(self, obj, ev):
 		ret = False
-		if ev.type() in self.eventTypes:
+		if getattr(self.cb, 'enabled', True) and  ev.type() in self.eventTypes:
 			with exceptionLogging(reraise=False, logger=LOGGER):
 				ret = bool(self.cb(obj, ev))
 		return ret
