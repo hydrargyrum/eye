@@ -97,7 +97,10 @@ using `import *` in this context could simplify writing configuration files::
 EYE plugins generally keep a small set of exported symbols in `__all__`, and configuration files can be split, and
 thus can be small, so namespace pollution is less a problem. Readability also suffers less.
 
+Similarly, the helper module `eye.helpers.qt_all` contains all Qt symbols from `QtCore`, `QtGui`,
+`QtWidgets` and `Qsci`. Doing `from eye.helpers.qt_all import *` can be helpful to write shorter
+configuration files.
+
 .. TODO tutorial?
 .. TODO registering shortcuts, callbacks
-.. TODO import *
 
