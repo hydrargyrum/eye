@@ -85,11 +85,10 @@ class MarkerFolder(QObject, HasWeakEditorMixin):
 	def onModification(self, st):
 		refold = None
 
-		offset, ev, text, length, added, line, folda, foldb, tok, anno = st
-		if ev & QsciScintilla.SC_MOD_INSERTTEXT:
-			refold, _ = self.editor.lineIndexFromPosition(offset)
-		elif ev & QsciScintilla.SC_MOD_DELETETEXT:
-			refold, _ = self.editor.lineIndexFromPosition(offset)
+		if st.modificationType & QsciScintilla.SC_MOD_INSERTTEXT:
+			refold, _ = self.editor.lineIndexFromPosition(st.position)
+		elif st.modificationType & QsciScintilla.SC_MOD_DELETETEXT:
+			refold, _ = self.editor.lineIndexFromPosition(st.position)
 
 		if refold is not None:
 			self.linesToRefold.add(refold)
