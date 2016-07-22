@@ -2,7 +2,8 @@
 
 from __future__ import print_function
 
-from PyQt5.QtCore import pyqtSignal as Signal, QObject, QTimer, QProcess
+from PyQt5.QtCore import pyqtSignal as Signal, QObject, QTimer, QProcess, QUrl
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PyQt5.QtWidgets import QMessageBox
 
 from base64 import b64encode, b64decode
@@ -12,7 +13,6 @@ import json
 import logging
 import mimetypes
 import os
-import requests
 try:
 	from simplejson import JSONDecodeError
 except ImportError:
@@ -24,9 +24,9 @@ import time
 
 from six.moves.urllib.parse import urljoin, urlunsplit
 
-from ..three import str
+from ..three import str, bytes
 from ..structs import PropDict
-from ..connector import registerSignal, disabled
+from ..connector import registerSignal, disabled, CategoryMixin, categoryObjects
 from ..qt import Slot
 from ..app import qApp
 from ..pathutils import getConfigFilePath
@@ -58,7 +58,7 @@ class ServerError(RuntimeError):
 	pass
 
 
-class Ycm(QObject):
+class Ycm(QObject, CategoryMixin):
 	YCMD_CMD = ['ycmd']
 	IDLE_SUICIDE = 120
 	CHECK_REPLY_SIGNATURE = True
@@ -69,6 +69,7 @@ class Ycm(QObject):
 
 		self.port = 0
 		self.proc = QProcess()
+		self._ready = False
 		self.addr = None
 		self.secret = ''
 		self.config = {}
@@ -76,7 +77,11 @@ class Ycm(QObject):
 		self.pingTimer = QTimer(self)
 		self.pingTimer.timeout.connect(self.ping)
 
+		self.network = QNetworkAccessManager()
+
 		qApp().aboutToQuit.connect(self.stop)
+
+		self.addCategory('ycm_control')
 
 	def makeConfig(self):
 		self.secret = generate_key()
@@ -88,23 +93,32 @@ class Ycm(QObject):
 			fd.flush()
 		return path
 
-	def _checkReply(self, reply):
-		try:
-			data = reply.json()
-		except (ValueError, JSONDecodeError):
-			LOGGER.info('ycmd replied non-json body: %r', reply.text)
-			data = reply.text
+	def checkReply(self, reply):
+		reply.content = bytes(reply.readAll())
 
-		if reply.status_code != 200:
-			raise ServerError(reply.status_code, data)
+		if reply.error():
+			raise ServerError(reply.error() + 1000, reply.errorString())
+		status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
+		if status_code != 200:
+			data = reply.content.decode('utf-8')
+			try:
+				data = json.loads(data)
+			except (ValueError, JSONDecodeError):
+				LOGGER.info('ycmd replied non-json body: %r', data)
+
+			raise ServerError(status_code, data)
 
 		if not self.CHECK_REPLY_SIGNATURE:
 			return
-		actual = b64decode(reply.headers[HMAC_HEADER])
+		actual = b64decode(bytes(reply.rawHeader(HMAC_HEADER)))
 		expected = self._hmacDigest(reply.content)
 
 		if not hmac.compare_digest(expected, actual):
 			raise RuntimeError('Server signature did not match')
+
+	def _jsonReply(self, reply):
+		body = reply.content.decode('utf-8')
+		return json.loads(body)
 
 	def _hmacDigest(self, msg):
 		return hmac.new(self.secret, msg, hashlib.sha256).digest()
@@ -120,9 +134,12 @@ class Ycm(QObject):
 			HMAC_HEADER: b64encode(sig)
 		}
 
-		reply = requests.get(url, headers=headers, timeout=self.TIMEOUT)
-		self._checkReply(reply)
-		return reply.json()
+		request = QNetworkRequest(QUrl(url))
+		for hname in headers:
+			request.setRawHeader(hname, headers[hname])
+
+		reply = self.network.get(request)
+		return reply
 
 	def _doPost(self, path, **params):
 		ignore_body = params.pop('_ignore_body', False)
@@ -135,18 +152,24 @@ class Ycm(QObject):
 			'Content-Type': 'application/json'
 		}
 
-		reply = requests.post(url, data=body, headers=headers, timeout=self.TIMEOUT)
-		self._checkReply(reply)
-		if ignore_body:
-			return
-		else:
-			return reply.json()
+		request = QNetworkRequest(QUrl(url))
+		for hname in headers:
+			request.setRawHeader(hname, headers[hname])
+		reply = self.network.post(request, body)
+		return reply
 
 	def ping(self):
-		self._doGet('/healthy')
+		def handleReply():
+			self.checkReply(reply)
+			if not self._ready:
+				self._ready = True
+				self.pingTimer.start(60000)
+				self.ready.emit()
+
+		reply = self._doGet('/healthy')
+		reply.finished.connect(handleReply)
 
 	def start(self):
-		self.pingTimer.start(60000)
 		if not self.port:
 			self.port = generate_port()
 		self.addr = 'localhost:%s' % self.port
@@ -165,17 +188,12 @@ class Ycm(QObject):
 				'--stderr', errlogpath,
 			])
 
+		LOGGER.debug('will run %r', cmd)
+
 		self.proc.start(cmd[0], cmd[1:])
 
-	def waitForStarted(self, wait=1):
-		start = time.time()
-		while time.time() - start < wait:
-			try:
-				self.ping()
-			except requests.exceptions.ConnectionError:
-				time.sleep(0.1)
-			else:
-				break
+		self._ready = False
+		self.pingTimer.start(1000)
 
 	@Slot()
 	def stop(self, wait=0.2):
@@ -191,8 +209,11 @@ class Ycm(QObject):
 		return self.proc.state() == QProcess.Running
 
 	def connectTo(self, addr):
-		self.pingTimer.start(60000)
 		self.addr = addr
+		self._ready = False
+		self.pingTimer.start(1000)
+
+	ready = Signal()
 
 	def _commonPostDict(self, filepath, filetype, contents):
 		d = {
@@ -222,52 +243,58 @@ class Ycm(QObject):
 		return self._postSimpleRequest('/ignore_extra_conf_file', filepath, filetype, contents,
 		                               _ignore_body=True)
 
-	def sendParse(self, filepath, filetype, contents):
+	def sendParse(self, filepath, filetype, contents, retry_extra=True):
 		d = {
 			'event_name': 'FileReadyToParse'
 		}
-		attempt = lambda: self._postSimpleRequest('/event_notification', filepath, filetype, contents, **d)
+		reply = self._postSimpleRequest('/event_notification', filepath, filetype, contents, **d)
 
-		try:
-			return attempt()
-		except ServerError as exc:
-			excdata = exc.args[1]
-			if (isinstance(excdata, dict) and 'exception' in excdata and
-			    excdata['exception']['TYPE'] == 'UnknownExtraConf'):
-				confpath = excdata['exception']['extra_conf_file']
-				LOGGER.info('ycmd encountered %r and wonders if it should be loaded', confpath)
+		def handleReply():
+			try:
+				self.checkReply(reply)
+			except ServerError as exc:
+				excdata = exc.args[1]
+				if (isinstance(excdata, dict) and 'exception' in excdata and
+					excdata['exception']['TYPE'] == 'UnknownExtraConf' and
+					retry_extra):
+					confpath = excdata['exception']['extra_conf_file']
+					LOGGER.info('ycmd encountered %r and wonders if it should be loaded', confpath)
 
-				accepted = sendIntent(None, 'queryExtraConf', conf=confpath)
-				if accepted:
-					LOGGER.info('extra conf %r will be loaded', confpath)
-					self.acceptExtraConf(confpath, filetype, contents)
-				else:
-					LOGGER.info('extra conf %r will be rejected', confpath)
-					self.rejectExtraConf(confpath, filetype, contents)
-				return attempt()
-			raise
+					accepted = sendIntent(None, 'queryExtraConf', conf=confpath)
+					if accepted:
+						LOGGER.info('extra conf %r will be loaded', confpath)
+						self.acceptExtraConf(confpath, filetype, contents)
+					else:
+						LOGGER.info('extra conf %r will be rejected', confpath)
+						self.rejectExtraConf(confpath, filetype, contents)
 
-	def querySubcommandsList(self, filepath, filetype, contents, line, col):
-		return self._postSimpleRequest('/defined_subcommands', filepath, filetype, contents)
+					return self.sendParse(filepath, filetype, contents, retry_extra=False)
+				raise
 
-	def _querySubcommand(self, filepath, filetype, contents, line, col, *args):
-		d = {
-			'command_arguments': list(args)
-		}
-		return self._postSimpleRequest('/run_completer_command', filepath, filetype, contents, **d)
+		reply.finished.connect(handleReply)
 
-	def queryGoTo(self, *args):
-		res = self._querySubcommand(*args)
-		if res.get('filepath'):
-			return {
-				'filepath': res['filepath'],
-				'line': res['line_num'],
-				'column': res['column_num'],
+	if 0:
+		def querySubcommandsList(self, filepath, filetype, contents, line, col):
+			return self._postSimpleRequest('/defined_subcommands', filepath, filetype, contents)
+
+		def _querySubcommand(self, filepath, filetype, contents, line, col, *args):
+			d = {
+				'command_arguments': list(args)
 			}
+			return self._postSimpleRequest('/run_completer_command', filepath, filetype, contents, **d)
 
-	def queryInfo(self, *args):
-		res = self._querySubcommand(*args)
-		return res.get('message', '') or res.get('detailed_info', '')
+		def queryGoTo(self, *args):
+			res = self._querySubcommand(*args)
+			if res.get('filepath'):
+				return {
+					'filepath': res['filepath'],
+					'line': res['line_num'],
+					'column': res['column_num'],
+				}
+
+		def queryInfo(self, *args):
+			res = self._querySubcommand(*args)
+			return res.get('message', '') or res.get('detailed_info', '')
 
 	def queryCompletions(self, filepath, filetype, contents, line, col):
 		d = {
@@ -276,11 +303,12 @@ class Ycm(QObject):
 		}
 		return self._postSimpleRequest('/completions', filepath, filetype, contents, **d)
 
-	def queryDiagnostic(self, filepath, filetype, contents, line, col):
-		return self._postSimpleRequest('/detailed_diagnostic', filepath, filetype, contents)
+	if 0:
+		def queryDiagnostic(self, filepath, filetype, contents, line, col):
+			return self._postSimpleRequest('/detailed_diagnostic', filepath, filetype, contents)
 
-	def queryDebug(self, filepath, filetype, contents, line, col):
-		return self._postSimpleRequest('/debug_info', filepath, filetype, contents)
+		def queryDebug(self, filepath, filetype, contents, line, col):
+			return self._postSimpleRequest('/debug_info', filepath, filetype, contents)
 
 
 DAEMON = Ycm()
@@ -335,7 +363,18 @@ def onLoad(editor, path):
 @registerSignal('editor', 'fileSaved')
 @disabled
 def onSave(editor):
+	if not isCompletionAvailable():
+		return
+
 	DAEMON.sendParse(path, editor.ycm.filetype, editor.text())
+
+
+@registerSignal('ycm_control', 'ready')
+@disabled
+def onYcmReady(ycm):
+	for editor in categoryObjects('editor'):
+		if editor.path:
+			onLoad(editor, editor.path)
 
 
 def _query(cb, editor, *args, **kwargs):
@@ -355,23 +394,38 @@ def showCompletionList(editor, offset, items, replace=True):
 	editor.showUserList(1, [item['display'] for item in items])
 
 
+def isCompletionAvailable():
+	return DAEMON and DAEMON.isRunning()
+
+
 def doCompletion(editor, replace=True):
-	res = _query(DAEMON.queryCompletions, editor)
+	if not isCompletionAvailable():
+		return
 
-	if res['completions']:
-		col = res['completion_start_column'] - 1
-		offset = editor.positionFromLineIndex(editor.cursorLine(), col)
-		items = [{
-			'insert': item['insertion_text'],
-			'display': item.get('menu') or item['insertion_text'],
-		} for item in res['completions']]
+	def handleReply():
+		DAEMON.checkReply(reply)
+		res = DAEMON._jsonReply(reply)
 
-		showCompletionList(editor, offset, items, replace)
+		if res['completions']:
+			col = res['completion_start_column'] - 1
+			offset = editor.positionFromLineIndex(editor.cursorLine(), col)
+			items = [{
+				'insert': item['insertion_text'],
+				'display': item.get('menu') or item['insertion_text'],
+			} for item in res['completions']]
+
+			showCompletionList(editor, offset, items, replace)
+
+	reply = _query(DAEMON.queryCompletions, editor)
+	reply.finished.connect(handleReply)
 
 
 @registerSignal('editor', 'SCN_CHARADDED')
 @registerSignal('editor', 'SCN_AUTOCCHARDELETED')
 def onCharAdded(editor, *args):
+	if not isCompletionAvailable():
+		return
+
 	if not editor.isListActive() or editor.autoCompListId != 1:
 		return
 	doCompletion(editor)
@@ -395,39 +449,45 @@ def onActivate(ed, listid, display):
 	ed.setCursorPosition(line, col + len(text))
 
 
-def querySub(editor):
-	res = _query(DAEMON.querySubcommandsList, editor)
-	print(res)
+
+if 0:
+	def querySub(editor):
+		res = _query(DAEMON.querySubcommandsList, editor)
+		print(res)
 
 
-def queryDiag(editor):
-	res = _query(DAEMON.queryDiagnostic, editor)
-	print(res)
+	def queryDiag(editor):
+		res = _query(DAEMON.queryDiagnostic, editor)
+		print(res)
 
 
-def queryDebug(editor):
-	res = _query(DAEMON.queryDebug, editor)
-	print(res)
+	def queryDebug(editor):
+		res = _query(DAEMON.queryDebug, editor)
+		print(res)
 
 
-def queryGoTo(editor, *args, **kwargs):
-	res = _query(DAEMON.queryGoTo, editor, *args, **kwargs)
-	print(res)
+	def queryGoTo(editor, *args, **kwargs):
+		res = _query(DAEMON.queryGoTo, editor, *args, **kwargs)
+		print(res)
 
 
-def queryInfo(editor, *args, **kwargs):
-	res = _query(DAEMON.queryInfo, editor, *args, **kwargs)
-	print(res)
+	def queryInfo(editor, *args, **kwargs):
+		res = _query(DAEMON.queryInfo, editor, *args, **kwargs)
+		print(res)
+
+
+def repr_qrequest(request):
+	return '<QNetworkRequest url=%r>' % request.url()
 
 
 def setEnabled(enabled=True):
 	onLoad.enabled = enabled
 	onCharAdded.enabled = enabled
+	onYcmReady.enabled = enabled
 
 	if enabled:
 		if not DAEMON.isRunning():
 			DAEMON.start()
-			DAEMON.waitForStarted()
 	else:
 		if DAEMON.isRunning():
 			DAEMON.stop()
