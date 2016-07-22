@@ -443,11 +443,11 @@ def onActivate(ed, listid, display):
 
 	text = item['insert']
 
-	ed.setTargetRange(start, end)
-	line, col = ed.lineIndexFromPosition(start)
-	ed.replaceTarget(-1, text.encode('utf-8'))
-	ed.setCursorPosition(line, col + len(text))
-
+	startl, startc = ed.lineIndexFromPosition(start)
+	with ed.undoGroup():
+		ed.deleteRange(start, end - start)
+		ed.insertAt(text, startl, startc)
+	ed.setCursorPosition(startl, startc + len(text))
 
 
 if 0:
