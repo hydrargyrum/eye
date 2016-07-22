@@ -2,10 +2,6 @@
 
 from __future__ import print_function
 
-from PyQt5.QtCore import pyqtSignal as Signal, QObject, QTimer, QProcess, QUrl
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
-from PyQt5.QtWidgets import QMessageBox
-
 from base64 import b64encode, b64decode
 import hashlib
 import hmac
@@ -18,11 +14,13 @@ try:
 except ImportError:
 	JSONDecodeError = ValueError
 import socket
-import sys
 import tempfile
 import time
 
-from six.moves.urllib.parse import urljoin, urlunsplit
+from six.moves.urllib.parse import urlunsplit
+from PyQt5.QtCore import pyqtSignal as Signal, QObject, QTimer, QProcess, QUrl
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
+from PyQt5.QtWidgets import QMessageBox
 
 from ..three import str, bytes
 from ..structs import PropDict
@@ -41,6 +39,8 @@ HMAC_HEADER = 'X-Ycm-Hmac'
 
 LOGGER = logging.getLogger(__name__)
 
+
+### ycm daemon control
 
 def generate_port():
 	sock = socket.socket()
@@ -142,8 +142,6 @@ class Ycm(QObject, CategoryMixin):
 		return reply
 
 	def _doPost(self, path, **params):
-		ignore_body = params.pop('_ignore_body', False)
-
 		url = urlunsplit(('http', self.addr, path, '', ''))
 		body = json.dumps(params)
 		sig = self._sign(b'POST', path.encode('utf-8'), body.encode('utf-8'))
@@ -313,6 +311,7 @@ class Ycm(QObject, CategoryMixin):
 
 DAEMON = Ycm()
 
+### give source files to ycm
 
 MIME_YCMFILETYPE = {
 	'application/javascript': 'js',
@@ -362,7 +361,7 @@ def onLoad(editor, path):
 
 @registerSignal('editor', 'fileSaved')
 @disabled
-def onSave(editor):
+def onSave(editor, path):
 	if not isCompletionAvailable():
 		return
 
@@ -376,6 +375,7 @@ def onYcmReady(ycm):
 		if editor.path:
 			onLoad(editor, editor.path)
 
+### queries
 
 def _query(cb, editor, *args, **kwargs):
 	line = kwargs.pop('line', editor.cursorLine() + 1)
@@ -482,6 +482,7 @@ def repr_qrequest(request):
 
 def setEnabled(enabled=True):
 	onLoad.enabled = enabled
+	onSave.enabled = enabled
 	onCharAdded.enabled = enabled
 	onYcmReady.enabled = enabled
 
@@ -492,6 +493,7 @@ def setEnabled(enabled=True):
 		if DAEMON.isRunning():
 			DAEMON.stop()
 
+### ycm "extra conf" intent listeners
 
 def isInFile(expected, path):
 	if os.path.exists(path):
