@@ -1,13 +1,10 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from __future__ import print_function
-
 from base64 import b64encode, b64decode
 import hashlib
 import hmac
 import json
 import logging
-import mimetypes
 import os
 try:
 	from simplejson import JSONDecodeError
@@ -20,18 +17,12 @@ import time
 from six.moves.urllib.parse import urlunsplit
 from PyQt5.QtCore import pyqtSignal as Signal, QObject, QTimer, QProcess, QUrl
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
-from PyQt5.QtWidgets import QMessageBox
 
-from ..three import str, bytes
-from ..structs import PropDict
-from ..connector import registerSignal, disabled, CategoryMixin, categoryObjects
-from ..qt import Slot
-from ..app import qApp
-from ..pathutils import getConfigFilePath
-from .intent import sendIntent, registerIntentListener
-
-
-__all__ = ('Ycm',)
+from ...three import str, bytes
+from ...connector import CategoryMixin
+from ...qt import Slot
+from ...app import qApp
+from ..intent import sendIntent
 
 
 HMAC_SECRET_LENGTH = 16
@@ -39,8 +30,6 @@ HMAC_HEADER = 'X-Ycm-Hmac'
 
 LOGGER = logging.getLogger(__name__)
 
-
-### ycm daemon control
 
 def generate_port():
 	sock = socket.socket()
@@ -309,256 +298,12 @@ class Ycm(QObject, CategoryMixin):
 			return self._postSimpleRequest('/debug_info', filepath, filetype, contents)
 
 
-DAEMON = Ycm()
-
-### give source files to ycm
-
-MIME_YCMFILETYPE = {
-	'application/javascript': 'js',
-	'text/x-chdr': 'c',
-	'text/x-csrc': 'c',
-	'text/x-c++hdr': 'cpp',
-	'text/x-c++src': 'cpp',
-	'text/x-python': 'python',
-}
-
-EXT_YCMFILETYPE = {
-	'c': 'c',
-	'cc': 'cpp',
-	'cpp': 'cpp',
-	'cs': 'cs',
-	'go': 'go',
-	'h': 'cpp',
-	'hh': 'cpp',
-	'hpp': 'cpp',
-	'js': 'js',
-	'py': 'python',
-}
-
-def ycmFiletype(path):
-	mime, _ = mimetypes.guess_type(path)
-	try:
-		return MIME_YCMFILETYPE[mime]
-	except KeyError:
-		pass
-
-	_, dotext = os.path.splitext(path)
-	ext = dotext[1:]
-	try:
-		return EXT_YCMFILETYPE[ext]
-	except KeyError:
-		return 'general'
+def getDaemon():
+	return DAEMON
 
 
-@registerSignal('editor', 'fileOpened')
-@registerSignal('editor', 'fileSavedAs')
-@disabled
-def onLoad(editor, path):
-	editor.ycm = PropDict()
-	editor.ycm.filetype = ycmFiletype(path)
-	DAEMON.sendParse(path, editor.ycm.filetype, editor.text())
-
-
-@registerSignal('editor', 'fileSaved')
-@disabled
-def onSave(editor, path):
-	if not isCompletionAvailable():
-		return
-
-	DAEMON.sendParse(path, editor.ycm.filetype, editor.text())
-
-
-@registerSignal('ycm_control', 'ready')
-@disabled
-def onYcmReady(ycm):
-	for editor in categoryObjects('editor'):
-		if editor.path:
-			onLoad(editor, editor.path)
-
-### queries
-
-def _query(cb, editor, *args, **kwargs):
-	line = kwargs.pop('line', editor.cursorLine() + 1)
-	col = kwargs.pop('col', editor.cursorColumn() + 1)
-
-	return cb(editor.path, editor.ycm.filetype, editor.text(), line, col, *args, **kwargs)
-
-
-def showCompletionList(editor, offset, items, replace=True):
-	editor.compListItems = {
-		item['display']: item for item in items
-	}
-
-	if replace:
-		editor.compStartOffset = offset
-	editor.showUserList(1, [item['display'] for item in items])
-
-
-def isCompletionAvailable():
+def isDaemonAvailable():
 	return DAEMON and DAEMON.isRunning()
 
 
-def doCompletion(editor, replace=True):
-	if not isCompletionAvailable():
-		return
-
-	def handleReply():
-		DAEMON.checkReply(reply)
-		res = DAEMON._jsonReply(reply)
-
-		if res['completions']:
-			col = res['completion_start_column'] - 1
-			offset = editor.positionFromLineIndex(editor.cursorLine(), col)
-			items = [{
-				'insert': item['insertion_text'],
-				'display': item.get('menu') or item['insertion_text'],
-			} for item in res['completions']]
-
-			showCompletionList(editor, offset, items, replace)
-
-	reply = _query(DAEMON.queryCompletions, editor)
-	reply.finished.connect(handleReply)
-
-
-@registerSignal('editor', 'SCN_CHARADDED')
-@registerSignal('editor', 'SCN_AUTOCCHARDELETED')
-def onCharAdded(editor, *args):
-	if not isCompletionAvailable():
-		return
-
-	if not editor.isListActive() or editor.autoCompListId != 1:
-		return
-	doCompletion(editor)
-
-
-@registerSignal('editor', 'userListActivated')
-def onActivate(ed, listid, display):
-	if listid != 1:
-		return
-
-	start = ed.compStartOffset
-	end = ed.cursorOffset()
-
-	item = ed.compListItems[display]
-
-	text = item['insert']
-
-	startl, startc = ed.lineIndexFromPosition(start)
-	with ed.undoGroup():
-		ed.deleteRange(start, end - start)
-		ed.insertAt(text, startl, startc)
-	ed.setCursorPosition(startl, startc + len(text))
-
-
-if 0:
-	def querySub(editor):
-		res = _query(DAEMON.querySubcommandsList, editor)
-		print(res)
-
-
-	def queryDiag(editor):
-		res = _query(DAEMON.queryDiagnostic, editor)
-		print(res)
-
-
-	def queryDebug(editor):
-		res = _query(DAEMON.queryDebug, editor)
-		print(res)
-
-
-	def queryGoTo(editor, *args, **kwargs):
-		res = _query(DAEMON.queryGoTo, editor, *args, **kwargs)
-		print(res)
-
-
-	def queryInfo(editor, *args, **kwargs):
-		res = _query(DAEMON.queryInfo, editor, *args, **kwargs)
-		print(res)
-
-
-def repr_qrequest(request):
-	return '<QNetworkRequest url=%r>' % request.url()
-
-
-def setEnabled(enabled=True):
-	onLoad.enabled = enabled
-	onSave.enabled = enabled
-	onCharAdded.enabled = enabled
-	onYcmReady.enabled = enabled
-
-	if enabled:
-		if not DAEMON.isRunning():
-			DAEMON.start()
-	else:
-		if DAEMON.isRunning():
-			DAEMON.stop()
-
-### ycm "extra conf" intent listeners
-
-def isInFile(expected, path):
-	if os.path.exists(path):
-		with open(path) as fd:
-			for line in fd:
-				line = line.strip()
-				if line.startswith('#'):
-					continue
-				if line == expected:
-					return True
-	return False
-
-
-def addToFile(line, path):
-	with open(path, 'a') as fd:
-		print(line, file=fd)
-
-
-CONF_ACCEPT = 'ycm.extra.accept.conf'
-CONF_REJECT = 'ycm.extra.reject.conf'
-
-@registerIntentListener('queryExtraConf')
-@disabled
-def queryExtraConfUseConf(source, ev, defaultReject=True):
-	ycmpath = ev.info['conf']
-	if isInFile(ycmpath, getConfigFilePath(CONF_ACCEPT)):
-		ev.accept(True)
-		return True
-
-	if defaultReject or isInFile(ycmpath, getConfigFilePath(CONF_REJECT)):
-		ev.accept(False)
-		return True
-
-	return False
-
-
-@registerIntentListener('queryExtraConf')
-@disabled
-def queryExtraConfDialog(source, ev):
-	if queryExtraConfUseConf(source, ev, defaultReject=False):
-		return True
-
-	ycmpath = ev.info['conf']
-
-	title = 'Allow YouCompleteMe extra conf?'
-	text = 'Load %r? This may be a security risk if the file comes from an untrusted source.' % ycmpath
-	dlg = QMessageBox(QMessageBox.Question, title, text)
-	bOkOnce = dlg.addButton('Load once', QMessageBox.AcceptRole)
-	bOkAlways = dlg.addButton('Load always', QMessageBox.AcceptRole)
-	bNoOnce = dlg.addButton('Reject once', QMessageBox.RejectRole)
-	bNoAlways = dlg.addButton('Reject always', QMessageBox.RejectRole)
-	dlg.setDefaultButton(bNoOnce)
-	dlg.setEscapeButton(bNoOnce)
-	dlg.exec_()
-
-	clicked = dlg.clickedButton()
-	if clicked in (bOkOnce, bOkAlways):
-		if clicked is bOkAlways:
-			addToFile(ycmpath, getConfigFilePath(CONF_ACCEPT))
-		ev.accept(True)
-		return True
-	elif clicked in (bNoOnce, bNoAlways):
-		if clicked is bNoAlways:
-			addToFile(ycmpath, getConfigFilePath(CONF_REJECT))
-		ev.accept(False)
-		return True
-
-	return False
+DAEMON = Ycm()
