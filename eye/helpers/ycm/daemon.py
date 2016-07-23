@@ -32,8 +32,10 @@ HMAC_HEADER = 'X-Ycm-Hmac'
 
 LOGGER = logging.getLogger(__name__)
 
+DAEMON = None
 
-__all__ = ('getDaemon', 'isDaemonAvailable', 'Ycm', 'ServerError')
+
+__all__ = ('getDaemon', 'isDaemonAvailable', 'buildDaemon', 'Ycm', 'ServerError')
 
 def generate_port():
 	sock = socket.socket()
@@ -333,4 +335,7 @@ def isDaemonAvailable():
 	return DAEMON and DAEMON.isRunning()
 
 
-DAEMON = Ycm()
+def buildDaemon():
+	global DAEMON
+	DAEMON = Ycm()
+	return DAEMON
