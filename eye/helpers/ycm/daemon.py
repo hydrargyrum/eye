@@ -1,5 +1,7 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""YouCompleteMe daemon control module"""
+
 from base64 import b64encode, b64decode
 import hashlib
 import hmac
@@ -31,6 +33,8 @@ HMAC_HEADER = 'X-Ycm-Hmac'
 LOGGER = logging.getLogger(__name__)
 
 
+__all__ = ('getDaemon', 'isDaemonAvailable', 'Ycm', 'ServerError')
+
 def generate_port():
 	sock = socket.socket()
 	sock.bind(('', 0))
@@ -48,18 +52,34 @@ class ServerError(RuntimeError):
 
 
 class Ycm(QObject, CategoryMixin):
+	"""YCMD instance control"""
+
 	YCMD_CMD = ['ycmd']
+	"""Base ycmd command.
+
+	Useful if ycmd is not in `PATH` or set permanent arguments
+	"""
+
 	IDLE_SUICIDE = 120
+	"""Maximum time after which ycmd should quit if it has received no requests.
+
+	A periodic ping is sent by `Ycm` objects.
+	"""
+
 	CHECK_REPLY_SIGNATURE = True
 	TIMEOUT = 10
 
 	def __init__(self, **kwargs):
 		super(Ycm, self).__init__(**kwargs)
 
+		self.addr = None
+		"""Address of the ycmd server."""
+
 		self.port = 0
+		"""TCP port of the ycmd server."""
+
 		self.proc = QProcess()
 		self._ready = False
-		self.addr = None
 		self.secret = ''
 		self.config = {}
 
@@ -83,6 +103,13 @@ class Ycm(QObject, CategoryMixin):
 		return path
 
 	def checkReply(self, reply):
+		"""Check the ycmd reply is a success.
+
+		Checks the `reply` has a HTTP 200 status code and the signature is valid.
+		In case of error, raises a :any:`ServerError`.
+
+		:type reply: QNetworkReply
+		"""
 		reply.content = bytes(reply.readAll())
 
 		if reply.error():

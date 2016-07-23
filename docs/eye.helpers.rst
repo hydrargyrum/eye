@@ -12,6 +12,7 @@ Subpackages
 .. toctree::
 
     eye.helpers.file_search_plugins
+    eye.helpers.ycm
 
 Submodules
 ----------
