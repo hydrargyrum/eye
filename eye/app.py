@@ -25,6 +25,8 @@ __all__ = ('App', 'qApp', 'main')
 
 
 class App(QApplication):
+	"""Application"""
+
 	def __init__(self, argv):
 		super(App, self).__init__(argv)
 		self.setApplicationName('eye')
@@ -45,23 +47,36 @@ class App(QApplication):
 		return win
 
 	def startupScripts(self):
+		"""Get list of startup script files
+
+		These are the script present at the moment, not the scripts that were run when the app started.
+		"""
 		files = glob.glob(os.path.join(pathutils.getConfigPath('startup'), '*.py'))
 		files.sort()
 		return files
 
-	def _scriptDict(self):
+	def scriptDict(self):
+		"""Build a env suitable for running conf scripts.
+
+		The built dict will contain `'qApp'` key pointing to this App instance.
+		"""
 		return {'qApp': QApplication.instance()}
 
 	def runStartScripts(self):
 		for f in self.startupScripts():
 			self.runScript(f)
 
-	def runScript(self, f):
-		self.logger.debug('execing script %s', f)
+	def runScript(self, path):
+		"""Run a config script in this app
+
+		The script will be run with the variables returned by :any:`scriptDict`.
+		Exceptions thrown  by the script are catched and logged.
+		"""
+		self.logger.debug('execing script %s', path)
 		try:
-			execfile(f, self._scriptDict())
+			execfile(path, self.scriptDict())
 		except Exception:
-			self.logger.error('cannot execute startup script %r', f, exc_info=True)
+			self.logger.error('cannot execute startup script %r', path, exc_info=True)
 
 	def run(self):
 		"""Run app until exit

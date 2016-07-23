@@ -27,6 +27,7 @@ Submodules
    eye.helpers.editor_search
    eye.helpers.file_monitor
    eye.helpers.file_search
+   eye.helpers.focus_light
    eye.helpers.folding
    eye.helpers.intent
    eye.helpers.keys
@@ -36,6 +37,7 @@ Submodules
    eye.helpers.margins
    eye.helpers.nav_history
    eye.helpers.projects
+   eye.helpers.qt_doc
    eye.helpers.remote_control
    eye.helpers.styles
 

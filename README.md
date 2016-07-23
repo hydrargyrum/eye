@@ -12,12 +12,16 @@ It uses Scintilla as the base text widget. It currently supports:
 
 By default, EYE provides a basic UI with a tabbed window with one editor.
 A few widgets and plugins are available but not enabled by default.
+
 At startup, Python scripts contained in the user configuration directory are run.
 These scripts can use the EYE API to configure the app as you want.
-They can enable built-in plugins (like automatic syntax coloring when a file is opened) and features.
-They have the ability to create actions on keyboard shortcuts or react on other events.
-They can also customize the menus/toolbars or the rest of the UI.
-They also have the opportunity of making complete plugins.
+
+They can:
+* enable built-in plugins (like automatic syntax coloring when a file is opened) and features
+* create actions on keyboard shortcuts or react on other events
+* customize the menus/toolbars or the rest of the UI
+* make complete plugins
+
 All of this is doable through the full Python API, the EYE API and the Qt components upon which EYE is based.
 
 ## What plugins are available?
