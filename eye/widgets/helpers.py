@@ -27,6 +27,13 @@ class WidgetMixin(CategoryMixin):
 
 		return self.setFocus(reason)
 
+	def parentWindow(self):
+		w = self
+		while True:
+			if w.isWindow():
+				return w
+			w = w.parentWidget()
+
 
 class CentralWidgetMixin(WidgetMixin):
 	def __init__(self, **kwargs):

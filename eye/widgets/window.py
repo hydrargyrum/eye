@@ -6,6 +6,7 @@ from weakref import ref
 from PyQt5.QtCore import Qt, pyqtSignal as Signal
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDockWidget, QWidget
 
+from ..connector import registerSignal
 from ..three import str
 from ..qt import Slot
 from .. import consts
@@ -54,7 +55,6 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		tabs.addWidget(ed)
 
 		self.splitter.splitAt(None, consts.RIGHT, tabs)
-		tabs.lastTabClosed.connect(self._tabbarLastClosed)
 
 		self.setCentralWidget(self.splitter)
 
@@ -155,7 +155,6 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 			Qt.Horizontal: consts.RIGHT
 		}
 		self.splitter.splitAt(parent, DIRS[orientation], tabs)
-		tabs.lastTabClosed.connect(self._tabbarLastClosed)
 
 	@Slot()
 	def bufferSplitHorizontal(self, widget=None):
@@ -182,11 +181,16 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 	def closeEvent(self, ev):
 		acceptIf(ev, self.splitter.requestClose())
 
-	@Slot()
-	def _tabbarLastClosed(self):
-		self.splitter.removeWidget(self.sender())
+	def onTabbarLastClosed(self, tw):
+		self.splitter.removeWidget(tw)
 
 	@Slot(QWidget, QWidget)
 	def _appFocusChanged(self, old, new):
 		if self.centralWidget().isAncestorOf(new):
 			self.lastFocus = ref(new)
+
+
+@registerSignal('tabwidget', 'lastTabClosed')
+def onLastTabClosed(tw):
+	win = tw.parentWindow()
+	win.onTabbarLastClosed(tw)
