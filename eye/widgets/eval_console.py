@@ -43,6 +43,9 @@ class HistoryLine(QLineEdit):
 
 	def _addHistory(self):
 		self.idx = None
+		if not self.text():
+			return
+
 		self.history.append(self.text())
 
 		if self.history_path:
