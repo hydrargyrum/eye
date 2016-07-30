@@ -2,6 +2,7 @@
 
 from PyQt5.Qsci import QsciLexerPython, QsciLexerCPP, QsciLexerBash, QsciLexerCSS
 
+from ..three import range
 
 # TODO case insensitive
 
@@ -82,11 +83,29 @@ ALIASES = {
 }
 
 
-def getIdAndAliases(cls, keyword):
+def lexerDescriptionIds(lexer):
+	ret = {}
+	for i in range(1 << lexer.styleBitsNeeded()):
+		description = lexer.description(i)
+		if not description:
+			break
+		ret[description] = i
+	return ret
+
+
+def getIdAndAliases(lexer, keyword):
 	ret = []
+
+	cls = type(lexer)
 	if hasattr(cls, keyword):
 		ret.append(getattr(cls, keyword))
 	if cls in ALIASES and keyword in ALIASES[cls]:
 		aliases = ALIASES[cls][keyword]
 		ret.extend(getattr(cls, alias) for alias in aliases)
+
+	if not ret:
+		descs = lexerDescriptionIds(lexer)
+		if keyword in descs:
+			ret.append(descs[keyword])
+
 	return ret

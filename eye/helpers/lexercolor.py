@@ -192,7 +192,7 @@ class LexerModificator(Modificator):
 		elif tokenname == '_default':
 			ids = [self.editor.STYLE_DEFAULT]
 		else:
-			ids = getIdAndAliases(type(lexer), tokenname)
+			ids = getIdAndAliases(lexer, tokenname)
 
 		for id in ids:
 			self.applyOne(id, attr)
