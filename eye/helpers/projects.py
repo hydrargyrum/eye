@@ -31,7 +31,8 @@ from .. import lexers
 from .confcache import ConfCache
 
 
-__all__ = ('Project', 'findProjectForFile', 'getProjectForFile',
+__all__ = ('setEnabled',
+           'Project', 'findProjectForFile', 'getProjectForFile',
            'mergedOptionsForFile',
            'applyPreOptionsDict', 'applyOptionsDict',
            'onPreOpen', 'onOpenSave')
@@ -347,3 +348,13 @@ def onOpenSave(editor, path):
 
 	editor.project = project
 	project.applyOptions(editor)
+
+
+def setEnabled(enabled):
+	"""Enable/disable the module
+
+	When enabled, `.editorconfig` files are automatically applied when a file is loaded, or a file is
+	saved in a tree where a `.editorconfig` is present.
+	"""
+	onOpenSave.enabled = enabled
+	onPreOpen.enabled = enabled
