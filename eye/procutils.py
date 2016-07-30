@@ -7,7 +7,7 @@ from PyQt5.QtCore import QProcess
 
 from eye.qt import Signal, Slot
 
-__all__ = ('findCommand', 'LineProcess')
+__all__ = ('findCommand', 'LineProcess', 'runBlocking')
 
 
 LOGGER = logging.getLogger(__name__)
@@ -93,3 +93,51 @@ class LineProcess(QProcess):
 		if ret != 0:
 			cmd = [self.program()] + self.arguments()
 			LOGGER.info('command %r exited with code %r', cmd, ret)
+
+
+class ReadingProcess(QProcess):
+	def __init__(self, **kwargs):
+		super(ReadingProcess, self).__init__(**kwargs)
+		self.stdin = b''
+		self.buf = []
+
+		self.started.connect(self.onStarted)
+		self.bytesWritten.connect(self.onStarted)
+		self.readyReadStandardOutput.connect(self.onStdout)
+
+	@Slot()
+	def onStarted(self, _=None):
+		while True:
+			written = self.write(self.stdin)
+			if written < 0:
+				LOGGER.warning('error writing data to stdin for command %r', self.arguments())
+				return
+			elif written == 0:
+				break
+			self.stdin = self.stdin[written:]
+		if not self.stdin:
+			self.closeWriteChannel()
+
+	@Slot()
+	def onStdout(self):
+		while self.bytesAvailable() > 0:
+			self.buf.append(self.read(self.bytesAvailable()))
+
+	def setStandardInput(self, data):
+		self.stdin = data
+
+	def getBuffer(self):
+		return b''.join(self.buf)
+
+
+def runBlocking(cmd, stdin=b'', cwd=''):
+	proc = ReadingProcess()
+	if stdin:
+		proc.setStandardInput(stdin)
+	if cwd:
+		proc.setWorkingDirectory(cwd)
+
+	proc.start(cmd[0], cmd[1:])
+	proc.waitForFinished(-1)
+	return proc.exitCode(), proc.getBuffer()
+
