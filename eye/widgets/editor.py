@@ -658,6 +658,23 @@ class BaseEditor(QsciScintilla):
 	_startMacroRecord = sciProp0(QsciScintilla.SCI_STARTRECORD)
 	_stopMacroRecord = sciProp0(QsciScintilla.SCI_STOPRECORD)
 
+	# undo
+	def setUndoCollection(self, b):
+		"""setUndoCollection(bool): set whether editing actions are collected in the undo buffer"""
+		self.SendScintilla(QsciScintilla.SCI_SETUNDOCOLLECTION, int(b))
+
+	undoCollection = sciProp0(QsciScintilla.SCI_GETUNDOCOLLECTION)
+
+	"""undoCollection(): return whether editing actions are collected in the undo buffer"""
+
+	emptyUndoBuffer = sciProp0(QsciScintilla.SCI_EMPTYUNDOBUFFER)
+
+	"""emptyUndoBuffer(): empty the undo buffer"""
+
+	addUndoAction = sciProp2(QsciScintilla.SCI_ADDUNDOACTION)
+
+	"""addUndoAction(int, int): add a custom action to the undo buffer"""
+
 	# markers
 	_getMarkerPrevious = sciProp(QsciScintilla.SCI_MARKERPREVIOUS, (six.integer_types, six.integer_types))
 	_getMarkerNext = sciProp(QsciScintilla.SCI_MARKERNEXT, (six.integer_types, six.integer_types))
@@ -730,6 +747,20 @@ class BaseEditor(QsciScintilla):
 	insertBytes = sciProp(QsciScintilla.SCI_INSERTTEXT, (six.integer_types, bytes))
 
 	"""Insert byte characters at byte offset"""
+
+	# style
+
+	def setStyleHotspot(self, styleId, b):
+		"""setStyleHotspot(int, bool): set whether a style is a hotspot (like a link)"""
+		self.SendScintilla(QsciScintilla.SCI_STYLESETHOTSPOT, styleId, int(b))
+
+	getStyleHotspot = sciProp(QsciScintilla.SCI_STYLEGETHOTSPOT, (int,))
+
+	"""getStyleHotspot(int): get whether a style is a hotspot"""
+
+	getStyleAt = sciProp1(QsciScintilla.SCI_GETSTYLEAT)
+
+	"""getStyleAt(int): get style number at given byte position"""
 
 	def __init__(self, **kwargs):
 		super(BaseEditor, self).__init__(**kwargs)
@@ -1323,6 +1354,9 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 	def wordAtCursor(self):
 		return self.wordAtLineIndex(*self.getCursorPosition())
+
+	def wordAtPos(self, pos):
+		return self.wordAtLineIndex(*self.lineIndexFromPosition(pos))
 
 	## annotations
 	def annotateAppend(self, line, item, style=None):
