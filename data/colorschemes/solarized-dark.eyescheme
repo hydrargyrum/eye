@@ -56,5 +56,8 @@ token.Number.fg=%(cyan)s
 
 token.Operator.fg=%(green)s
 
+token.Inactive.bg=%(base02)s
+token.Inactive.eolfill=true
+
 indicator.search.fg=%(yellow)s80
 indicator.search.style=StraightBoxIndicator

@@ -202,6 +202,12 @@ class LexerModificator(Modificator):
 
 		self.applyGeneric(attr, lexer, styleId)
 
+	def applyGeneric(self, attr, lexer, styleId):
+		if attr == 'eolfill':
+			lexer.setEolFill(parseBool(self.strvalue))
+		else:
+			super(LexerModificator, self).applyGeneric(attr, lexer, styleId)
+
 	def setColor(self, qc, lexer, styleId):
 		lexer.setColor(QColorAlpha(self.strvalue), styleId)
 
