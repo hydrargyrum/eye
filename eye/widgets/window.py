@@ -136,8 +136,14 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		"""Save current buffer."""
 		self.currentBuffer().saveFile()
 
-	def _bufferNewSplit(self, orientation):
-		parent = self.currentBuffer().parentTabBar()
+	def _bufferNewSplit(self, orientation, widget=None):
+		if widget is None:
+			parent = self.currentBuffer().parentTabBar()
+		elif hasattr(widget, 'parentTabBar'):
+			parent = widget.parentTabBar()
+		else:
+			parent = widget
+
 		spl, idx = self.splitter.childId(parent)
 
 		ed = self.EditorClass()
@@ -152,12 +158,20 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		tabs.lastTabClosed.connect(self._tabbarLastClosed)
 
 	@Slot()
-	def bufferSplitHorizontal(self):
-		self._bufferNewSplit(Qt.Horizontal)
+	def bufferSplitHorizontal(self, widget=None):
+		"""Split window horizontally at current buffer.
+
+		A new empty editor is created.
+		"""
+		self._bufferNewSplit(Qt.Horizontal, widget)
 
 	@Slot()
-	def bufferSplitVertical(self):
-		self._bufferNewSplit(Qt.Vertical)
+	def bufferSplitVertical(self, widget=None):
+		"""Split window vertically at current buffer.
+
+		A new empty editor is created.
+		"""
+		self._bufferNewSplit(Qt.Vertical, widget)
 
 	## signals
 	quitRequested = Signal()

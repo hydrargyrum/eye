@@ -5,16 +5,16 @@
 
 from PyQt5.QtCore import pyqtSignal as Signal, Qt, QMimeData
 from PyQt5.QtGui import QPolygon, QDrag
-from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget
+from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget, QToolButton, QMenu
 
 from .. import consts
 from ..three import str
 from ..qt import Slot
-from ..connector import CategoryMixin
+from ..connector import CategoryMixin, disabled, registerSetup
 from .droparea import DropAreaMixin, BandMixin
 from .helpers import WidgetMixin
 
-__all__ = ('TabWidget',)
+__all__ = ('TabWidget', 'TabBar', 'SplitButton')
 
 
 TAB_MIME = 'application/x.eye.tab'
@@ -371,6 +371,48 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 				splitmanager.splitAt(self, quad, tabs)
 		else:
 			super(TabWidget, self).dropEvent(ev)
+
+
+class SplitButton(QToolButton, WidgetMixin):
+	"""Button for splitting
+
+	When clicked, the button shows a popup menu to choose between horizontal split and vertical split.
+	The button is suitable for using as `cornerWidget` of :any:`TabWidget`.
+	"""
+	def __init__(self, **kwargs):
+		super(SplitButton, self).__init__(**kwargs)
+
+		self.setText(u'\u25ea')
+
+		menu = QMenu()
+		action = menu.addAction('Split horizontally')
+		action.triggered.connect(self.splitHorizontal)
+		action = menu.addAction('Split vertically')
+		action.triggered.connect(self.splitVertical)
+		self.setMenu(menu)
+		self.setPopupMode(self.InstantPopup)
+
+	@Slot()
+	def splitHorizontal(self):
+		assert isinstance(self.parent(), TabWidget)
+
+		win = self.parentWindow()
+		win.bufferSplitHorizontal(self.parent())
+
+	@Slot()
+	def splitVertical(self):
+		assert isinstance(self.parent(), TabWidget)
+
+		win = self.parentWindow()
+		win.bufferSplitVertical(self.parent())
+
+
+@registerSetup('tabwidget')
+@disabled
+def autoCreateCornerSplitter(tw):
+	button = SplitButton()
+	tw.setCornerWidget(button, Qt.TopRightCorner)
+	button.show()
 
 
 def widgetQuadrant(rect, point):
