@@ -170,9 +170,12 @@ class SplitManager(QWidget, WidgetMixin):
 
 			newSplit = self.SplitterClass(orientation=orientation)
 			parent.insertWidget(idx, newSplit)
-			if currentWidget:
+
+			if currentWidget and direction in (consts.DOWN, consts.RIGHT):
 				newSplit.addWidget(currentWidget)
 			newSplit.addWidget(newWidget)
+			if currentWidget and direction in (consts.UP, consts.LEFT):
+				newSplit.addWidget(currentWidget)
 
 			if refocus:
 				currentWidget.setFocus()
