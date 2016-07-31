@@ -48,4 +48,5 @@ Submodules
    eye.helpers.script_reload
    eye.helpers.session
    eye.helpers.styles
+   eye.helpers.timer
 
