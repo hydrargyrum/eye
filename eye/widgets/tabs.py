@@ -13,6 +13,7 @@ from ..qt import Slot
 from ..connector import CategoryMixin, disabled, registerSetup
 from .droparea import DropAreaMixin, BandMixin
 from .helpers import WidgetMixin
+from ..helpers import buffers
 
 __all__ = ('TabWidget', 'TabBar', 'SplitButton')
 
@@ -54,7 +55,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 		mdata.setData(TAB_MIME, b'x')
 		drag = QDrag(self)
 		drag.setMimeData(mdata)
-		res = drag.exec_()
+		res = drag.exec_(Qt.CopyAction | Qt.MoveAction, Qt.MoveAction)
 
 	def _showBand(self, ev):
 		idx = self.tabAt(ev.pos())
@@ -84,15 +85,23 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 		if not isTabDropEvent(ev):
 			return super(TabBar, self).dropEvent(ev)
 
-		ev.acceptProposedAction()
 		self.hideBand()
 
-		widget = dropGetWidget(ev)
-		takeWidget(widget)
 		idx = self.tabAt(ev.pos())
 		assert isinstance(self.parent(), TabWidget)
-		self.parent().insertWidget(idx, widget)
-		self.parent().setCurrentWidget(widget)
+		widget = dropGetWidget(ev)
+
+		if ev.proposedAction() == Qt.MoveAction:
+			ev.acceptProposedAction()
+
+			takeWidget(widget)
+			self.parent().insertWidget(idx, widget)
+			self.parent().setCurrentWidget(widget)
+		elif ev.proposedAction() == Qt.CopyAction:
+			ev.acceptProposedAction()
+			new = buffers.newEditorShare(widget, parentTabBar=self.parent())
+			# FIXME put at right place
+			new.giveFocus()
 
 
 class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
@@ -360,15 +369,29 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 
 			widget = dropGetWidget(ev)
 			oldTw = widget.parentTabBar()
-			if oldTw.count() == 1:
-				if oldTw is self:
-					return
-				splitmanager.splitAt(self, quad, oldTw)
-			else:
-				takeWidget(widget)
+
+			if ev.proposedAction() == Qt.MoveAction:
+				ev.acceptProposedAction()
+
+				if oldTw.count() == 1:
+					if oldTw is self:
+						return
+					splitmanager.splitAt(self, quad, oldTw)
+				else:
+					takeWidget(widget)
+					tabs = TabWidget()
+					tabs.addWidget(widget)
+					splitmanager.splitAt(self, quad, tabs)
+			elif ev.proposedAction() == Qt.CopyAction:
+				ev.acceptProposedAction()
+
+				new = buffers.newEditorShare(widget, parentTabBar=self)
+				takeWidget(new)
+
 				tabs = TabWidget()
-				tabs.addWidget(widget)
+				tabs.addWidget(new)
 				splitmanager.splitAt(self, quad, tabs)
+
 		else:
 			super(TabWidget, self).dropEvent(ev)
 
