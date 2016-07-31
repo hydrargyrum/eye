@@ -129,7 +129,7 @@ def newEditorShare(ed, loc=None, parentTabBar=None):
 	:rtype: eye.widgets.editor.Editor
 	"""
 	new = Editor()
-	new.setDocument(ed.document)
+	new.openDocument(ed)
 	_doNew(new, loc, parentTabBar)
 	return new
 

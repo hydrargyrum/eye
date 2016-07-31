@@ -1117,6 +1117,15 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.fileOpened.emit(path)
 		return True
 
+	def openDocument(self, other):
+		if not self.closeFile():
+			return False
+
+		self.path = other.path
+		self.setDocument(other.document())
+		self.modificationChanged.emit(self.isModified())
+		return True
+
 	@Slot()
 	def reloadFile(self):
 		"""Reload file contents (losing unsaved modifications)
