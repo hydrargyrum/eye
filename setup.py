@@ -40,6 +40,7 @@ setup(
 	install_requires=['six'],
 	data_files=[
 		('eye/colorschemes', glob.glob('data/colorschemes/*')),
+		('share/applications', 'data/eye.desktop'),
 	],
 	entry_points={
 		'console_scripts': [
