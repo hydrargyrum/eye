@@ -6,6 +6,7 @@
 from __future__ import print_function
 
 import code
+from importlib import import_module
 import logging
 import sys
 import traceback
@@ -120,6 +121,9 @@ class EvalConsole(QWidget, WidgetMixin):
 
 		self.addCategory('eval_console')
 
+	def import_all_qt(self):
+		self.interpreter.runsource('from eye.helpers.qt_all import *')
+
 	@Slot(str)
 	def execCode(self, code):
 		# TODO be able to define functions, do ifs, fors
@@ -129,6 +133,7 @@ class EvalConsole(QWidget, WidgetMixin):
 		self.namespace['app'] = qApp()
 		self.namespace['window'] = qApp().lastWindow
 		self.namespace['editor'] = self.namespace['window'].currentBuffer()
+		self.namespace['import_all_qt'] = self.import_all_qt
 
 		output = u'>>> %s\n' % code
 		output += capture_output(self.interpreter.runsource, code)
