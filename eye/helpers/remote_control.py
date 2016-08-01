@@ -2,6 +2,7 @@
 
 from functools import wraps
 import logging
+import os
 
 from PyQt5.QtCore import QObject, pyqtSlot as Slot, Q_CLASSINFO
 from PyQt5.QtDBus import QDBusConnection, QDBusVariant, QDBusMessage
@@ -9,6 +10,7 @@ from PyQt5.QtDBus import QDBusConnection, QDBusVariant, QDBusMessage
 from ..three import str
 from ..connector import disabled, CategoryMixin
 from ..app import qApp
+from .. import pathutils
 from .intent import registerIntentListener, sendIntent
 
 
@@ -107,4 +109,11 @@ def onRequestPing(args):
 
 @registerRemoteRequest('open')
 def onRequestOpen(args):
-	sendIntent(ROOT_OBJ, 'openEditor', path=args[0])
+	path, row, col = pathutils.parseFilename(args[0])
+	path = os.path.abspath(path)
+	if row is None:
+		loc = None
+	else:
+		loc = (row, col)
+
+	sendIntent(ROOT_OBJ, 'openEditor', path=path, loc=loc)
