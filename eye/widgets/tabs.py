@@ -122,6 +122,8 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 	def __init__(self, **kwargs):
 		super(TabWidget, self).__init__(**kwargs)
 
+		self.hideBarIfSingleTab = False
+
 		self.tabCloseRequested.connect(self._tabCloseRequested)
 		self.currentChanged.connect(self._currentChanged)
 
@@ -320,8 +322,15 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 			if self.indexOf(c) < 0:
 				return c
 
+	def setHideBarIfSingleTab(self, b):
+		self.hideBarIfSingleTab = b
+		self._changeTabBarVisibility()
+
 	def _changeTabBarVisibility(self):
-		visible = (self.count() > 1)
+		if self.hideBarIfSingleTab:
+			visible = (self.count() > 1)
+		else:
+			visible = True
 		self.tabBar().setVisible(visible)
 
 	## misc
