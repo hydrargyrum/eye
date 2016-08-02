@@ -6,6 +6,7 @@
 from __future__ import print_function
 
 import code
+import codecs
 from importlib import import_module
 import logging
 import sys
@@ -51,7 +52,7 @@ class HistoryLine(QLineEdit):
 
 		if self.history_path:
 			with exceptionLogging(reraise=False, logger=LOGGER):
-				with open(self.history_path, 'a') as fd:
+				with codecs.open(self.history_path, 'a', 'utf-8') as fd:
 					print(self.text(), file=fd)
 
 	def setHistoryFile(self, path):
