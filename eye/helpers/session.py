@@ -81,6 +81,8 @@ def serializeTab(widget):
 		return {
 			'type': 'editor',
 			'path': widget.path,
+			'cursor': list(widget.cursorLineIndex()),
+			'contractedFolds': widget.contractedFolds(),
 		}
 
 
@@ -155,7 +157,10 @@ def respawnTab(dtab, tabwidget):
 		tabwidget.addWidget(new)
 		if dtab.get('path'):
 			new.openFile(dtab['path'])
-
+		if 'contractedFolds' in dtab:
+			new.setContractedFolds(dtab['contractedFolds'])
+		if 'cursor' in dtab:
+			new.setCursorPosition(*dtab['cursor'])
 
 def restoreSession():
 	path = getConfigFilePath(SESSION_FILE)
