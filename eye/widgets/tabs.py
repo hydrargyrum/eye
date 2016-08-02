@@ -4,7 +4,7 @@
 """
 
 from PyQt5.QtCore import pyqtSignal as Signal, Qt, QMimeData
-from PyQt5.QtGui import QPolygon, QDrag
+from PyQt5.QtGui import QPolygon, QDrag, QIcon
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget, QToolButton, QMenu
 
 from .. import consts
@@ -171,25 +171,19 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 	def addWidget(self, widget):
 		"""Add a new tab with the specified widget"""
 		assert not self.isAncestorOf(widget)
-		self.addTab(widget, widget.icon(), widget.title())
-		if hasattr(widget, 'titleChanged'):
-			widget.titleChanged.connect(self._subTitleChanged)
-		if hasattr(widget, 'iconChanged'):
-			widget.iconChanged.connect(self._subIconChanged)
+		idx = self.addTab(widget, widget.windowIcon(), widget.windowTitle())
+		widget.windowTitleChanged.connect(self._subTitleChanged)
+		widget.windowIconChanged.connect(self._subIconChanged)
+		self.setTabToolTip(idx, widget.toolTip())
 
 	def insertWidget(self, idx, widget):
 		assert not self.isAncestorOf(widget)
-		self.insertTab(idx, widget, widget.icon(), widget.title())
-		if hasattr(widget, 'titleChanged'):
-			widget.titleChanged.connect(self._subTitleChanged)
-		if hasattr(widget, 'iconChanged'):
-			widget.iconChanged.connect(self._subIconChanged)
+		self.insertTab(idx, widget, widget.windowIcon(), widget.windowTitle())
+		widget.windowTitleChanged.connect(self._subTitleChanged)
+		widget.windowIconChanged.connect(self._subIconChanged)
+		self.setTabToolTip(idx, widget.toolTip())
 
 	removeWidget = closeTab
-
-	def widgetSetFilename(self, widget, filename):
-		idx = self.indexOf(widget)
-		self.setTabText(idx, self.tr('%s') % filename)
 
 	def _selectTab(self, step, s1, e1, rotate, s2, e2):
 		for idx in range(s1, e1, step):
@@ -280,21 +274,22 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		if hadFocus:
 			self.setFocus()
 
-	@Slot()
-	def _subTitleChanged(self):
+	@Slot(str)
+	def _subTitleChanged(self, title):
 		w = self.sender()
 		idx = self.indexOf(w)
 		if idx < 0:
 			return
-		self.setTabText(idx, w.title())
+		self.setTabText(idx, title)
+		self.setTabToolTip(idx, w.toolTip())
 
-	@Slot()
-	def _subIconChanged(self):
+	@Slot(QIcon)
+	def _subIconChanged(self, icon):
 		w = self.sender()
 		idx = self.indexOf(w)
 		if idx < 0:
 			return
-		self.setTabIcon(idx, w.icon())
+		self.setTabIcon(idx, icon)
 
 	## override
 	def tabInserted(self, idx):

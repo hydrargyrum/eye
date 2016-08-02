@@ -1028,7 +1028,9 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		super(Editor, self).__init__(**kwargs)
 
 		self.path = ''
-		self.modificationChanged.connect(self.titleChanged)
+		self.modificationChanged.connect(self.setWindowModified)
+		self.modificationChanged.connect(self._updateTitle)
+		self._updateTitle()
 
 		self.saving = structs.PropDict()
 		self.saving.trim_whitespace = False
@@ -1052,12 +1054,13 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	def __repr__(self):
 		return '<Editor path=%r>' % self.path
 
-	def title(self):
+	def _updateTitle(self):
 		t = os.path.basename(self.path) or '<untitled>'
 		if self.isModified():
-			return '%s*' % t
-		else:
-			return t
+			t = '%s*' % t
+
+		self.setWindowTitle(t)
+		self.setToolTip(self.path or '<untitled>')
 
 	## file management
 	def _getFilename(self):
@@ -1090,7 +1093,6 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		self.path = path
 		self.setModified(False)
-		self.titleChanged.emit()
 		if newFile:
 			self.fileSavedAs.emit(path)
 		else:
@@ -1107,7 +1109,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		ret = True
 
 		if self.isModified():
-			file = self._getFilename() or '<untitled>'
+			file = self.windowTitle()
 
 			answer = QMessageBox.question(self, self.tr('Unsaved file'), self.tr('%s has been modified, do you want to close it?') % file, QMessageBox.Discard | QMessageBox.Cancel | QMessageBox.Save)
 			if answer == QMessageBox.Discard:
@@ -1405,10 +1407,6 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		return self.annotateAppend(line, item, style)
 
 	## signals
-	titleChanged = Signal()
-
-	"""Signal titleChanged()"""
-
 	fileAboutToBeSaved = Signal(str)
 
 	"""Signal fileAboutToBeSaved(str)"""
