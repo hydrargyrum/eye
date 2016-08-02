@@ -739,6 +739,15 @@ class BaseEditor(QsciScintilla):
 
 	"""setLexerProperty(bytes, bytes): set a lexer property (key/value)"""
 
+	def lexerProperty(self, prop):
+		bufsize = self.SendScintilla(QsciScintilla.SCI_GETPROPERTY, prop, None) + 1
+		if not bufsize:
+			return []
+
+		res = bytearray(bufsize)
+		self.SendScintilla(QsciScintilla.SCI_GETPROPERTY, prop, res)
+		return bytes(res[:-1])
+
 	# text
 	deleteRange = sciProp2(QsciScintilla.SCI_DELETERANGE)
 
