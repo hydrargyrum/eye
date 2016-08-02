@@ -53,6 +53,9 @@ def QColorAlpha(*args):
 		return QColor(*args)
 
 
+QColor.__repr__ = lambda self: '<QColor %r>' % self.name(QColor.HexArgb)
+
+
 class ColorTests(unittest.TestCase):
 	def test_normal(self):
 		self.assertEqual(QColorAlpha(Qt.red), QColor(Qt.red))
