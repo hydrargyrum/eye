@@ -140,6 +140,10 @@ class EvalConsole(QWidget, WidgetMixin):
 		output += capture_output(self.interpreter.runsource, code)
 		self.display.appendPlainText(output)
 
+		# avoid retaining references to widgets
+		self.namespace.pop('window')
+		self.namespace.pop('editor')
+
 
 def capture_output(cb, *args, **kwargs):
 	sio = StringIO()
