@@ -71,6 +71,10 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		menu.addAction('Save').triggered.connect(self.bufferSave)
 		menu.addAction('Quit').triggered.connect(self.quitRequested)
 
+	@Slot()
+	def toggleFullScreen(self):
+		self.setWindowState(self.windowState() ^ Qt.WindowFullScreen)
+
 	def addDockable(self, area, widget, title=''):
 		"""Add a widget to a dock of this window
 
