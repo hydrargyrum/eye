@@ -101,7 +101,7 @@ def getIdAndAliases(lexer, keyword):
 		ret.append(getattr(cls, keyword))
 	if cls in ALIASES and keyword in ALIASES[cls]:
 		aliases = ALIASES[cls][keyword]
-		ret.extend(getattr(cls, alias) for alias in aliases)
+		ret.extend(getattr(cls, alias) for alias in aliases if hasattr(cls, alias))
 
 	if not ret:
 		descs = lexerDescriptionIds(lexer)
