@@ -11,10 +11,18 @@ __all__ = ('acceptIf', 'CategoryMixin', 'WidgetMixin', 'CentralWidgetMixin')
 
 
 def acceptIf(ev, cond):
+	"""Accept an event if a condition is True, else ignore it.
+
+	:param ev: the event to accept or ignore
+	:type ev: QEvent
+	:param cond: the condition determining whether the event should be accepted or ignored
+	:returns: whether the event was accepted or not
+	"""
 	if cond:
 		ev.accept()
 	else:
 		ev.ignore()
+	return ev.isAccepted()
 
 
 class WidgetMixin(CategoryMixin):
