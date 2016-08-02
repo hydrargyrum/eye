@@ -8,7 +8,6 @@ based on lexer tokens but on markers. For example "{{{" for starting a fold zone
 Simple usage:
 
 	>>> import eye.helpers.folding
-	>>> eye.helpers.folding.disableLexerFolding.enabled = True
 	>>> eye.helpers.folding.setMarkerFolder.enabled = True
 """
 
@@ -45,6 +44,9 @@ class MarkerFolder(QObject, HasWeakEditorMixin):
 		self.timer.setSingleShot(True)
 		self.timer.timeout.connect(self.refoldQueue)
 		self.linesToRefold = set()
+
+		if editor:
+			self.refold(True)
 
 	@Slot()
 	def refold(self, force=False):
@@ -99,7 +101,9 @@ class MarkerFolder(QObject, HasWeakEditorMixin):
 
 
 @defaultEditorConfig
+@defaultLexerConfig
 @disabled
-def setMarkerFolder(editor):
+def setMarkerFolder(editor, *args):
 	"""Enable folding based on markers for an editor widget"""
+	editor.setLexerProperty(b'fold', b'0')
 	editor.folding = MarkerFolder(editor=editor)
