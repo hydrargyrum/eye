@@ -144,9 +144,11 @@ class SplitManager(QWidget, WidgetMixin):
 				continue
 
 			if spl.count() == 0:
+				LOGGER.debug('optimizer remove empty %s', spl)
 				parent.removeChild(spl)
 			elif spl.count() == 1:
 				child = next(iter(spl.children()))
+				LOGGER.debug('replace %s by only child %s', spl, child)
 				parent.replaceChild(spl, child)
 
 	## split/move/delete
@@ -161,21 +163,43 @@ class SplitManager(QWidget, WidgetMixin):
 
 		orientation = consts.ORIENTATIONS[direction]
 		if parent.orientation() == orientation:
+			oldsize = parent.sizes()
+			if oldsize:
+				oldsize[idx] //= 2
+				oldsize.insert(idx, oldsize[idx])
+
 			if direction in (consts.DOWN, consts.RIGHT):
 				idx += 1
+
+			LOGGER.debug('inserting %r at %r in %r in the same orientation', newWidget, idx, parent)
 			parent.insertWidget(idx, newWidget)
+
+			if oldsize:
+				parent.setSizes(oldsize)
 		else:
 			# currentWidget is moved, so it may lose focus
-			refocus = currentWidget.hasFocus()
+			refocus = currentWidget and currentWidget.hasFocus()
 
 			newSplit = self.SplitterClass(orientation=orientation)
-			parent.insertWidget(idx, newSplit)
 
-			if currentWidget and direction in (consts.DOWN, consts.RIGHT):
-				newSplit.addWidget(currentWidget)
-			newSplit.addWidget(newWidget)
-			if currentWidget and direction in (consts.UP, consts.LEFT):
-				newSplit.addWidget(currentWidget)
+			LOGGER.debug('inserting %r in new splitter %r at %r of %r in different orientation', newWidget, newSplit, idx, parent)
+
+			if currentWidget:
+				# save/restore size because Qt goes crazy when moving splitter widgets around
+				oldsize = parent.sizes()
+				if direction in (consts.DOWN, consts.RIGHT):
+					newSplit.addWidget(currentWidget)
+					parent.insertWidget(idx, newSplit)
+					newSplit.addWidget(newWidget)
+				else:
+					newSplit.addWidget(newWidget)
+					parent.insertWidget(idx, newSplit)
+					newSplit.addWidget(currentWidget)
+				parent.setSizes(oldsize)
+				newSplit.setSizes([1, 1]) # force Qt to rebalance it
+			else:
+				newSplit.addWidget(newWidget)
+				parent.insertWidget(idx, newSplit)
 
 			if refocus:
 				currentWidget.setFocus()
@@ -310,3 +334,14 @@ class SplitManager(QWidget, WidgetMixin):
 			if not c.requestClose():
 				return False
 		return True
+
+
+def dumpSplitter(splitter, indent=''):
+	print('%s%s %s' % (indent, splitter, splitter.sizes()))
+	indent += '  '
+	for i in range(splitter.count()):
+		child = splitter.widget(i)
+		if isinstance(child, QSplitter):
+			dumpSplitter(child, indent)
+		else:
+			print('%s%s' % (indent, child))
