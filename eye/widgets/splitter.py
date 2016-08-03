@@ -37,8 +37,6 @@ class Splitter(QSplitter, WidgetMixin):
 	`Splitter` objects are handled by the :any:`SplitManager` widget.
 	"""
 
-	HandleBar = 42
-
 	def __init__(self, **kwargs):
 		super(Splitter, self).__init__(**kwargs)
 
@@ -49,21 +47,23 @@ class Splitter(QSplitter, WidgetMixin):
 			yield self.widget(i)
 
 	def childAt(self, pos):
-		"""Return child widget at position
+		"""Return direct child widget at the given position
+
+		The returned child will be a direct child of `self`. If the real widget at `pos` is in a
+		sub-Splitter, only the sub-Splitter which is a direct child of `self` will be returned.
 
 		:type pos: QPoint
 		:param pos: relative to the top-left corner of this `Splitter` (which is at `(0, 0)`).
-		:return: return value will be `HandleBar` if `pos` is right on a handle bar of this splitter.
-		         If the final widget under `pos` is contained in a sub-`Splitter` or sub-sub-`Splitter`,
-		         it won't be returned, only the direct child, the direct sub-`Splitter` will be returned.
+		:return: the direct child at `pos`, a :any:`QSplitterHandle` if `pos` is on a handle, or None if
+		         `pos` is outside `self`'s geometry
+		:rtype: QWidget
 		"""
 		if not self.rect().contains(pos):
 			return None
 		for i in range(self.count()):
-			w = self.widget(i)
-			if w.geometry().contains(pos):
-				return w
-		return self.HandleBar
+			for w in (self.widget(i), self.handle(i)):
+				if w.geometry().contains(pos):
+					return w
 
 	def parentManager(self):
 		"""Returns the :any:`SplitManager` managing this splitter
