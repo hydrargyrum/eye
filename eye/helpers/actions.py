@@ -273,7 +273,7 @@ class ActionStore(CategoryStore):
 
 	@Slot()
 	def placeholder(self):
-		LOGGER.warning("placeholder function shouldn't be called: %r", self.sender.objectName())
+		LOGGER.warning("placeholder function shouldn't be called: %r", self.sender().objectName())
 
 	def hasSlot(self, obj, slotName):
 		return callable(getattr(obj, slotName, None))
