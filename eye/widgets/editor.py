@@ -319,6 +319,14 @@ class Indicator(HasWeakEditorMixin):
 
 			start = end
 
+	def getCurrentRange(self, offset):
+		val = self.getAtOffset(offset)
+		prev = self.getPreviousEdge(offset)
+		if self.getAtOffset(prev) != val:
+			prev = offset
+		next = self.getNextEdge(offset)
+		return (prev, next, val)
+
 	def iterRanges(self):
 		"""Return (start, end, value) tuples listing the ranges where the indicator is set.
 
@@ -400,6 +408,12 @@ class Indicator(HasWeakEditorMixin):
 		:type style: QsciScintilla.IndicatorStyle
 		"""
 		self.id = self.editor.indicatorDefine(style, self.id)
+
+	def setFlags(self, flags):
+		self.editor.setIndicatorFlags(self.id, flags)
+
+	def getFlags(self):
+		return self.editor.indicatorFlags(self.id)
 
 
 class Margin(HasWeakEditorMixin):
@@ -686,6 +700,10 @@ class BaseEditor(QsciScintilla):
 	_setIndicatorValue = sciProp(QsciScintilla.SCI_SETINDICATORVALUE, (six.integer_types,))
 	_setIndicatorCurrent = sciProp(QsciScintilla.SCI_SETINDICATORCURRENT, (six.integer_types,))
 	_fillIndicatorRange = sciProp(QsciScintilla.SCI_INDICATORFILLRANGE, (six.integer_types, six.integer_types))
+	setIndicatorFlags = sciProp2(QsciScintilla.SCI_INDICSETFLAGS)
+	indicatorFlags = sciProp1(QsciScintilla.SCI_INDICGETFLAGS)
+
+	IndicatorFlagValueFore = getattr(QsciScintilla, 'SC_INDICFLAG_VALUEFORE', 1)
 
 	# search
 	setTargetStart = sciProp(QsciScintilla.SCI_SETTARGETSTART, (six.integer_types,))
