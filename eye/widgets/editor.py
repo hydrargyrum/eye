@@ -578,17 +578,62 @@ class BaseEditor(QsciScintilla):
 	"""Return `True` if multiple selection is enabled"""
 
 	setAdditionalSelectionTyping = sciProp(QsciScintilla.SCI_SETADDITIONALSELECTIONTYPING, (bool,))
+
+	"""Set whether typing in a multi-selection should type in all selections.
+
+	If set to `True`, when multiple regions are selected, typing or removing characters will act on
+	all selections instead of the main selection only.
+	"""
+
 	additionalSelectionTyping = sciProp0(QsciScintilla.SCI_GETADDITIONALSELECTIONTYPING)
+
+	"""Return True if typing operates on all selections.
+
+	See :any:`setAdditionalSelectionTyping`.
+	"""
 
 	selectionsCount = sciPropGet(QsciScintilla.SCI_GETSELECTIONS)
 
 	"""Return the number of selection ranges (if multiple selections are enabled, else 1)"""
 
 	selectionsEmpty = sciProp0(QsciScintilla.SCI_GETSELECTIONEMPTY)
+
+	"""Return True if all selections are empty."""
+
 	clearSelections = sciProp0(QsciScintilla.SCI_CLEARSELECTIONS)
 
+	"""Deselect all selections."""
+
 	setMainSelection = sciProp(QsciScintilla.SCI_SETMAINSELECTION, (six.integer_types,))
+
+	"""Set the index of the main selection.
+
+	When there are multiple selections, set the main selection to be the n-th selection.
+	"""
+
 	mainSelection = sciProp0(QsciScintilla.SCI_GETMAINSELECTION)
+
+	"""Return the main selection index."""
+
+	def addSelection(self, lineFrom, indexFrom, lineTo, indexTo):
+		"""Add a new selection (line-index based).
+
+		The first selection should be set with :any:`setSelection`, and the next ones with this method.
+		"""
+		offsetFrom = self.positionFromLineIndex(lineFrom, indexFrom)
+		offsetTo = self.positionFromLineIndex(lineTo, indexTo)
+		self.addSelectionOffsets(offsetFrom, offsetTo)
+
+	addSelectionOffsets = sciProp2(QsciScintilla.SCI_ADDSELECTION)
+
+	"""Add a new selection (offset based).
+
+	See :any:`addSelection`.
+	"""
+
+	dropSelectionN = sciProp1(QsciScintilla.SCI_DROPSELECTIONN)
+
+	"""Deselect the n-th selection."""
 
 	setMultiPaste = sciProp1(QsciScintilla.SCI_SETMULTIPASTE)
 
