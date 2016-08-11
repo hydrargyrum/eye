@@ -4,13 +4,13 @@ from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QPoint
 from PyQt5.QtGui import QBrush, QPen, QPainter, QPolygon
 from PyQt5.QtWidgets import QFrame, QSizePolicy, QWidget, QHBoxLayout
 
-from ..connector import CategoryMixin
+from ..connector import CategoryMixin, registerSignal, disabled
 from ..widgets.editor import Editor, SciModification
 from ..widgets.window import Window
 from ..three import range
 
 
-__all__ = ('MiniMap', 'EditorReplacement')
+__all__ = ('MiniMap', 'EditorReplacement', 'scrollOnClick', 'install')
 
 
 class MiniMap(QFrame, CategoryMixin):
@@ -105,6 +105,12 @@ class EditorReplacement(QWidget):
 
 	def __getattr__(self, attr):
 		return getattr(self.editor, attr)
+
+
+@registerSignal('minimap', 'lineClicked')
+@disabled
+def scrollOnClick(minimap, line):
+	minimap.editor.ensureLineVisible(line)
 
 
 def install():
