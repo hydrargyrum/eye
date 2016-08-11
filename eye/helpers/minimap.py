@@ -1,12 +1,13 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, QSize, Qt
-from PyQt5.QtGui import QBrush, QPainter
+from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QPoint
+from PyQt5.QtGui import QBrush, QPen, QPainter, QPolygon
 from PyQt5.QtWidgets import QFrame, QSizePolicy, QWidget, QHBoxLayout
 
 from ..connector import CategoryMixin
-from ..widgets.editor import Editor
+from ..widgets.editor import Editor, SciModification
 from ..widgets.window import Window
+from ..three import range
 
 
 __all__ = ('MiniMap', 'EditorReplacement')
@@ -18,11 +19,23 @@ class MiniMap(QFrame, CategoryMixin):
 	def __init__(self, editor=None, **kwargs):
 		super(MiniMap, self).__init__(**kwargs)
 		self.editor = editor
-		self.lines = []
-		self.proportional_thickness = True
+		if self.editor:
+			self.editor.sciModified.connect(self.editorModification)
+
+		self.markerStyles = {}
+		self.indicatorStyles = {}
+
 		self.setFixedWidth(10)
 		self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
+
 		self.addCategory('minimap')
+
+	@Slot(SciModification)
+	def editorModification(self, mod):
+		update_mask = self.editor.SC_MOD_CHANGEINDICATOR | self.editor.SC_MOD_CHANGEMARKER
+
+		if mod.modificationType & update_mask:
+			self.update()
 
 	def setLines(self, lines):
 		self.lines = lines
@@ -36,20 +49,36 @@ class MiniMap(QFrame, CategoryMixin):
 
 	def paintEvent(self, ev):
 		painter = QPainter(self)
+
 		painter.fillRect(0, 0, self.width(), self.height(), Qt.white) # TODO bg color
 		if not self.editor:
 			return
 
 		total = self.editor.lines()
-		lineheight = int(max(1, self.height() / total)) if self.proportional_thickness else 1
-		for line in self.lines:
-			line = line * self.height() / total
-			painter.fillRect(0, line, self.width(), lineheight, Qt.red)
+
+		for name in self.editor.markers:
+			mpainter = self.markerStyles.get(name)
+			if mpainter is None:
+				continue
+
+			marker = self.editor.markers[name]
+			for line in marker.listAll():
+				mpainter.draw(painter, line, total, self)
+
+		for name in self.editor.indicators:
+			mpainter = self.indicatorStyles.get(name)
+			if mpainter is None:
+				continue
+
+			indicator = self.editor.indicators[name]
+			for offset_start, offset_end, _ in indicator.iterRanges():
+				line_start, _ = self.editor.lineIndexFromPosition(offset_start)
+				line_end, _ = self.editor.lineIndexFromPosition(offset_end)
+				for line in range(line_start, line_end + 1):
+					mpainter.draw(painter, line, total, self)
 
 	# TODO mouse cursor changes over highlight zone
 	# TODO thicker zone for easier clicks?
-	# TODO different colored highlight zone types (e.g. search, compile error, bookmark, etc.)
-	# TODO 	by genre? i.e. annotation, margin, etc.
 
 
 class EditorReplacement(QWidget):
@@ -81,3 +110,48 @@ class EditorReplacement(QWidget):
 def install():
 	Window.EditorClass = EditorReplacement
 
+## styles
+
+class MiniMapStyle(object):
+	pass
+
+
+class Shape(MiniMapStyle):
+	Circle = 1
+	Square = 2
+	Triangle = 3
+
+	def __init__(self, shape, pen=None, brush=None):
+		self.shape = shape
+		self.pen = pen or QPen()
+		self.brush = brush or QBrush()
+
+	def draw(self, painter, line, total, minimap):
+		line = line * minimap.height() / total
+
+		painter.setPen(self.pen)
+		painter.setBrush(self.brush)
+		if self.shape == Shape.Circle:
+			painter.drawEllipse(0, line - 4, 8, 8)
+		elif self.shape == Shape.Square:
+			painter.drawRect(0, line - 4, 8, 8)
+		elif self.shape == Shape.Triangle:
+			triangle = QPolygon([QPoint(0, line - 4), QPoint(0, line + 4), QPoint(8, line)])
+			painter.drawPolygon(triangle)
+
+
+class Line(MiniMapStyle):
+	def __init__(self, pen=None, proportional_thickness=False):
+		self.pen = pen or QPen()
+		self.proportional_thickness = proportional_thickness
+
+	def draw(self, painter, line, total, minimap):
+		line = line * minimap.height() / total
+		pen = QPen(self.pen)
+
+		if self.proportional_thickness:
+			lineheight = int(max(1, minimap.height() / total))
+			pen.setWidth(lineheight)
+
+		painter.setPen(pen)
+		painter.drawLine(0, line, minimap.width(), line)
