@@ -152,7 +152,7 @@ class App(QApplication):
 				loc = (row - 1, col - 1)
 			elif row:
 				loc = (row - 1,)
-			sendIntent(win, 'openEditor', path=path, loc=loc)
+			sendIntent(win, 'openEditor', path=path, loc=loc, reason='commandline')
 
 	@Slot('QWidget*', 'QWidget*')
 	def _appFocusChanged(self, old, new):

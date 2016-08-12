@@ -155,5 +155,5 @@ class LocationList(QTreeWidget, WidgetMixin):
 @registerSignal('location_list', 'locationActivated')
 @disabled
 def locationListOpen(widget, path, loc):
-	sendIntent(widget, 'openEditor', path=path, loc=loc)
+	sendIntent(widget, 'openEditor', path=path, loc=loc, reason='locationlist')
 

@@ -271,4 +271,4 @@ class FileChooser(BaseFileChooser):
 		if info.isDir():
 			return
 		path = info.absoluteFilePath()
-		sendIntent(self, 'openEditor', path=path)
+		sendIntent(self, 'openEditor', path=path, reason='filechooser')

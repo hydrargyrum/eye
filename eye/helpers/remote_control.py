@@ -116,4 +116,4 @@ def onRequestOpen(args):
 	else:
 		loc = (row, col)
 
-	sendIntent(ROOT_OBJ, 'openEditor', path=path, loc=loc)
+	sendIntent(ROOT_OBJ, 'openEditor', path=path, loc=loc, reason='remote')
