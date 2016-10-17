@@ -43,6 +43,7 @@ def doCompletion(editor, replace=True):
 
 	reply = _query(getDaemon().queryCompletions, editor)
 	reply.finished.connect(handleReply)
+	reply.finished.connect(reply.deleteLater)
 
 
 @registerSignal('editor', 'SCN_CHARADDED')

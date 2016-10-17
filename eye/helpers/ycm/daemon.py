@@ -184,6 +184,7 @@ class Ycm(QObject, CategoryMixin):
 
 		reply = self._doGet('/healthy')
 		reply.finished.connect(handleReply)
+		reply.finished.connect(reply.deleteLater)
 
 	def start(self):
 		if not self.port:
@@ -253,11 +254,13 @@ class Ycm(QObject, CategoryMixin):
 		return self._doPost(urlpath, **d)
 
 	def acceptExtraConf(self, filepath, filetype, contents):
-		return self._postSimpleRequest('/load_extra_conf_file', filepath, filetype, contents)
+		reply = self._postSimpleRequest('/load_extra_conf_file', filepath, filetype, contents)
+		reply.finished.connect(reply.deleteLater)
 
 	def rejectExtraConf(self, filepath, filetype, contents):
-		return self._postSimpleRequest('/ignore_extra_conf_file', filepath, filetype, contents,
-		                               _ignore_body=True)
+		reply = self._postSimpleRequest('/ignore_extra_conf_file', filepath, filetype, contents,
+		                                _ignore_body=True)
+		reply.finished.connect(reply.deleteLater)
 
 	def sendParse(self, filepath, filetype, contents, retry_extra=True):
 		d = {
@@ -288,6 +291,7 @@ class Ycm(QObject, CategoryMixin):
 				raise
 
 		reply.finished.connect(handleReply)
+		reply.finished.connect(reply.deleteLater)
 
 	if 0:
 		def querySubcommandsList(self, filepath, filetype, contents, line, col):
