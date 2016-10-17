@@ -8,13 +8,22 @@ Bookmarks do not persist when file is closed.
 These bookmarks use a :any:`eye.widgets.editor.Marker` called "bookmark", which can be customized.
 """
 
-__all__ = ('toggleBookmark', 'nextBookmark', 'previousBookmark', 'listBookmarks')
+__all__ = ('toggleBookmark', 'nextBookmark', 'previousBookmark', 'listBookmarks',
+           'createMarker', 'setEnabled')
 
 
+from ..connector import defaultEditorConfig, disabled
+from .actions import registerAction
+
+
+@registerAction('editor', 'toggleBookmark')
 def toggleBookmark(ed):
+	if 'bookmark' not in ed.markers:
+		createMarker(ed)
+
 	ln = ed.getCursorPosition()[0]
 
-	marker = ed.markers['bookmark']  
+	marker = ed.markers['bookmark']
 	if marker.isAt(ln):
 		marker.removeAt(ln)
 	else:
@@ -40,3 +49,13 @@ def previousBookmark(ed):
 
 def listBookmarks(ed):
 	return list(ed.markers['bookmark'].listAll())
+
+
+@defaultEditorConfig
+@disabled
+def createMarker(ed):
+	ed.createMarker('bookmark', ed.Circle)
+
+
+def setEnabled(enabled):
+	createMarker.enabled = enabled
