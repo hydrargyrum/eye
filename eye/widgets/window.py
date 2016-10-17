@@ -62,6 +62,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		from ..app import qApp
 		qApp().focusChanged.connect(self._appFocusChanged)
 
+		REGISTRY.append(self)
 		self.addCategory('window')
 
 	def createDefaultMenuBar(self):
@@ -184,9 +185,14 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 	"""Signal quitRequested()"""
 
+	closing = Signal()
+
 	## events
 	def closeEvent(self, ev):
-		acceptIf(ev, self.splitter.requestClose())
+		if acceptIf(ev, self.splitter.requestClose()):
+			super(Window, self).closeEvent(ev)
+			self.closing.emit()
+			REGISTRY.remove(self)
 
 	def onTabbarLastClosed(self, tw):
 		self.splitter.removeWidget(tw)
@@ -201,3 +207,6 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 def onLastTabClosed(tw):
 	win = tw.window()
 	win.onTabbarLastClosed(tw)
+
+
+REGISTRY = []
