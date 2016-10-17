@@ -2,7 +2,6 @@
 
 from .. import connector
 from ..app import qApp
-from ..widgets.editor import Editor
 
 __all__ = ('findEditor', 'openEditor', 'listEditors',
            'newEditorOpen', 'newEditorShare', 'newEditorTryShare')
@@ -30,12 +29,17 @@ def _getWindow():
 	return win
 
 
+def createEditorWidget():
+	from ..widgets.window import Window
+	return Window.EditorClass()
+
+
 def _createEditor(path):
 	win = _getWindow()
 	cur = win.currentBuffer()
 	tabs = cur.parentTabBar()
 
-	ed = Editor()
+	ed = createEditorWidget()
 	ed.openFile(path)
 	tabs.addWidget(ed)
 
@@ -105,7 +109,7 @@ def newEditorOpen(path, loc=None, parentTabBar=None):
 	:returns: the new editor
 	:rtype: eye.widgets.editor.Editor
 	"""
-	ed = Editor()
+	ed = createEditorWidget()
 	ed.openFile(path)
 	_doNew(ed, loc, parentTabBar)
 	return ed
@@ -128,7 +132,7 @@ def newEditorShare(ed, loc=None, parentTabBar=None):
 	:returns: the new editor
 	:rtype: eye.widgets.editor.Editor
 	"""
-	new = Editor()
+	new = createEditorWidget()
 	new.openDocument(ed)
 	_doNew(new, loc, parentTabBar)
 	return new
