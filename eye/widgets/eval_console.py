@@ -135,6 +135,52 @@ class HistoryLine(QLineEdit):
 			super().keyPressEvent(ev)
 
 
+class HistoryLine2(QPlainTextEdit):
+	submitted = Signal(str)
+
+	def __init__(self, **kwargs):
+		super(HistoryLine, self).__init__(**kwargs)
+		self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+		self.setSizeAdjustPolicy(self.AdjustToContents)
+		self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+		self.setFont(QFont('DejaVu Sans Mono'))
+		self.lines = []
+		self.idx = None
+
+	def sizeHint(self):
+		text_size = self.fontMetrics().size(Qt.TextExpandTabs, self.toPlainText(), 80)
+		height = text_size.height() + 2 * self.frameWidth()
+		return QSize(0, height)
+
+	def minimumSizeHint(self):
+		return QSize(0, 0)
+
+	def _resize_line(self):
+		#self.resize(QSize(self.size().width(), int(sz.height())))
+		print(self.minimumSizeHint())
+		self.updateGeometry()
+
+	def keyPressEvent(self, ev):
+		if ev.key() in (Qt.Key_Return, Qt.Key_Enter):
+			text = self.toPlainText()
+			try:
+				compiled = code.compile_command(text)
+			except SyntaxError:
+				return self.submit()
+			if compiled is not None:
+				return self.submit()
+
+		super(HistoryLine, self).keyPressEvent(ev)
+
+		if ev.key() in (Qt.Key_Return, Qt.Key_Enter):
+			self._resize_line()
+
+	def submit(self):
+		self.submitted.emit(self.toPlainText())
+		self.setPlainText('')
+		self._resize_line()
+
+
 class PlainTextEdit(QPlainTextEdit):
 	def contextMenuEvent(self, ev):
 		menu = self.createStandardContextMenu()
