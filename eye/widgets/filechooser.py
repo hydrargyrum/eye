@@ -93,11 +93,11 @@ class SubSequenceProxy(QSortFilterProxyModel):
 	def __init__(self, **kwargs):
 		super(SubSequenceProxy, self).__init__(**kwargs)
 		self.reobj = re.compile('')
-		self.cache = {}
+		self.scores = {}
 
 	def setFilter(self, text):
 		parts = map(QRegExp.escape, text)
-		pattern = '.*'.join('(%s)' % part for part in parts)
+		pattern = '.*?'.join('(%s)' % part for part in parts)
 		self.reobj = re.compile(pattern, re.I)
 		self.cache = {}
 		self.invalidate()
@@ -111,35 +111,41 @@ class SubSequenceProxy(QSortFilterProxyModel):
 		text = mdl.data(qidx)
 		mtc = self.reobj.search(text)
 		if mtc:
-			self._scoreMatch(mtc, text)
+			self.scores[text] = self._scoreMatch(mtc, text)
 		return bool(mtc)
 
 	def _score(self, qidx):
 		text = self.sourceModel().data(qidx)
 		try:
-			return self.cache[text]
+			return self.scores[text]
 		except KeyError:
 			pass
 
 		mtc = self.reobj.search(text)
-		return self._scoreMatch(mtc, text)
+		self.scores[text] = self._scoreMatch(mtc, text)
+		return self.scores[text]
 
 	def _scoreMatch(self, mtc, text):
 		n = self.reobj.groups
 
 		seq = 0
 		sub = 0
-		for i in xrange(1, n + 1):
-			if i > 1:
-				seq += int(bool(mtc.start(i) - mtc.start(i - 1) - 1))
+		left = 0
+		for i in range(1, n + 1):
+			if i == 1:
+				left += mtc.start(i)
+			else:
+				if mtc.start(i) == mtc.start(i - 1) + 1:
+					seq += 1
+				else:
+					left += mtc.start(i) - mtc.start(i - 1)
 
 			if mtc.start(i) == 0:
 				sub += 1
 			else:
-				sub += int(text[mtc.start(i) - 1] == '/')
+				sub += int(text[mtc.start(i) - 1] in '/.-_')
 
-		score = seq - sub
-		self.cache[text] = score
+		score = (-seq, -sub, left, text)
 		return score
 
 	def lessThan(self, qidx1, qidx2):
