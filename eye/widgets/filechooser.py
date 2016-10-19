@@ -1,6 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, QRegExp, pyqtSignal, pyqtSlot, Qt, QTimer
+from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, QRegExp, pyqtSignal, pyqtSlot, Qt, QTimer, QElapsedTimer
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QTreeView, QWidget, QFileSystemModel
 Signal = pyqtSignal
@@ -8,6 +8,7 @@ Slot = pyqtSlot
 
 import os
 import re
+from time import time
 
 from ..three import str, range
 from ..structs import PropDict
@@ -148,7 +149,7 @@ class SubSequenceProxy(QSortFilterProxyModel):
 
 
 class SubSequenceFileChooser(BaseFileChooser):
-	elements_per_crawl = 20
+	maxSecsPerCrawlBatch = .1
 
 	def __init__(self, **kwargs):
 		super(SubSequenceFileChooser, self).__init__(**kwargs)
@@ -165,7 +166,9 @@ class SubSequenceFileChooser(BaseFileChooser):
 		self.edit.textEdited.connect(self._onTextEdited)
 
 		self.crawlTimer = QTimer()
-		self.crawlTimer.timeout.connect(self.doCrawl)
+		# restart the timer manually so an exception breaks the loop and timer
+		self.crawlTimer.setSingleShot(True)
+		self.crawlTimer.timeout.connect(self.crawlBatch)
 		self.crawler = None
 
 	@Slot(str)
@@ -176,18 +179,20 @@ class SubSequenceFileChooser(BaseFileChooser):
 		self.filter.setFilterRegExp(pattern)
 
 	@Slot()
-	def doCrawl(self):
-		i = 0
-		for path, i in zip(self.crawler, range(self.elements_per_crawl)):
-			self.content.append(path)
-			self.mdl.appendRow(QStandardItem(path))
+	def crawlBatch(self):
+		start_time = QElapsedTimer()
+		start_time.start()
+		prefix_len = len(self.root) + 1 # 1 for the /
 
-		if not i:
-			self.crawlTimer.stop()
+		for path in self.crawler:
+			path = path[prefix_len:]
+			self.mdl.appendRow(QStandardItem(path))
+			if start_time.hasExpired(self.maxSecsPerCrawlBatch * 1000):
+				self.crawlTimer.start(0)
+				break
 
 	def setRoot(self, root):
-		self.root = root
-		self.content = []
+		self.root = os.path.abspath(root)
 		self.mdl.clear()
 		self.mdl.setHorizontalHeaderLabels([self.tr('File')])
 
