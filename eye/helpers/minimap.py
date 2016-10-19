@@ -18,6 +18,7 @@ class MiniMap(QFrame, CategoryMixin):
 
 	def __init__(self, editor=None, **kwargs):
 		super(MiniMap, self).__init__(**kwargs)
+
 		self.editor = editor
 		if self.editor:
 			self.editor.sciModified.connect(self.editorModification)
@@ -27,6 +28,7 @@ class MiniMap(QFrame, CategoryMixin):
 
 		self.setFixedWidth(10)
 		self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
+		self.setCursor(Qt.OpenHandCursor)
 
 		self.addCategory('minimap')
 
@@ -40,12 +42,19 @@ class MiniMap(QFrame, CategoryMixin):
 	def setLines(self, lines):
 		self.lines = lines
 
-	def mousePressEvent(self, ev):
+	def _doMove(self, ev):
 		line = ev.pos().y() * self.editor.lines() / self.height()
 		self.lineClicked.emit(line)
 
+	def mousePressEvent(self, ev):
+		self.setCursor(Qt.ClosedHandCursor)
+		self._doMove(ev)
+
 	def mouseMoveEvent(self, ev):
-		self.mousePressEvent(ev)
+		self._doMove(ev)
+
+	def mouseReleaseEvent(self, ev):
+		self.setCursor(Qt.OpenHandCursor)
 
 	def paintEvent(self, ev):
 		painter = QPainter(self)
