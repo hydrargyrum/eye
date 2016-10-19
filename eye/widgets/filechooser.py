@@ -77,6 +77,9 @@ class BaseFileChooser(QWidget, WidgetMixin):
 	def setRoot(self, path):
 		raise NotImplementedError()
 
+	def openFile(self, path):
+		sendIntent(self, 'openEditor', path=path, reason='filechooser')
+
 
 def walk_files(root, ignore_re=None):
 	for dp, dirs, files in os.walk(root):
@@ -169,6 +172,8 @@ class SubSequenceFileChooser(BaseFileChooser):
 		self.view.setAlternatingRowColors(True)
 		self.view.sortByColumn(0, Qt.AscendingOrder)
 
+		self.view.activated.connect(self._onActivated)
+
 		self.edit.textEdited.connect(self._onTextEdited)
 
 		self.crawlTimer = QTimer()
@@ -180,9 +185,6 @@ class SubSequenceFileChooser(BaseFileChooser):
 	@Slot(str)
 	def _onTextEdited(self, text):
 		return self.filter.setFilter(text)
-		parts = map(QRegExp.escape, text)
-		pattern = '.*'.join(parts)
-		self.filter.setFilterRegExp(pattern)
 
 	@Slot()
 	def crawlBatch(self):
@@ -192,7 +194,11 @@ class SubSequenceFileChooser(BaseFileChooser):
 
 		for path in self.crawler:
 			path = path[prefix_len:]
-			self.mdl.appendRow(QStandardItem(path))
+
+			qitem = QStandardItem(path)
+			qitem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+			self.mdl.appendRow(qitem)
+
 			if start_time.hasExpired(self.maxSecsPerCrawlBatch * 1000):
 				self.crawlTimer.start(0)
 				break
@@ -204,6 +210,14 @@ class SubSequenceFileChooser(BaseFileChooser):
 
 		self.crawler = walk_files(root)
 		self.crawlTimer.start(0)
+
+	@Slot(QModelIndex)
+	def _onActivated(self, qidx):
+		subpath = self.filter.data(qidx)
+		path = os.path.join(self.root, subpath)
+		if not os.path.isfile(path): # symlinks?
+			return
+		self.openFile(path)
 
 	# TODO be able to configure crawling: ignored patterns, depth, etc.
 
@@ -271,4 +285,4 @@ class FileChooser(BaseFileChooser):
 		if info.isDir():
 			return
 		path = info.absoluteFilePath()
-		sendIntent(self, 'openEditor', path=path, reason='filechooser')
+		self.openFile(path)
