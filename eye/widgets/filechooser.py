@@ -1,8 +1,8 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, QRegExp, pyqtSignal, pyqtSlot, Qt, QTimer, QElapsedTimer
+from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, QRegExp, pyqtSignal, pyqtSlot, Qt, QTimer, QElapsedTimer, QEvent
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
-from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QTreeView, QWidget, QFileSystemModel
+from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QTreeView, QWidget, QFileSystemModel, QApplication
 Signal = pyqtSignal
 Slot = pyqtSlot
 
@@ -70,6 +70,8 @@ class BaseFileChooser(QWidget, WidgetMixin):
 		self.view = QTreeView()
 		layout.addWidget(self.view)
 
+		self.edit.installEventFilter(self)
+
 	def setModel(self, model):
 		self.view.setModel(model)
 
@@ -79,6 +81,16 @@ class BaseFileChooser(QWidget, WidgetMixin):
 
 	def openFile(self, path):
 		sendIntent(self, 'openEditor', path=path, reason='filechooser')
+
+	def eventFilter(self, obj, ev):
+		if (obj is not self.edit
+			or ev.type() not in (QEvent.KeyPress, QEvent.KeyRelease)
+			or ev.key() not in (Qt.Key_Down, Qt.Key_Up, Qt.Key_PageUp, Qt.Key_PageDown)):
+
+			return super(BaseFileChooser, self).eventFilter(obj, ev)
+
+		QApplication.sendEvent(self.view, ev)
+		return True
 
 
 def walk_files(root, ignore_re=None):
@@ -184,7 +196,19 @@ class SubSequenceFileChooser(BaseFileChooser):
 
 	@Slot(str)
 	def _onTextEdited(self, text):
-		return self.filter.setFilter(text)
+		selected = self.view.selectedIndexes()
+		qidx = None
+		if len(selected):
+			qidx = self.filter.mapToSource(selected[0])
+
+		self.filter.setFilter(text)
+
+		if qidx is not None:
+			qidx = self.filter.mapFromSource(qidx)
+
+		if qidx is None or not qidx.isValid():
+			qidx = self.filter.index(0, 0)
+		self.view.setCurrentIndex(qidx)
 
 	@Slot()
 	def crawlBatch(self):
