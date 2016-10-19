@@ -9,7 +9,7 @@ Slot = pyqtSlot
 import os
 import re
 
-from ..three import str
+from ..three import str, range
 from ..structs import PropDict
 from .helpers import WidgetMixin
 from ..helpers.intent import sendIntent
@@ -244,7 +244,7 @@ class FileChooser(BaseFileChooser):
 
 		if self.options.get('autosuggest'):
 			names = [self.filter.data(self.filter.index(i, 0)).toString()
-				 for i in xrange(self.filter.rowCount(QModelIndex()))]
+				 for i in range(self.filter.rowCount(QModelIndex()))]
 			names = [n[len(base):] for n in names]
 			add = commonPrefix(names)
 
