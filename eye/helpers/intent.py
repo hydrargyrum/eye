@@ -130,6 +130,7 @@ def sendIntent(source, intent_type, **kwargs):
 	:param kwargs: extra info about the intent
 	:returns: the result of the intent, if any
 	"""
+	LOGGER.debug('sending intent %r with source %r: %r', intent_type, source, kwargs)
 	if source is None:
 		source = DefaultSender()
 
