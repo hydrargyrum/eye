@@ -132,7 +132,7 @@ class App(QApplication):
 				loc = (row - 1,)
 			sendIntent(win, 'openEditor', path=path, loc=loc)
 
-	@Slot(QWidget, QWidget)
+	@Slot('QWidget*', 'QWidget*')
 	def _appFocusChanged(self, old, new):
 		while new and not new.isWindow():
 			new = new.parentWidget()

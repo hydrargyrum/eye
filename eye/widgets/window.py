@@ -191,7 +191,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 	def onTabbarLastClosed(self, tw):
 		self.splitter.removeWidget(tw)
 
-	@Slot(QWidget, QWidget)
+	@Slot('QWidget*', 'QWidget*')
 	def _appFocusChanged(self, old, new):
 		if self.centralWidget().isAncestorOf(new):
 			self.lastFocus = ref(new)

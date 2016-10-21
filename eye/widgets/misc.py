@@ -56,7 +56,7 @@ class PositionIndicator(QLabel, WidgetMixin):
 
 		qApp().focusChanged.connect(self.focusChanged)
 
-	@Slot(QWidget, QWidget)
+	@Slot('QWidget*', 'QWidget*')
 	def focusChanged(self, _, new):
 		if not hasattr(new, 'categories'):
 			return
