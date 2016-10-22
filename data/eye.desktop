@@ -7,7 +7,7 @@ Comment[fr]=Éditer des fichiers sources
 GenericName=Text Editor
 Categories=TextEditor;Development;Qt;
 Keywords=Text;Editor;
-Icon=Sci48M
+Icon=eye
 
 Type=Application
 Exec=eye --remote %F

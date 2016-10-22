@@ -11,6 +11,7 @@ import sip
 sip.setapi('QString', 2)
 
 from PyQt5.QtCore import pyqtSignal as Signal
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow
 
 qApp = lambda: QApplication.instance()
@@ -37,6 +38,8 @@ class App(QApplication):
 
 		self.lastWindow = None
 		self.focusChanged.connect(self._appFocusChanged)
+
+		self.setWindowIcon(QIcon(pathutils.dataPath('eye.png')))
 
 	def initUi(self):
 		from .widgets import window

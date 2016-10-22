@@ -149,6 +149,14 @@ def getConfigFilePath(*args):
 
 
 def dataPath(*args):
-	dir = os.path.join(os.path.dirname(__file__), '..', 'data')
-	dir = os.path.abspath(dir)
-	return os.path.join(dir, *args)
+	dest = os.path.join(os.path.dirname(__file__), '..', 'data', *args)
+	if os.path.exists(dest):
+		return os.path.abspath(dest)
+
+	try:
+		import xdg.BaseDirectory
+		for path in xdg.BaseDirectory.load_data_paths(*args):
+			return path
+	except ImportError:
+		pass
+	return os.path.join('/usr/share', *args)

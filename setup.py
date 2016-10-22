@@ -41,6 +41,7 @@ setup(
 	data_files=[
 		('eye/colorschemes', glob.glob('data/colorschemes/*')),
 		('share/applications', 'data/eye.desktop'),
+		('share/icons/hicolor/256x256/apps', 'data/eye.png'),
 	],
 	entry_points={
 		'console_scripts': [

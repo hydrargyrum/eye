@@ -30,6 +30,7 @@ from weakref import ref
 from logging import getLogger
 
 from PyQt5.QtCore import pyqtSignal as Signal, Qt, QEvent
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.Qsci import QsciScintilla, QsciStyledText
 import sip
@@ -1113,6 +1114,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.search.whole = False
 
 		self._lexer = None
+
+		self.setWindowIcon(QIcon())
 
 		self.addCategory('editor')
 
