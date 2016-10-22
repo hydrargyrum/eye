@@ -44,6 +44,7 @@ class MiniMap(QFrame, CategoryMixin):
 
 	def _doMove(self, ev):
 		line = ev.pos().y() * self.editor.lines() / self.height()
+		line = max(0, min(self.editor.lines(), line))
 		self.lineClicked.emit(line)
 
 	def mousePressEvent(self, ev):
