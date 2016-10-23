@@ -29,7 +29,7 @@ class SearchProps(structs.PropDict):
 
 def props_to_re(props):
 	re_flags = 0
-	if props.caseSensitive:
+	if not props.caseSensitive:
 		re_flags |= re.I
 
 	if props.isRe:
