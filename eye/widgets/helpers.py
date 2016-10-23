@@ -47,12 +47,6 @@ class CentralWidgetMixin(WidgetMixin):
 	def __init__(self, **kwargs):
 		super(CentralWidgetMixin, self).__init__(**kwargs)
 
-	def title(self):
-		return ''
-
-	def icon(self):
-		return QIcon()
-
 	def parentTabBar(self):
 		w = self
 		while True:

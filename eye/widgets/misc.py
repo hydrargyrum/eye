@@ -97,7 +97,7 @@ class PositionIndicator(QLabel, WidgetMixin):
 			'percent': line * 100. / lines,
 			'offset': offset,
 			'path': ed.path,
-			'title': ed.title(),
+			'title': ed.windowTitle(),
 			'editor': ed,
 		}
 		self.setText(self.format.format(**d))
