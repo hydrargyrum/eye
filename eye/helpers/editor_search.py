@@ -74,7 +74,7 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 			self.finished.emit(0)
 			raise
 
-	def searchAllPy(self):
+	def searchAllPy(self, needOne=False):
 		if not self.props.expr:
 			return
 
@@ -86,17 +86,22 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 		with self.safeBatch():
 			self.indicator.clear()
 			self.timer.start()
+			if needOne:
+				self._searchBatch(needOne=True)
 
 	@Slot()
-	def _searchBatch(self):
+	def _searchBatch(self, needOne=False):
 		with self.safeBatch():
 			start_time = QElapsedTimer()
 			start_time.start()
 
 			for self.start_line in range(self.start_line, self.editor.lines()):
-				if start_time.hasExpired(10):
+				if not needOne and start_time.hasExpired(10):
 					return
-				self.searchInLine(self.start_line)
+
+				matched = self.searchInLine(self.start_line)
+				if matched:
+					needOne = False
 
 			self.timer.stop()
 			self.finished.emit(0)
@@ -105,12 +110,15 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 		if erase_indicator:
 			self.indicator.removeAt(lineno, 0, lineno + 1, 0)
 
+		matched = False
 		linetext = self.editor.text(lineno)
 		for mtc in self.reobj.finditer(linetext):
 			offset_start = self.editor.positionFromLineIndex(lineno, mtc.start())
 			offset_end = self.editor.positionFromLineIndex(lineno, mtc.end())
 			self.indicator.putAtOffset(offset_start, offset_end)
 			self.found.emit(offset_start, offset_end)
+			matched = True
+		return matched
 
 	def searchAll(self):
 		self.indicator.clear()
@@ -189,15 +197,21 @@ def onSearchTextEdited(ls, text):
 	if not editor.search.get('incremental', False):
 		return
 
-	performSearch(editor, SearchProps(expr=text))
+	performSearch(editor, SearchProps(expr=text), needOne=True)
 	if not hasattr(editor, 'incSearchStart'):
 		editor.incSearchStart = editor.cursorOffset()
 	editor.searchObj.seekSelect(editor.incSearchStart)
 
 
-def performSearch(editor, props):
+def performSearch(editor, props, needOne=False):
 	editor.searchObj = SearchObject(editor=editor, indicatorName='search', props=props)
-	editor.searchObj.searchAllPy()
+	editor.searchObj.searchAllPy(needOne=needOne)
+
+
+def performSearchSeek(editor, props):
+	performSearch(editor, props, needOne=True)
+	editor.searchObj.seekSelect(editor.cursorOffset())
+	editor.incSearchStart = editor.cursorOffset()
 
 
 @registerSignal('linesearch', 'textEntered')
@@ -209,15 +223,11 @@ def searchText(ls, text):
 	if not editor:
 		return
 
-	performSearch(editor, SearchProps(expr=text))
-	editor.searchObj.seekSelect(editor.cursorOffset())
-	editor.incSearchStart = editor.cursorOffset()
+	performSearchSeek(editor, SearchProps(expr=text))
 
 
 def _searchNext(editor, forward):
-	try:
-		searchObj = editor.searchObj
-	except AttributeError:
+	if not hasattr(editor, 'searchObj'):
 		return
 
 	editor.searchObj.seekSelect(editor.cursorOffset(), forward=forward)
