@@ -1,11 +1,13 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+import logging
 import os
 
 from PyQt5.QtCore import QRegExp
-from PyQt5.QtWidgets import QPushButton, QMenu, QWidget, QActionGroup, QGridLayout, QLineEdit, QComboBox
+from PyQt5.QtWidgets import QPushButton, QMenu, QWidget, QActionGroup, QGridLayout, QLineEdit, QComboBox, QToolButton
 
 from eye.helpers import file_search, buffers
+from eye.helpers.editor_search import SearchProps
 from eye.qt import Signal, Slot
 from eye.reutils import cs_to_qt_enum
 from eye.widgets.helpers import WidgetMixin
@@ -14,12 +16,46 @@ from eye.widgets.locationlist import LocationList
 __all__ = ('SearchWidget',)
 
 
+LOGGER = logging.getLogger(__name__)
+
+
+class SearchOptionsMenu(QMenu):
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+
+		self.ci = self.addAction(self.tr('Case insensitive'))
+		# TODO "smart case sensitive", i.e. CI if only lowercase chars
+		self.addSeparator()
+
+		self.formatGroup = QActionGroup(self)
+		self.plain = self.addAction(self.tr('Plain text'))
+		self.re = self.addAction(self.tr('Regular expression'))
+		self.glob = self.addAction(self.tr('Glob pattern')) # TODO
+		self.glob.setEnabled(False)
+		self.formatGroup.addAction(self.plain)
+		self.formatGroup.addAction(self.re)
+		self.formatGroup.addAction(self.glob)
+
+		for action in [self.ci, self.re, self.plain, self.glob]:
+			action.setCheckable(True)
+		self.plain.setChecked(True)
+
+	def to_search_props(self, expr: str):
+		ret = SearchProps(
+			expr=expr,
+			case_sensitive=not self.ci.isChecked(),
+			is_re=self.re.isChecked()
+		)
+		return ret
+
+
 class SearchOptionsButton(QPushButton):
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
 
 		self.setText(self.tr('Options'))
 
+		# TODO factor with SearchOptionsMenu
 		menu = QMenu()
 		self.actionCi = menu.addAction(self.tr('Case insensitive'))
 
@@ -128,3 +164,89 @@ class SearchWidget(QWidget, WidgetMixin):
 		self.searcher.search(*args)
 
 	returnPressed = Signal()
+
+
+# FIXME no wrap around
+class SearchReplaceWidget(QWidget, WidgetMixin):
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+
+		layout = QGridLayout()
+		self.setLayout(layout)
+
+		self.pattern_edit = QLineEdit()
+		self.pattern_edit.returnPressed.connect(self._search)
+		self.pattern_edit.textChanged.connect(self._update_enabling)
+		self.pattern_options = SearchOptionsMenu()
+		self.pattern_button = QToolButton(self)
+		self.pattern_button.setText('Options')
+		self.pattern_button.setPopupMode(QToolButton.InstantPopup)
+		self.pattern_button.setMenu(self.pattern_options)
+
+		self.replace_edit = QLineEdit()
+		self.replace_edit.returnPressed.connect(self._replace)
+
+		self.search_button = QPushButton(self.tr('&Search'))
+		self.search_button.clicked.connect(self._search)
+		self.replace_button = QPushButton(self.tr('&Replace'))
+		self.replace_button.clicked.connect(self._replace)
+		self.replace_all_button = QPushButton(self.tr('Replace &all'))
+		self.replace_all_button.clicked.connect(self._replace_all)
+
+		layout.addWidget(self.pattern_edit, 0, 0)
+		layout.addWidget(self.pattern_button, 0, 1)
+		layout.addWidget(self.search_button, 0, 2)
+		layout.addWidget(self.replace_edit, 1, 0)
+		layout.addWidget(self.replace_button, 1, 1)
+		layout.addWidget(self.replace_all_button, 1, 2)
+
+		self._update_enabling()
+
+		self.setWindowTitle(self.tr('Search/Replace'))
+		self.add_category('search_replace_widget')
+
+	@Slot()
+	def _update_enabling(self):
+		has_pattern = bool(self.pattern_edit.text())
+		self.search_button.setEnabled(has_pattern)
+		self.replace_button.setEnabled(has_pattern)
+
+	@Slot(str)
+	def set_pattern(self, text):
+		self.pattern_edit.setText(text)
+		self.pattern_edit.selectAll()
+
+	@Slot()
+	def _search(self):
+		pattern = self.pattern_edit.text()
+		if not pattern:
+			return
+
+		editor = self.window().current_buffer()
+		props = self.pattern_options.to_search_props(expr=pattern)
+
+		from eye.helpers import editor_search
+		editor_search.perform_search_seek(editor, props)
+
+	@Slot()
+	def _replace(self):
+		editor = self.window().current_buffer()
+		if not hasattr(editor, 'search_obj'):
+			LOGGER.info('no editor_search has been performed on %r', editor)
+			return
+
+		props = self.pattern_options.to_search_props(expr=None)
+
+		editor.search_obj.replace_selection(self.replace_edit.text(), is_re=props.is_re)
+		self._search()
+
+	@Slot()
+	def _replace_all(self):
+		editor = self.window().current_buffer()
+		if not hasattr(editor, 'search_obj'):
+			LOGGER.info('no editor_search has been performed on %r', editor)
+			return
+
+		props = self.pattern_options.to_search_props(expr=None)
+
+		editor.search_obj.replace_all(self.replace_edit.text(), is_re=props.is_re)

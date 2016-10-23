@@ -1,6 +1,7 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
 from contextlib import contextmanager
+import logging
 import re
 
 from PyQt5.QtCore import QObject, QTimer, QElapsedTimer
@@ -16,6 +17,9 @@ __all__ = (
 	'open_search_line', 'search_forward', 'search_backward',
 	'SearchObject', 'SearchProps', 'perform_search'
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class SearchProps(structs.PropDict):
@@ -176,6 +180,32 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 			self._seek_forward(start, wrap)
 		else:
 			self._seek_backward(start, wrap)
+
+	def replace_selection(self, expr, is_re=False):
+		sl, sc, el, ec = self.editor.getSelection()
+		if sl < 0 or sl != el:
+			LOGGER.debug('aborting replace on an empty or multiline selection')
+			return False
+
+		linetext = self.editor.text(sl)
+
+		mtc = self.reobj.match(linetext[sc:ec])
+		if not mtc:
+			LOGGER.debug("aborting replace on a selection that doesn't match")
+			return False
+
+		if is_re:
+			replacement = mtc.expand(expr)
+		else:
+			replacement = expr
+
+		self.editor.replaceSelectedText(replacement)
+		self.editor.setSelection(sl, sc, sl, sc + len(replacement))
+		return True
+
+	def replace_all(self, expr, is_re=False):
+		#for start, end in self.g
+		pass
 
 
 def open_search_line():
