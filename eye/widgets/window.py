@@ -199,5 +199,5 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 @registerSignal('tabwidget', 'lastTabClosed')
 def onLastTabClosed(tw):
-	win = tw.parentWindow()
+	win = tw.window()
 	win.onTabbarLastClosed(tw)

@@ -423,14 +423,14 @@ class SplitButton(QToolButton, WidgetMixin):
 	def splitHorizontal(self):
 		assert isinstance(self.parent(), TabWidget)
 
-		win = self.parentWindow()
+		win = self.window()
 		win.bufferSplitHorizontal(self.parent())
 
 	@Slot()
 	def splitVertical(self):
 		assert isinstance(self.parent(), TabWidget)
 
-		win = self.parentWindow()
+		win = self.window()
 		win.bufferSplitVertical(self.parent())
 
 
