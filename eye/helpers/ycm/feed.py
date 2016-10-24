@@ -3,12 +3,15 @@
 import mimetypes
 import os
 
+from PyQt5.QtCore import QTimer
+
+from ...app import qApp
 from ...structs import PropDict
 from ...connector import registerSignal, disabled, categoryObjects
 from .daemon import getDaemon, isDaemonAvailable
 
 
-__all__ = ('ycmFiletype', 'feedOnLoad', 'feedOnSave', 'feedOnDaemonReady')
+__all__ = ('ycmFiletype', 'feedOnLoad', 'feedOnSave', 'feedOnDaemonReady', 'feedOnChange')
 
 
 MIME_YCMFILETYPE = {
@@ -32,6 +35,9 @@ EXT_YCMFILETYPE = {
 	'js': 'js',
 	'py': 'python',
 }
+
+FEED_ON_EDIT_PAUSE_MS = 1000
+
 
 def ycmFiletype(path):
 	mime, _ = mimetypes.guess_type(path)
@@ -67,6 +73,28 @@ def feedOnSave(editor, path):
 		return
 
 	getDaemon().sendParse(path, editor.ycm.filetype, editor.text())
+
+
+def _timeoutFeed():
+	if not isDaemonAvailable():
+		return
+
+	editor = qApp().sender().parent()
+	getDaemon().sendParse(editor.path, editor.ycm.filetype, editor.text())
+
+
+@registerSignal('editor', 'textChanged')
+@disabled
+def feedOnChange(editor):
+	if not isDaemonAvailable() or not editor.path:
+		return
+
+	if not hasattr(editor, 'ycmFeedTimer'):
+		editor.ycmFeedTimer = QTimer(editor)
+		editor.ycmFeedTimer.setSingleShot(True)
+		editor.ycmFeedTimer.timeout.connect(_timeoutFeed)
+	# reboot timer
+	editor.ycmFeedTimer.start(FEED_ON_EDIT_PAUSE_MS)
 
 
 @registerSignal('ycm_control', 'ready')

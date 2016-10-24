@@ -1,7 +1,7 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
 from .daemon import getDaemon, buildDaemon
-from .feed import feedOnLoad, feedOnSave, feedOnDaemonReady
+from .feed import feedOnLoad, feedOnSave, feedOnDaemonReady, feedOnChange
 from .query import completeOnCharAdded, doCompletion
 
 
@@ -13,6 +13,7 @@ def setEnabled(enabled=True):
 	feedOnSave.enabled = enabled
 	completeOnCharAdded.enabled = enabled
 	feedOnDaemonReady.enabled = enabled
+	feedOnChange.enabled = enabled
 
 	d = getDaemon()
 	if enabled:
