@@ -329,11 +329,15 @@ class SplitManager(QWidget, WidgetMixin):
 				yield w
 
 	## close management
-	def requestClose(self):
+	def closeEvent(self, ev):
 		for c in self.allChildren():
-			if not c.requestClose():
-				return False
-		return True
+			if not c.close():
+				ev.ignore()
+				return
+		ev.accept()
+
+	def canClose(self):
+		return all(w.canClose() for w in self.allChildren())
 
 
 def dumpSplitter(splitter, indent=''):

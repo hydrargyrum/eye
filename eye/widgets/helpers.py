@@ -1,9 +1,7 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QEvent
 from PyQt5.QtGui import QIcon
-Signal = pyqtSignal
-Slot = pyqtSlot
 
 from ..connector import CategoryMixin
 
@@ -37,6 +35,8 @@ class WidgetMixin(CategoryMixin):
 
 
 class CentralWidgetMixin(WidgetMixin):
+	windowModifiedChanged = Signal(bool)
+
 	def __init__(self, **kwargs):
 		super(CentralWidgetMixin, self).__init__(**kwargs)
 
@@ -57,3 +57,14 @@ class CentralWidgetMixin(WidgetMixin):
 			tabBar.setCurrentWidget(self)
 
 		return self.setFocus(reason)
+
+	def changeEvent(self, ev):
+		try:
+			super_method = super(CentralWidgetMixin, self).changeEvent
+		except AttributeError:
+			pass
+		else:
+			super_method(ev)
+
+		if ev.type() == QEvent.ModifiedChange:
+			self.windowModifiedChanged.emit(self.isWindowModified())

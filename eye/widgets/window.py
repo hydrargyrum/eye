@@ -189,10 +189,13 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 	## events
 	def closeEvent(self, ev):
-		if acceptIf(ev, self.splitter.requestClose()):
+		if acceptIf(ev, self.splitter.close()):
 			super(Window, self).closeEvent(ev)
 			self.closing.emit()
 			REGISTRY.remove(self)
+
+	def canClose(self):
+		return self.splitter.canClose()
 
 	def onTabbarLastClosed(self, tw):
 		self.splitter.removeWidget(tw)

@@ -245,18 +245,18 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 				return
 
 	## close management
-	def requestClose(self):
-		"""Close all tabs and return `True` if all could be closed
-
-		See :any:`closeTab`.
-		"""
+	def closeEvent(self, ev):
 		for _ in range(self.count()):
 			w = self.widget(0)
-			if w.closeFile():
+			if w.close():
 				self.removeTab(0)
 			else:
-				return False
-		return True
+				ev.ignore()
+				return
+		ev.accept()
+
+	def canClose(self):
+		return all(not w.isWindowModified() for w in self.widgets())
 
 	## private
 	@Slot(int)
