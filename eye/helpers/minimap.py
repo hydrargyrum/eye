@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QFrame, QSizePolicy, QWidget, QHBoxLayout
 from ..connector import CategoryMixin, registerSignal, disabled
 from ..widgets.editor import Editor, SciModification
 from ..widgets.window import Window
+from ..widgets.helpers import acceptIf
 from ..three import range
 
 
@@ -112,6 +113,12 @@ class EditorReplacement(QWidget):
 
 		self.editor.windowIconChanged.connect(self.setWindowIcon)
 		self.setWindowIcon(self.editor.windowIcon())
+
+		self.editor.windowModifiedChanged.connect(self.setWindowModified)
+		self.setWindowModified(self.editor.isWindowModified())
+
+	def closeEvent(self, ev):
+		acceptIf(ev, self.editor.close())
 
 	def __getattr__(self, attr):
 		return getattr(self.editor, attr)
