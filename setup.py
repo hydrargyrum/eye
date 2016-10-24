@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from setuptools import setup, find_packages
-
 import glob
 
+from setuptools import setup, find_packages
+
+
+with open('README.rst') as fd:
+	README = fd.read().strip()
+
+
 setup(
-	name='eye',
+	name='eyeditor',
 	version='0.0.1',
 
-	description='A Qt-based scriptable text editor',
-	long_description='Edit Your Editor - A Qt-based scriptable text editor',
+	description='EYE - A Qt-based scriptable text editor',
+	long_description=README,
 	url='https://github.com/hydrargyrum/eye',
 	author='Hg',
 	license='WTFPLv2',
@@ -34,14 +39,14 @@ setup(
 		'Programming Language :: Python :: 3.3',
 		'Programming Language :: Python :: 3.4',
 	],
-	keywords='code development editor qt script',
+	keywords='code development editor qt script ide',
 
 	packages=find_packages(),
 	install_requires=['six'],
 	data_files=[
-		('eye/colorschemes', glob.glob('data/colorschemes/*')),
-		('share/applications', 'data/eye.desktop'),
-		('share/icons/hicolor/256x256/apps', 'data/eye.png'),
+		('share/eye/colorschemes', glob.glob('data/colorschemes/*')),
+		('share/applications', ['data/eye.desktop']),
+		('share/icons/hicolor/256x256/apps', ['data/eye.png']),
 	],
 	entry_points={
 		'console_scripts': [
