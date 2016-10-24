@@ -3,10 +3,10 @@
 import logging
 from weakref import ref
 
-from PyQt5.QtCore import pyqtSlot as Slot
 from PyQt5.QtWidgets import QPlainTextEdit, QLabel, QWidget
 
 from ..app import qApp
+from ..qt import Slot
 from .helpers import WidgetMixin
 
 __all__ = ('LogWidget', 'PositionIndicator')
@@ -67,25 +67,18 @@ class PositionIndicator(QLabel, WidgetMixin):
 
 		lastFocus = self.lastFocus()
 		if lastFocus:
-			lastFocus.cursorPositionChanged.disconnect(self.onPosChanged)
-			lastFocus.linesChanged.disconnect(self.onLinesChanged)
+			lastFocus.cursorPositionChanged.disconnect(self.updateLabel)
+			lastFocus.linesChanged.disconnect(self.updateLabel)
 
 		self.lastFocus = ref(new)
-		new.cursorPositionChanged.connect(self.onPosChanged)
-		new.linesChanged.connect(self.onLinesChanged)
-		self.updateLabel()
-
-	@Slot()
-	def onLinesChanged(self):
-		self.updateLabel()
-
-	@Slot(int, int)
-	def onPosChanged(self, ln, col):
+		new.cursorPositionChanged.connect(self.updateLabel)
+		new.linesChanged.connect(self.updateLabel)
 		self.updateLabel()
 
 	@Slot()
 	def updateLabel(self):
 		ed = self.lastFocus()
+
 		line, col = ed.getCursorPosition()
 		offset = ed.cursorOffset()
 		line, col = line + 1, col + 1
