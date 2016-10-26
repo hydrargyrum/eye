@@ -6,7 +6,7 @@
 from ..connector import registerSignal, disabled
 
 
-__all__ = ('setupRecording', 'recordAction')
+__all__ = ('setEnabled', 'setupRecording', 'recordAction', 'replayRecordedMacro')
 
 
 @registerSignal(['editor'], 'macroRecordStarted')
@@ -21,3 +21,21 @@ def setupRecording(ed):
 def recordAction(ed, action):
 	"""Record a macro action in an `editor.actionsRecorded`"""
 	ed.actionsRecorded.append(action)
+
+
+def replayRecordedMacro(ed):
+	"""Replay the last recorded macro.
+
+	Actions are replayed in an undo-group.
+	"""
+	if not getattr(ed, 'actionsRecorded', None):
+		return
+
+	with ed.undoGroup():
+		for action in ed.actionsRecorded:
+			ed.replayMacroAction(action)
+
+
+def setEnabled(enabled):
+	setupRecording.enabled = enabled
+	recordAction.enabled = enabled
