@@ -1306,12 +1306,28 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 	## misc
 	@contextlib.contextmanager
-	def undoGroup(self):
+	def undoGroup(self, undoOnError=False):
+		"""Context-manager to run actions in an undo-group.
+
+		Operations done in this context manager are put in an undo-group: :any:`undo` and :any:`redo`
+		will do them all-at-once. The undo-group is opened at the beginning of the context and
+		automatically closed at the end of the context.
+		For example, removing a whole word will appear the same, undo-wise, as removing the word
+		character-by-character, if all characters are removed while an undo-group was open.
+
+		:param undoOnError: if an exception is raised inside the context, operations done in the group
+		                    are undone
+		:type undoOnError: bool
+		"""
 		self.beginUndoAction()
 		try:
 			yield
-		finally:
+		except Exception:
 			self.endUndoAction()
+			if undoOnError:
+				self.undo()
+			raise
+		self.endUndoAction()
 
 	@Slot()
 	def goto1(self, line, col=None):
