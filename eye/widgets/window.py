@@ -10,7 +10,7 @@ from ..connector import registerSignal
 from ..three import str
 from ..qt import Slot
 from .. import consts
-from .helpers import CategoryMixin, acceptIf
+from .helpers import CategoryMixin, acceptIf, parentTabWidget
 from .editor import Editor
 from .tabs import TabWidget
 from .splitter import SplitManager
@@ -122,7 +122,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		ed = self.EditorClass()
 		cur = self.currentBuffer()
 		if cur:
-			parent = cur.parentTabBar()
+			parent = parentTabWidget(cur)
 			parent.addWidget(ed)
 			ed.giveFocus()
 		return ed
@@ -148,13 +148,13 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		if ed.openFile(path):
 			return ed
 		else:
-			ed.parentTabBar().closeTab(ed)
+			parentTabWidget(ed).closeTab(ed)
 
 	@Slot()
 	def bufferClose(self):
 		"""Close current buffer."""
 		ed = self.currentBuffer()
-		parent = ed.parentTabBar()
+		parent = parentTabWidget(ed)
 		parent.closeTab(ed)
 
 	@Slot()
@@ -164,11 +164,8 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 	def _bufferNewSplit(self, orientation, widget=None):
 		if widget is None:
-			parent = self.currentBuffer().parentTabBar()
-		elif hasattr(widget, 'parentTabBar'):
-			parent = widget.parentTabBar()
-		else:
-			parent = widget
+			widget = self.currentBuffer()
+		parent = parentTabWidget(widget)
 
 		spl, idx = self.splitter.childId(parent)
 

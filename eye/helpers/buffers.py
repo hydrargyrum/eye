@@ -2,6 +2,7 @@
 
 from .. import connector
 from ..app import qApp
+from ..widgets.helpers import parentTabWidget
 
 __all__ = ('findEditor', 'openEditor', 'listEditors',
            'newEditorOpen', 'newEditorShare', 'newEditorTryShare')
@@ -37,7 +38,7 @@ def createEditorWidget():
 def _createEditor(path):
 	win = _getWindow()
 	cur = win.currentBuffer()
-	tabs = cur.parentTabBar()
+	tabs = parentTabWidget(cur)
 
 	ed = createEditorWidget()
 	ed.openFile(path)
@@ -77,7 +78,7 @@ def currentBuffer():
 def _defaultTabs():
 	win = _getWindow()
 	cur = win.currentBuffer()
-	return cur.parentTabBar()
+	return parentTabWidget(cur)
 
 
 def _doNew(ed, loc, parentTabBar):

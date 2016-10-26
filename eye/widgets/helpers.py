@@ -5,7 +5,8 @@ from PyQt5.QtGui import QIcon
 
 from ..connector import CategoryMixin
 
-__all__ = ('acceptIf', 'CategoryMixin', 'WidgetMixin', 'CentralWidgetMixin')
+__all__ = ('acceptIf', 'CategoryMixin', 'WidgetMixin', 'CentralWidgetMixin',
+           'parentTabWidget')
 
 
 def acceptIf(ev, cond):
@@ -40,19 +41,11 @@ class CentralWidgetMixin(WidgetMixin):
 	def __init__(self, **kwargs):
 		super(CentralWidgetMixin, self).__init__(**kwargs)
 
-	def parentTabBar(self):
-		w = self
-		while True:
-			if hasattr(w, 'categories') and 'tabwidget' in w.categories():
-				break
-			w = w.parent()
-		return w
-
 	def giveFocus(self, reason=Qt.OtherFocusReason):
 		if not self.isActiveWindow():
 			self.activateWindow()
 
-		tabBar = self.parentTabBar()
+		tabBar = parentTabWidget(self)
 		if tabBar:
 			tabBar.setCurrentWidget(self)
 
@@ -68,3 +61,11 @@ class CentralWidgetMixin(WidgetMixin):
 
 		if ev.type() == QEvent.ModifiedChange:
 			self.windowModifiedChanged.emit(self.isWindowModified())
+
+
+def parentTabWidget(widget):
+	while widget:
+		if hasattr(widget, 'categories') and 'tabwidget' in widget.categories():
+			break
+		widget = widget.parent()
+	return widget

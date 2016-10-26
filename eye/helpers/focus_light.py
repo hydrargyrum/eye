@@ -12,17 +12,13 @@ from PyQt5.QtCore import QEvent
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QRubberBand
 
-from eye.connector import registerSetup, registerEventFilter, CategoryMixin, disabled
-from eye.app import qApp
-from eye.colorutils import QColorAlpha
+from ..connector import registerSetup, registerEventFilter, CategoryMixin, disabled
+from ..app import qApp
+from ..colorutils import QColorAlpha
+from ..widgets.helpers import parentTabWidget
 
 
 __all__ = ('setEnabled', 'DimBand')
-
-
-def getTabWidget(w):
-	if hasattr(w, 'parentTabBar'):
-		return w.parentTabBar()
 
 
 class DimBand(QRubberBand, CategoryMixin):
@@ -64,8 +60,8 @@ def focusChanged(old, new):
 	if not getattr(focusChanged, 'enabled', True):
 		return
 
-	oldtw = getTabWidget(old)
-	newtw = getTabWidget(new)
+	oldtw = parentTabWidget(old)
+	newtw = parentTabWidget(new)
 
 	if oldtw and oldtw != newtw:
 		showBand(oldtw)

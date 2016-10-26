@@ -12,7 +12,7 @@ from ..three import str
 from ..qt import Slot
 from ..connector import CategoryMixin, disabled, registerSetup
 from .droparea import DropAreaMixin, BandMixin
-from .helpers import WidgetMixin
+from .helpers import WidgetMixin, parentTabWidget
 from ..helpers import buffers
 
 __all__ = ('TabWidget', 'TabBar', 'SplitButton')
@@ -27,7 +27,7 @@ def isTabDropEvent(ev):
 
 
 def takeWidget(widget):
-	tw = widget.parentTabBar()
+	tw = parentTabWidget(widget)
 	tw.removeTab(tw.indexOf(widget))
 
 
@@ -372,7 +372,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 			quad = widgetQuadrant(self.rect(), ev.pos())
 
 			widget = dropGetWidget(ev)
-			oldTw = widget.parentTabBar()
+			oldTw = parentTabWidget(widget)
 
 			if ev.proposedAction() == Qt.MoveAction:
 				ev.acceptProposedAction()
