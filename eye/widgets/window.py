@@ -3,7 +3,7 @@
 import os
 from weakref import ref
 
-from PyQt5.QtCore import Qt, pyqtSignal as Signal
+from PyQt5.QtCore import Qt, pyqtSignal as Signal, QEvent
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDockWidget, QWidget
 
 from ..connector import registerSignal
@@ -23,6 +23,24 @@ class DockWidget(QDockWidget, CategoryMixin):
 	def __init__(self, **kwargs):
 		super(QDockWidget, self).__init__(**kwargs)
 		self.addCategory('dock_container')
+
+	def childEvent(self, ev):
+		super(DockWidget, self).childEvent(ev)
+
+		# cannot catch setWidget() call
+		w = self.widget()
+		if ev.type() == QEvent.ChildAdded and w:
+			try:
+				w.windowTitleChanged.connect(self.childTitleChanged, Qt.UniqueConnection)
+			except TypeError:  # already connected
+				pass
+			else:
+				self.setWindowTitle(w.windowTitle())
+
+	@Slot(str)
+	def childTitleChanged(self, title):
+		if self.sender() is self.widget():
+			self.setWindowTitle(title)
 
 
 class Window(QMainWindow, CategoryMixin, DropAreaMixin):
