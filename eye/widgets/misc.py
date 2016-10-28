@@ -3,13 +3,14 @@
 import logging
 from weakref import ref
 
-from PyQt5.QtWidgets import QPlainTextEdit, QLabel, QWidget
+from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QEventLoop
+from PyQt5.QtWidgets import QPlainTextEdit, QLabel, QWidget, QRubberBand, QApplication
 
 from ..app import qApp
 from ..qt import Slot
 from .helpers import WidgetMixin
 
-__all__ = ('LogWidget', 'PositionIndicator')
+__all__ = ('LogWidget', 'PositionIndicator', 'WidgetPicker', 'interactiveWidgetPick')
 
 
 class LogWidget(QPlainTextEdit):
@@ -95,3 +96,50 @@ class PositionIndicator(QLabel, WidgetMixin):
 			'editor': ed,
 		}
 		self.setText(self.format.format(**d))
+
+
+class WidgetPicker(QWidget):
+	"""Widget for letting user point at another widget."""
+
+	selected = Signal()
+
+	def __init__(self):
+		super(WidgetPicker, self).__init__()
+		self.band = QRubberBand(QRubberBand.Rectangle)
+		self.setMouseTracking(True)
+		self.el = QEventLoop()
+
+	def mousePressEvent(self, ev):
+		self.el.quit()
+		self.widget = QApplication.widgetAt(ev.globalPos())
+		self.band.hide()
+
+	def mouseMoveEvent(self, ev):
+		widget = QApplication.widgetAt(ev.globalPos())
+		if widget:
+			rect = widget.frameGeometry()
+			if widget.parent():
+				rect.moveTo(widget.parent().mapToGlobal(rect.topLeft()))
+			self.band.setGeometry(rect)
+			self.band.show()
+		else:
+			self.band.hide()
+
+	def run(self):
+		self.grabMouse()
+		try:
+			self.el.exec_()
+		finally:
+			self.releaseMouse()
+		return self.widget
+
+
+def interactiveWidgetPick():
+	"""Let user peek a widget by clicking on it.
+
+	The user can point at open EYE widgets and click on one. Return the widget that was clicked
+	by the user.
+	"""
+	w = WidgetPicker()
+	return w.run()
+
