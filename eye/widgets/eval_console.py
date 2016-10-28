@@ -39,21 +39,22 @@ class HistoryLine(QLineEdit):
 
 	@Slot()
 	def submit(self):
-		self._addHistory()
-		self.submitted.emit(self.text())
+		text = self.text()
+
+		self._addHistory(text)
 		self.setText('')
+		self.submitted.emit(text)
 
-	def _addHistory(self):
+	def _addHistory(self, text):
 		self.idx = None
-		if not self.text():
+		if not text or (self.history and self.history[-1] == text):
 			return
-
-		self.history.append(self.text())
+		self.history.append(text)
 
 		if self.history_path:
 			with exceptionLogging(reraise=False, logger=LOGGER):
 				with codecs.open(self.history_path, 'a', 'utf-8') as fd:
-					print(self.text(), file=fd)
+					print(text, file=fd)
 
 	def setHistoryFile(self, path):
 		if path is not None:
@@ -120,6 +121,8 @@ class EvalConsole(QWidget, WidgetMixin):
 		layout.addWidget(self.display)
 		layout.addWidget(self.line)
 
+		self.setWindowTitle('Eval console')
+
 		self.addCategory('eval_console')
 
 	def import_all_qt(self):
@@ -140,9 +143,12 @@ class EvalConsole(QWidget, WidgetMixin):
 		output += capture_output(self.interpreter.runsource, code)
 		self.display.appendPlainText(output)
 
+		self.protectNamespace()
+
+	def protectNamespace(self):
 		# avoid retaining references to widgets
-		self.namespace.pop('window')
-		self.namespace.pop('editor')
+		self.namespace.pop('window', None)
+		self.namespace.pop('editor', None)
 
 
 def capture_output(cb, *args, **kwargs):
