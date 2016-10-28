@@ -22,6 +22,7 @@ Module contents
 ---------------
 """
 
+import unicodedata
 import os
 import re
 import contextlib
@@ -1341,8 +1342,19 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		return self.getCursorPosition()[0]
 
 	def cursorColumn(self):
-		"""Return the column number of the cursor position (starting from 0)"""
+		"""Return the column number of the cursor position (starting from 0)
+
+		Note the column number is the number of Unicode codepoints since the start of the line.
+		For example, a tab character will count for 1 column only, see :any:`cursorVisualColumn`.
+		"""
 		return self.getCursorPosition()[1]
+
+	def cursorVisualColumn(self):
+		lineno, colno = self.getCursorPosition()
+		line = self.text(lineno)[:colno]
+		line = line.expandtabs(self.tabWidth())
+		# warning: scintilla seems to have bugs when using decomposed unicode
+		return iterlen(c for c in line if not unicodedata.combining(c))
 
 	def setLexer(self, lexer):
 		QsciScintilla.setLexer(self, lexer)
@@ -1530,6 +1542,10 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	## events
 	def closeEvent(self, ev):
 		acceptIf(ev, self.closeFile())
+
+
+def iterlen(iterable):
+	return sum(1 for _ in iterable)
 
 
 @registerEventFilter('editor', [QEvent.Wheel])

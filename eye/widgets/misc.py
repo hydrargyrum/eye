@@ -40,7 +40,7 @@ class PositionIndicator(QLabel, WidgetMixin):
 	When cursor position changes or focus goes to another editor widget, the text of this label is refreshed.
 	"""
 
-	format = '{percent:3.0f}% {line:5d}:{col:3d}'
+	format = '{percent:3.0f}% {line:5d}:{vcol:3d}'
 
 	"""Text format of the label
 
@@ -87,6 +87,7 @@ class PositionIndicator(QLabel, WidgetMixin):
 		d = {
 			'line': line,
 			'col': col,
+			'vcol': ed.cursorVisualColumn() + 1,
 			'percent': line * 100. / lines,
 			'offset': offset,
 			'path': ed.path,
