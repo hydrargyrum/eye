@@ -27,6 +27,7 @@ class App(QApplication):
 	def __init__(self, argv):
 		super(App, self).__init__(argv)
 		self.setApplicationName('eye')
+		self.setApplicationDisplayName('eye')
 
 		self.logger = logging.getLogger()
 
