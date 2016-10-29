@@ -1282,12 +1282,27 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.saving.final_newline = b
 
 	def useFinalNewline(self):
+		"""Return True if always adding a final newline when saving.
+
+		See :any:`setUseFinalNewline`.
+		"""
 		return self.saving.final_newline
 
 	def setRemoveTrailingWhitespace(self, b):
+		"""Set whether trailing whitespace should be trimmed when saving to disk
+
+		If `b` is True, trailing whitespace will be removed from each line on the the file saved to disk.
+		It is still kept in the editor though (but this behavior may change in the future).
+
+		This does not cause the file to be re-saved.
+		"""
 		self.saving.trim_whitespace = b
 
 	def doesRemoveTrailingWhitespace(self):
+		"""Return True if always trimming trailing whitespace when saving.
+
+		See :any:`setRemoveTrailingWhitespace`.
+		"""
 		return self.saving.trim_whitespace
 
 	def setEncoding(self, s):
