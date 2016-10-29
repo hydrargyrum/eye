@@ -11,7 +11,7 @@ import logging
 import sys
 
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, Qt
-from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget
+from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget, QAction
 from six import StringIO
 
 from ..three import bytes
@@ -87,6 +87,15 @@ class HistoryLine(QLineEdit):
 			super(HistoryLine, self).keyPressEvent(ev)
 
 
+class PlainTextEdit(QPlainTextEdit):
+	def contextMenuEvent(self, ev):
+		menu = self.createStandardContextMenu()
+		menu.addSeparator()
+		for action in self.actions():
+			menu.addAction(action)
+		menu.exec_(ev.globalPos())
+
+
 class EvalConsole(QWidget, WidgetMixin):
 	"""Interactive evaluator console widget
 
@@ -111,8 +120,11 @@ class EvalConsole(QWidget, WidgetMixin):
 		layout = QVBoxLayout()
 		self.setLayout(layout)
 
-		self.display = QPlainTextEdit(self)
+		self.display = PlainTextEdit(self)
 		self.display.setReadOnly(True)
+		clearAction = QAction(self.tr('Clear'), self.display)
+		clearAction.triggered.connect(self.display.clear)
+		self.display.addAction(clearAction)
 
 		self.line = HistoryLine()
 		self.line.submitted.connect(self.execCode)
