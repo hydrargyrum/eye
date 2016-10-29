@@ -22,7 +22,7 @@ def writeBytesToFileDirect(filepath, data):
 def getPerm(path):
 	try:
 		stat = os.stat(path)
-	except OSError as e:
+	except OSError:
 		LOGGER.warning('could not stat file %r', path, exc_info=True)
 		return
 	return stat.st_mode, stat.st_uid, stat.st_gid

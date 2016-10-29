@@ -55,7 +55,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 		mdata.setData(TAB_MIME, b'x')
 		drag = QDrag(self)
 		drag.setMimeData(mdata)
-		res = drag.exec_(Qt.CopyAction | Qt.MoveAction, Qt.MoveAction)
+		drag.exec_(Qt.CopyAction | Qt.MoveAction, Qt.MoveAction)
 
 	def _showBand(self, ev):
 		idx = self.tabAt(ev.pos())
@@ -162,12 +162,6 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		self.removeTab(idx)
 		return True
 
-	def setCurrentWidget(self, widget):
-		assert self.isAncestorOf(widget)
-		idx = self._idxContainerOf(widget)
-		if idx >= 0:
-			self.setCurrentIndex(idx)
-
 	def addWidget(self, widget):
 		"""Add a new tab with the specified widget"""
 		assert not self.isAncestorOf(widget)
@@ -185,17 +179,6 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 
 	removeWidget = closeTab
 
-	def _selectTab(self, step, s1, e1, rotate, s2, e2):
-		for idx in range(s1, e1, step):
-			if self.isTabEnabled(idx):
-				self.setCurrentIndex(idx)
-				return
-		if not rotate:
-			return
-		for idx in range(s2, e2, step):
-			if self.isTabEnabled(idx):
-				self.setCurrentIndex(idx)
-				return
 	## tab change
 	def setCurrentWidget(self, widget):
 		"""Select the tab containing the specified widget"""

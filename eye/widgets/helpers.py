@@ -1,7 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QEvent
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSignal as Signal, Qt, QEvent
 
 from ..connector import CategoryMixin
 

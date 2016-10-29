@@ -7,12 +7,8 @@ import logging
 import os
 import sys
 
-import sip
-sip.setapi('QString', 2)
-
-from PyQt5.QtCore import pyqtSignal as Signal
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow
 
 qApp = lambda: QApplication.instance()
 
@@ -129,7 +125,7 @@ class App(QApplication):
 
 		try:
 			remote_control.sendRequest('ping')
-		except ValueError as e:
+		except ValueError:
 			remote_control.createServer()
 			return False
 

@@ -7,14 +7,12 @@ from __future__ import print_function
 
 import code
 import codecs
-from importlib import import_module
 import logging
 import sys
-import traceback
 
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, Qt
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget
-from six import StringIO, exec_
+from six import StringIO
 
 from ..three import bytes
 from ..app import qApp
