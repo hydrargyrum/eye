@@ -6,7 +6,7 @@ from weakref import ref
 from PyQt5.QtCore import Qt, pyqtSignal as Signal, QEvent
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDockWidget, QWidget
 
-from ..connector import registerSignal
+from ..connector import registerSignal, disabled
 from ..three import str
 from ..qt import Slot
 from .. import consts
@@ -16,7 +16,7 @@ from .tabs import TabWidget
 from .splitter import SplitManager
 from .droparea import DropAreaMixin
 
-__all__ = ('Window',)
+__all__ = ('Window', 'titleOnFocus')
 
 
 class DockWidget(QDockWidget, CategoryMixin):
@@ -225,6 +225,13 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 def onLastTabClosed(tw):
 	win = tw.window()
 	win.onTabbarLastClosed(tw)
+
+
+@registerSignal('window', 'focusedBuffer')
+@disabled
+def titleOnFocus(window, buffer):
+	"""Handler to let the window title reflect the focused buffer title"""
+	window.setWindowTitle(buffer.windowTitle())
 
 
 REGISTRY = []
