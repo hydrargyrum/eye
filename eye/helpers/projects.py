@@ -105,7 +105,7 @@ class Project(QObject):
 		if not isroot:
 			LOGGER.debug('searching parent project of %r', self.cfgpath)
 			parent = os.path.dirname(self.dir)
-			self.parentProject = findProjectForFile(parent)
+			self.parentProject = getProjectForFile(parent)
 		return True
 
 	def _projectHierarchy(self):
@@ -297,7 +297,9 @@ def findProjectForFile(path):
 
 	`path` can be any file or dir, `findProjectForFile` will search in the ancestors for a `.editorconfig` file.
 	"""
-	return pathutils.findInAncestors(path, [PROJECT_FILENAME])
+	ret = pathutils.findInAncestors(path, [PROJECT_FILENAME])
+	if ret is not None:
+		return os.path.abspath(ret)
 
 
 def getProjectForFile(path):
