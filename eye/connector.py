@@ -53,6 +53,7 @@ from logging import getLogger
 import weakref
 
 from PyQt5.QtCore import QObject, pyqtSignal as Signal
+from PyQt5.QtWidgets import QWidget
 
 from .qt import Slot
 from .three import bytes, str
@@ -94,6 +95,7 @@ class SignalListener(QObject, ListenerMixin):
 	@Slot(str)
 	@Slot(bytes)
 	@Slot(QObject)
+	@Slot(QWidget)
 	@Slot(object)
 	@Slot(int, int)
 	@Slot(str, str)
