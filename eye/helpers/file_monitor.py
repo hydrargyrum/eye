@@ -1,12 +1,12 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import QFileSystemWatcher, pyqtSignal, pyqtSlot
-Signal = pyqtSignal
-Slot = pyqtSlot
-
 from logging import getLogger
+import os
+
+from PyQt5.QtCore import QFileSystemWatcher, pyqtSignal as Signal
 
 from ..three import str
+from ..qt import Slot
 from ..connector import registerSignal, disabled
 
 __all__ = ('Monitor', 'onOpen', 'onBeforeSave')
@@ -14,7 +14,30 @@ __all__ = ('Monitor', 'onOpen', 'onBeforeSave')
 
 LOGGER = getLogger(__name__)
 
-class Monitor(QFileSystemWatcher):
+
+class MonitorWithRename(QFileSystemWatcher):
+	def __init__(self, **kwargs):
+		super(MonitorWithRename, self).__init__(**kwargs)
+		self.fileChanged.connect(self._checkRetrack)
+
+	def addFile(self, path):
+		LOGGER.debug('start monitoring %r', path)
+		if not self.addPath(path):
+			LOGGER.warning('failed to monitor %r', path)
+
+	def delFile(self, path):
+		LOGGER.debug('stop monitoring %r', path)
+		self.removePath(path)
+
+	@Slot(str)
+	def _checkRetrack(self, path):
+		if path not in self.files():
+			LOGGER.debug('file has been untracked: %r', path)
+			if os.path.exists(path):
+				self.addFile(path)
+
+
+class Monitor(MonitorWithRename):
 	def __init__(self, **kwargs):
 		super(Monitor, self).__init__(**kwargs)
 		self.fileChanged.connect(self.onFileChanged)
@@ -34,8 +57,6 @@ class Monitor(QFileSystemWatcher):
 
 	@Slot(str)
 	def onFileChanged(self, path):
-		#~ os.path.exists(path)
-		# modification vs deletion/rename?
 		cb = self.watched.get(path)
 		if cb:
 			cb()

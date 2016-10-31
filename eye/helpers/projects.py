@@ -20,7 +20,8 @@ from PyQt5.QtCore import QObject
 from six.moves.configparser import RawConfigParser, NoOptionError, Error
 from six import StringIO
 
-from ..connector import registerSignal, disabled
+from ..qt import Slot
+from ..connector import registerSignal, disabled, categoryObjects
 from ..reutils import glob2re
 from .. import pathutils
 from .. import lexers
@@ -75,14 +76,16 @@ class Project(QObject):
 		return cfg
 
 	def load(self, cfgpath):
-		assert not self.cfgpath
+		assert not self.cfgpath or cfgpath == self.cfgpath
 
-		self.cfg = self._parseFile(cfgpath)
-		if not self.cfg:
+		cfg = self._parseFile(cfgpath)
+		if cfg is None:
 			return False
 
-		self.dir = os.path.dirname(cfgpath)
 		self.cfgpath = cfgpath
+		self.cfg = cfg
+		self.dir = os.path.dirname(cfgpath)
+		self.parentProject = None
 
 		self.sections_re = {}
 		for section in self.cfg.sections():
@@ -137,6 +140,13 @@ class Project(QObject):
 			current = current.parentProject
 		return current
 
+	def isAncestorOf(self, other):
+		if self is other:
+			return True
+		elif other is None or other.isroot or other.parentProject is None:
+			return False
+		return self.isAncestorOf(other.parentProject)
+
 	def appliesTo(self, path):
 		# TODO: support excludes
 		return bool(pathutils.getCommonPrefix(self.dir, path))
@@ -162,7 +172,25 @@ class Project(QObject):
 
 
 class ProjectCache(ConfCache):
-	pass
+	@Slot(str)
+	def onFileChanged(self, path):
+		"""Reload project and apply to editors"""
+		project = self.cache.get(path)
+		if project is None:
+			return
+
+		if not project.load(path):
+			LOGGER.debug('could not reload project %r', path)
+			return
+
+		for editor in categoryObjects('editor'):
+			if project.isAncestorOf(getattr(editor, 'project', None)):
+				LOGGER.debug('applying new project %r to editor %r', path, editor)
+
+				if getattr(onPreOpen, 'enabled', True):
+					onPreOpen(editor, editor.path)
+				if getattr(onOpenSave, 'enabled', True):
+					onOpenSave(editor, editor.path)
 
 
 PROJECT_CACHE = ProjectCache()

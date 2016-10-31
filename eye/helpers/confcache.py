@@ -2,10 +2,11 @@
 
 from weakref import WeakValueDictionary
 
-from PyQt5.QtCore import QObject, QFileSystemWatcher
+from PyQt5.QtCore import QObject
 
 from ..qt import Slot
 from ..three import str
+from .file_monitor import MonitorWithRename
 
 
 class ConfCache(QObject):
@@ -17,7 +18,7 @@ class ConfCache(QObject):
 		else:
 			self.cache = {}
 
-		self.monitor = QFileSystemWatcher(parent=self)
+		self.monitor = MonitorWithRename(parent=self)
 		self.monitor.fileChanged.connect(self.onFileChanged)
 
 	@Slot(str)
