@@ -3,7 +3,7 @@
 from __future__ import print_function
 
 from ...connector import registerSignal, disabled
-from.daemon import getDaemon, isDaemonAvailable
+from .daemon import getDaemon, isDaemonAvailable
 
 
 def _query(cb, editor, *args, **kwargs):

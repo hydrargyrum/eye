@@ -2,11 +2,11 @@
 
 """Helpers for use with Qt"""
 
-from PyQt5.QtCore import pyqtSlot
-
 import inspect
 import os
 import re
+
+from PyQt5.QtCore import pyqtSlot
 
 
 __all__ = ('Slot',)

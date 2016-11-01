@@ -79,9 +79,7 @@ def getCommonPrefix(a, b):
 		>>> getCommonPrefix('/foo/bar', '/foo/baz')
 		'/foo'
 	"""
-	a, b = map(os.path.normpath, (a, b))
-	aparts = a.split(os.path.sep)
-	bparts = b.split(os.path.sep)
+	aparts, bparts = (os.path.normpath(x).split(os.path.sep) for x in (a, b))
 
 	n = 0
 	for aelem, belem in zip(aparts, bparts):
@@ -119,9 +117,7 @@ def getRelativePathIn(a, b):
 		>>> getRelativePathIn('/foo', '/bar') is None
 		True
 	"""
-	a, b = map(os.path.normpath, (a, b))
-	aparts = a.split(os.path.sep)
-	bparts = b.split(os.path.sep)
+	aparts, bparts = (os.path.normpath(x).split(os.path.sep) for x in (a, b))
 
 	if len(aparts) < len(bparts):
 		return

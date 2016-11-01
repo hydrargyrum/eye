@@ -16,6 +16,8 @@ splits. For example, it's possible to have editors layed out this way in a windo
 Each split may contain a :any:`eye.widgets.tabs.TabWidget`, containing a single or multiple tabs.
 """
 
+from __future__ import print_function
+
 import logging
 
 from PyQt5.QtCore import Qt, QPoint, QRect, QTimer

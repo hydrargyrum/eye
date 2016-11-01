@@ -34,7 +34,7 @@ LEFT = 2
 
 """Left direction"""
 
-RIGHT= 3
+RIGHT = 3
 
 """Right direction"""
 

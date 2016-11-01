@@ -16,7 +16,7 @@ class ConfCache(QObject):
 		if weak:
 			self.cache = WeakValueDictionary()
 		else:
-			self.cache = {}
+			self.cache = {}  # pylint: disable=redefined-variable-type
 
 		self.monitor = MonitorWithRename(parent=self)
 		self.monitor.fileChanged.connect(self.onFileChanged)

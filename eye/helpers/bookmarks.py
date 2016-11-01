@@ -8,12 +8,13 @@ Bookmarks do not persist when file is closed.
 These bookmarks use a :any:`eye.widgets.editor.Marker` called "bookmark", which can be customized.
 """
 
-__all__ = ('toggleBookmark', 'nextBookmark', 'previousBookmark', 'listBookmarks',
-           'createMarker', 'setEnabled')
-
 
 from ..connector import defaultEditorConfig, disabled
 from .actions import registerAction
+
+
+__all__ = ('toggleBookmark', 'nextBookmark', 'previousBookmark', 'listBookmarks',
+           'createMarker', 'setEnabled')
 
 
 @registerAction('editor', 'toggleBookmark')
@@ -31,20 +32,20 @@ def toggleBookmark(ed):
 
 
 def nextBookmark(ed):
-        ln = ed.getCursorPosition()[0]
+	ln = ed.getCursorPosition()[0]
 
-        ln = ed.markers['bookmark'].getNext(ln)
-        if ln < 0:
-                ln = ed.markers['bookmark'].getNext(0)
-        ed.setCursorPosition(ln, 0)
+	ln = ed.markers['bookmark'].getNext(ln)
+	if ln < 0:
+		ln = ed.markers['bookmark'].getNext(0)
+	ed.setCursorPosition(ln, 0)
 
 
 def previousBookmark(ed):
-        ln = ed.getCursorPosition()[0]
+	ln = ed.getCursorPosition()[0]
 
-        ln = ed.markers['bookmark'].getPrevious(ln)
-        if ln < 0:
-                ln = ed.markers['bookmark'].getPrevious(ed.lines())
+	ln = ed.markers['bookmark'].getPrevious(ln)
+	if ln < 0:
+		ln = ed.markers['bookmark'].getPrevious(ed.lines())
 
 
 def listBookmarks(ed):

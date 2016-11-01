@@ -10,13 +10,13 @@ Positions
 
 Positions in the text of an editor widget can be expressed in multiple ways.
 
-First, the position of a character can be expressed as "line-index", which is the line and column of that character,
-in terms of Unicode codepoints, with the `str` type (see :doc:`eye.three`). Unless specified otherwise, line and
-column numbers start at 0 in EYE.
+First, the position of a character can be expressed as "line-index", which is the line and column of
+that character, in terms of Unicode codepoints, with the `str` type (see :doc:`eye.three`).
+Unless specified otherwise, line and column numbers start at 0 in EYE.
 
 Another way, more low-level, is the byte offset of the byte in the byte text (with type `bytes`, see
-:doc:`eye.three`). The internal byte encoding of the editor is UTF-8, regardless of the encoding of the underlying
-disk file, which only intervenes when loading/saving.
+:doc:`eye.three`). The internal byte encoding of the editor is UTF-8, regardless of the encoding of
+the underlying disk file, which only intervenes when loading/saving.
 
 Module contents
 ---------------
@@ -45,17 +45,19 @@ from .. import structs
 from .. import io
 
 
-__all__ = ('Editor', 'Marker', 'Indicator', 'Margin', 'BaseEditor', 'QsciScintilla', 'SciModification',
-           'zoomOnWheel')
+__all__ = (
+	'Editor', 'Marker', 'Indicator', 'Margin', 'BaseEditor', 'QsciScintilla', 'SciModification',
+	'zoomOnWheel'
+)
 
 
 LOGGER = getLogger(__name__)
 
 
 class HasWeakEditorMixin(object):
-	def __init__(self, **kwargs):
+	def __init__(self, editor=None, **kwargs):
 		super(HasWeakEditorMixin, self).__init__(**kwargs)
-		self.__editor = None
+		self.__editor = editor
 
 	@property
 	def editor(self):
@@ -74,10 +76,11 @@ class Marker(HasWeakEditorMixin):
 	"""Margin marker of an editor
 
 	Markers are graphical symbols that can be added in the margin of editor widgets.
-	For example, a marker can be used to indicate a breakpoint is present on a particular line of the file.
+	For example, a marker can be used to indicate a breakpoint is present on a particular line of
+	the file.
 
-	In an editor, a Marker can be set or unset for multiple lines, in which cases the configured symbol will be
-	shown in the margin of the lines where the marker has been set.
+	In an editor, a Marker can be set or unset for multiple lines, in which cases the configured
+	symbol will be shown in the margin of the lines where the marker has been set.
 
 	Example::
 
@@ -88,15 +91,15 @@ class Marker(HasWeakEditorMixin):
 		marker.putAt(2)  # marker is added at 3rd line
 		marker.putAt(20)  # marker is added at 21st line
 
-	A `Marker` is associated with an :any:`eye.widgets.editor.Editor`. An `Editor` can have multiple `Marker`s,
-	each with an arbitrary name. A `Marker` has a symbol or pixmap configured and can then be put or removed for
-	individual lines of the associated `Editor`.
+	A `Marker` is associated with an :any:`eye.widgets.editor.Editor`. An `Editor` can have multiple
+	`Marker`s, each with an arbitrary name. A `Marker` has a symbol or pixmap configured and can
+	then be put or removed for individual lines of the associated `Editor`.
 
 	.. TODO max number, internal id
 	"""
 
 	def __init__(self, sym, editor=None, id=-1):
-		self.editor = editor
+		super(Marker, self).__init__(editor=editor)
 		self.sym = sym
 		self.id = id
 		if editor:
@@ -175,14 +178,14 @@ class Marker(HasWeakEditorMixin):
 class Indicator(HasWeakEditorMixin):
 	"""Text indicator
 
-	An indicator styles parts of the text with some particular visual style. It can be used for example by a
-	spellchecker to underline misspelled words, or to highlight search results.
+	An indicator styles parts of the text with some particular visual style. It can be used for
+	example by a spellchecker to underline misspelled words, or to highlight search results.
 
-	In an editor, an indicator can be set for multiple ranges of characters in the text content, which will then
-	be displayed in the configured style.
+	In an editor, an indicator can be set for multiple ranges of characters in the text content,
+	which will then be displayed in the configured style.
 
-	Additionally, a numeric value can be associated when putting the indicator on a range. This allows to do
-	some kind of sub-indicators. Where the indicator is not set, the value is always 0.
+	Additionally, a numeric value can be associated when putting the indicator on a range. This
+	allows to do some kind of sub-indicators. Where the indicator is not set, the value is always 0.
 	The default value where an indicator is set is 1.
 
 	Example:
@@ -193,11 +196,12 @@ class Indicator(HasWeakEditorMixin):
 		# indic = editor.indicators['highlight']
 		indic.putAt(0, 0, 1, 0) # the first line will be styled with this indicator
 
-	Like :any:`eye.widgets.editor.Marker`, `Indicator`s are associated to an `Editor` and have an arbitrary name.
+	Like :any:`eye.widgets.editor.Marker`, `Indicator`s are associated to an `Editor` and have an
+	arbitrary name.
 	There can be at most 40 different indicator types per editor widget.
 	"""
 	def __init__(self, style, editor=None, id=-1):
-		self.editor = editor
+		super(Indicator, self).__init__(editor=editor)
 		self.style = style
 		self.id = id
 		if editor:
@@ -216,8 +220,8 @@ class Indicator(HasWeakEditorMixin):
 	def getAtOffset(self, offset):
 		"""Return the value of the indicator is present at byte `offset`
 
-		If the indicator is not set at byte `offset`, 0 is returned, else the value of the indicator at this
-		offset is returned.
+		If the indicator is not set at byte `offset`, 0 is returned, else the value of the indicator
+		at this offset is returned.
 		"""
 		return self.editor.indicatorValueAt(self.id, offset)
 
@@ -230,8 +234,8 @@ class Indicator(HasWeakEditorMixin):
 	def getPreviousEdge(self, offset):
 		"""Return the offset of the first edge of this indicator before `offset`.
 
-		If `offset` is inside a range of characters with this indicator set, the start of the range is
-		returned. The returned start is inclusive: it is the first offset in the range.
+		If `offset` is inside a range of characters with this indicator set, the start of the range
+		is returned. The returned start is inclusive: it is the first offset in the range.
 
 		If `offset` is outside, the end of the previous range before `offset` is returned.
 		The returned end is exclusive: it's the first offset outside the range.
@@ -376,7 +380,8 @@ class Indicator(HasWeakEditorMixin):
 	def removeAt(self, lineFrom, indexFrom, lineTo, indexTo):
 		"""Remove the indicator from a range of characters (line-index based)
 
-		The indicator is unset from `(lineFrom, indexFrom)` (inclusive) to `(lineTo, indexTo)` (exclusive).
+		The indicator is unset from `(lineFrom, indexFrom)` (inclusive) to `(lineTo, indexTo)`
+		(exclusive).
 		In this range, the indicator value will be reset to 0.
 		"""
 		self.editor.clearIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, self.id)
@@ -434,7 +439,7 @@ class Margin(HasWeakEditorMixin):
 		return Margin(editor, id=2)
 
 	def __init__(self, editor=None, id=3):
-		self.editor = editor
+		super(Margin, self).__init__(editor=editor)
 		self.id = id
 		self.width = 0
 		self.visible = True
@@ -461,9 +466,9 @@ class Margin(HasWeakEditorMixin):
 
 	def setText(self, line, txt):
 		if isinstance(txt, (str, bytes)):
-			self.setMarginText(self.id, txt, 0)
+			self.editor.setMarginText(self.id, txt, 0)
 		else:
-			self.setMarginText(self.id, txt)
+			self.editor.setMarginText(self.id, txt)
 
 	def show(self):
 		self.visible = True
@@ -509,12 +514,12 @@ sciProp0 = sciPropGet
 
 
 def sipvoid_as_str(v):
-    i = 1
-    while True:
-        s = v.asstring(i)
-        if s[-1] == '\x00':
-            return s[:-1]
-        i += 1
+	i = 1
+	while True:
+		s = v.asstring(i)
+		if s[-1] == '\x00':
+			return s[:-1]
+		i += 1
 
 
 SciModification = namedtuple('SciModification',
@@ -525,19 +530,21 @@ SciModification = namedtuple('SciModification',
 class BaseEditor(QsciScintilla):
 	"""Editor class adding missing Scintilla features
 
-	QsciScintilla is an incomplete wrapper to Scintilla, this class aims to add support for a few of the missing
-	editor features.
+	QsciScintilla is an incomplete wrapper to Scintilla, this class aims to add support for a few of
+	the missing editor features.
 
-	.. note:: This class should not be instanciated directly as it exists only to add editor widget features and
-	          is thus considered low-level.
-	          :any:`eye.widgets.editor.Editor` contains file-related features and should be used instead.
+	.. note:: This class should not be instanciated directly as it exists only to add editor widget
+	          features and is thus considered low-level.
+	          :any:`eye.widgets.editor.Editor` contains file-related features and should be used
+	          instead.
 
 	.. seealso::
 
 		Since QsciScintilla is used as a base, the `QsciScintilla documentation
-		<http://pyqt.sourceforge.net/Docs/QScintilla2/classQsciScintilla.html>`_ should also be consulted.
-		The more low-level `Scintilla documentation <http://www.scintilla.org/ScintillaDoc.html>`_ can also
-		help, though more rarely.
+		<http://pyqt.sourceforge.net/Docs/QScintilla2/classQsciScintilla.html>`_ should also be
+		consulted.
+		The more low-level `Scintilla documentation <http://www.scintilla.org/ScintillaDoc.html>`_
+		can also help, though more rarely.
 	"""
 
 	# selection
@@ -546,17 +553,18 @@ class BaseEditor(QsciScintilla):
 
 	"""Select a character stream between two offsets in the text.
 
-	If the start offset and end offset are not on the same lines, the characters from the start offset to the end
-	of its line are selected, plus the characters from the end offset to the start of its line, plus the lines in
-	between are completely selected.
+	If the start offset and end offset are not on the same lines, the characters from the start
+	offset to the end of its line are selected, plus the characters from the end offset to the start
+	of its line, plus the lines in between are completely selected.
 	"""
 
 	SelectionRectangle = QsciScintilla.SC_SEL_RECTANGLE
 
 	"""Select characters in a rectangle between two offsets in the text.
 
-	On each line from the line of the start offset to the line of the end offset, only characters from the column
-	of the start offset to end column of the end offset are selected, thus making a rectangle.
+	On each line from the line of the start offset to the line of the end offset, only characters
+	from the column of the start offset to end column of the end offset are selected, thus making a
+	rectangle.
 	"""
 
 	SelectionLines = QsciScintilla.SC_SEL_LINES
@@ -575,7 +583,8 @@ class BaseEditor(QsciScintilla):
 
 	"""setMultipleSelection(bool)
 
-	Set if multiple ranges of characters can be selected. All ranges are selected in the same selection mode.
+	Set if multiple ranges of characters can be selected. All ranges are selected in the same
+	selection mode.
 	"""
 
 	multipleSelection = sciProp0(QsciScintilla.SCI_GETMULTIPLESELECTION)
@@ -643,8 +652,8 @@ class BaseEditor(QsciScintilla):
 
 	"""Set whether pasting in a multi-selection should paste in all selections
 
-	If set to `True`, when multiple regions are selected, pasting will paste in all selections instead of the main
-	selection only.
+	If set to `True`, when multiple regions are selected, pasting will paste in all selections
+	instead of the main selection only.
 	"""
 
 	multiPaste = sciProp0(QsciScintilla.SCI_GETMULTIPASTE)
@@ -671,7 +680,8 @@ class BaseEditor(QsciScintilla):
 
 	"""Set options for virtual space after a line's end
 
-	Should be an or-combination of one or more flags in :any:`VsNone`, :any:`VsRectangular`, :any:`VsUser`.
+	Should be an or-combination of one or more flags in :any:`VsNone`, :any:`VsRectangular`,
+	:any:`VsUser`.
 	"""
 
 	virtualSpaceOptions = sciPropGet(QsciScintilla.SCI_GETVIRTUALSPACEOPTIONS)
@@ -1050,22 +1060,24 @@ class BaseEditor(QsciScintilla):
 
 	"""Signal macroRecordStarted()
 
-	After this signal is emitted, and until `macroRecordStopped()` is emitted, actions performed by user will be
-	recorded and `actionRecorded(object)` will be emitted for each action.
+	After this signal is emitted, and until `macroRecordStopped()` is emitted, actions performed by
+	user will be recorded and `actionRecorded(object)` will be emitted for each action.
 	"""
 
 	macroRecordStopped = Signal()
 
 	"""Signal macroRecordStopped()
 
-	This signal is emitted when macro recording stops. `actionRecorded()` will not be emitted any more after.
+	This signal is emitted when macro recording stops. `actionRecorded()` will not be emitted any
+	more after.
 	"""
 
 	actionRecorded = Signal(object)
 
 	"""Signal actionRecorded(object): an action was recorded in macro
 
-	The signal argument is the action recorded, and can be passed to `replayMacroAction` to replay this action.
+	The signal argument is the action recorded, and can be passed to `replayMacroAction` to replay
+	this action.
 	Internally, the action argument is a tuple suitable for Scintilla to process it.
 	"""
 
@@ -1073,20 +1085,22 @@ class BaseEditor(QsciScintilla):
 
 	"""Signal sciModified(object): a modification was done
 
-	The signal argument is a 10-tuple describing the modification. The modifications signalled can be of various
-	types.
+	The signal argument is a 10-tuple describing the modification. The modifications signalled can
+	be of various types.
 	"""
 
 
 class Editor(BaseEditor, CentralWidgetMixin):
 	"""Editor widget class
 
-	By default, instances of this class have the "editor" category set (see :doc:`eye.connector` for more info).
+	By default, instances of this class have the "editor" category set (see :doc:`eye.connector`
+	for more info).
 
 	.. seealso::
 
 		Since QsciScintilla is used as a base, the `QsciScintilla documentation
-		<http://pyqt.sourceforge.net/Docs/QScintilla2/classQsciScintilla.html>`_ should also be consulted.
+		<http://pyqt.sourceforge.net/Docs/QScintilla2/classQsciScintilla.html>`_ should also be
+		consulted.
 	"""
 
 	SmartCaseSensitive = object()
@@ -1246,8 +1260,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""Reload file contents (losing unsaved modifications)
 
 		Reload file from disk and replace editor contents with updated text.
-		If the user made modifications to the editor contents without saving them, calling this method will
-		will lose them. However, the replacement can be undone by the user.
+		If the user made modifications to the editor contents without saving them, calling this
+		method will will lose them. However, the replacement can be undone by the user.
 		"""
 		oldPos = self.getCursorPosition()
 
@@ -1270,12 +1284,12 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	def setUseFinalNewline(self, b):
 		"""Set whether a final newline should always be added when saving to disk
 
-		If `b` is False, the contents of the editor won't be changed when saving file to disk: the file will
-		only contain a final newline if the editor text ends with a newline.
+		If `b` is False, the contents of the editor won't be changed when saving file to disk: the
+		file will only contain a final newline if the editor text ends with a newline.
 
-		If `b` is True, a final newline will be added to the file saved on disk, but this final newline won't
-		be shown in the editor. When the file is loaded, if it ends with a final newline, it won't be shown
-		in the editor either, though will be kept when saving again.
+		If `b` is True, a final newline will be added to the file saved on disk, but this final
+		newline won't be shown in the editor. When the file is loaded, if it ends with a final
+		newline, it won't be shown in the editor either, though will be kept when saving again.
 
 		This does not cause the file to be re-saved.
 		"""
@@ -1291,8 +1305,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	def setRemoveTrailingWhitespace(self, b):
 		"""Set whether trailing whitespace should be trimmed when saving to disk
 
-		If `b` is True, trailing whitespace will be removed from each line on the the file saved to disk.
-		It is still kept in the editor though (but this behavior may change in the future).
+		If `b` is True, trailing whitespace will be removed from each line on the the file saved to
+		disk. It is still kept in the editor though (but this behavior may change in the future).
 
 		This does not cause the file to be re-saved.
 		"""
@@ -1308,8 +1322,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	def setEncoding(self, s):
 		"""Set the file data encoding for loading/saving
 
-		When loading file contents from disk or saving file to disk, this encoding will be used. This does
-		not change the internal encoding used by the editor widget, which is UTF-8.
+		When loading file contents from disk or saving file to disk, this encoding will be used.
+		This does not change the internal encoding used by the editor widget, which is UTF-8.
 
 		This does not cause the file to be re-saved.
 		"""
@@ -1489,13 +1503,13 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""Append a new annotation
 
 		Add an annotation for `line`. If there was an existing annotation at this line, unlike
-		:any:`annotate`, the old annotation is not overwritten, but the new annotation is appended to the
-		old one.
+		:any:`annotate`, the old annotation is not overwritten, but the new annotation is appended
+		to the old one.
 
-		If `item` is a string, it should be the text of the annotation to add, and `style` argument must be
-		given.
-		`item` can be a `QsciStyledText` object, which comprises both the text and the style, so the `style`
-		argument should not be passed.
+		If `item` is a string, it should be the text of the annotation to add, and `style` argument
+		must be given.
+		`item` can be a `QsciStyledText` object, which comprises both the text and the style, so the
+		`style` argument should not be passed.
 
 		:param line: the line of the editor where to add the annotation
 		:type line: int

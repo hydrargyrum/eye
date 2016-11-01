@@ -5,16 +5,16 @@
 In EYE, builtin lexers from QScintilla are used. See :any:`PyQt5.Qsci.QsciLexer`.
 """
 
+import mimetypes
+
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.Qsci import (
 	QsciLexerBash, QsciLexerBatch, QsciLexerCPP, QsciLexerCSharp, QsciLexerJava, QsciLexerJavaScript,
-	QsciLexerCSS, QsciLexerD, QsciLexerFortran, QsciLexerHTML, QsciLexerXML, QsciLexerLua, QsciLexerMakefile,
-	QsciLexerPascal, QsciLexerPerl, QsciLexerPO, QsciLexerPostScript, QsciLexerPOV, QsciLexerProperties,
-	QsciLexerPython, QsciLexerRuby, QsciLexerSQL, QsciLexerTCL, QsciLexerTeX, QsciLexerYAML,
+	QsciLexerCSS, QsciLexerD, QsciLexerFortran, QsciLexerHTML, QsciLexerXML, QsciLexerLua,
+	QsciLexerMakefile, QsciLexerPascal, QsciLexerPerl, QsciLexerPO, QsciLexerPostScript,
+	QsciLexerPOV, QsciLexerProperties, QsciLexerPython, QsciLexerRuby, QsciLexerSQL, QsciLexerTCL,
+	QsciLexerTeX, QsciLexerYAML,
 )
-
-import mimetypes
-
 
 __all__ = ('extensionToLexer', 'mimeToLexer', 'applyStyles', 'stylesFromLexer')
 

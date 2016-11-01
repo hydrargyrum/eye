@@ -29,12 +29,12 @@ class DimBand(QRubberBand, CategoryMixin):
 	"""
 
 	def __init__(self, parent):
-		super(QRubberBand, self).__init__(self.Rectangle, parent)
+		super(DimBand, self).__init__(self.Rectangle, parent)
 		self.dimBrush = QColorAlpha('#80808030')
 		self.addCategory('dimband')
 		self.setStyle(None)
 
-	def paintEvent(self, ev):
+	def paintEvent(self, _):
 		self.clearMask() # TODO is it safe to call that here?
 
 		painter = QPainter(self)

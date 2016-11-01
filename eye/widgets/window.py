@@ -21,7 +21,7 @@ __all__ = ('Window', 'titleOnFocus')
 
 class DockWidget(QDockWidget, CategoryMixin):
 	def __init__(self, **kwargs):
-		super(QDockWidget, self).__init__(**kwargs)
+		super(DockWidget, self).__init__(**kwargs)
 		self.addCategory('dock_container')
 
 	def childEvent(self, ev):
@@ -136,7 +136,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 	@Slot()
 	def bufferOpenDialog(self):
-		path, qfilter = QFileDialog.getOpenFileName(self, self.tr('Open file'), os.path.expanduser('~'))
+		path, _ = QFileDialog.getOpenFileName(self, self.tr('Open file'), os.path.expanduser('~'))
 		if path:
 			ed = self.bufferNew()
 			ed.openFile(path)
@@ -166,8 +166,6 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		if widget is None:
 			widget = self.currentBuffer()
 		parent = parentTabWidget(widget)
-
-		spl, idx = self.splitter.childId(parent)
 
 		ed = self.EditorClass()
 		tabs = TabWidget()
@@ -216,7 +214,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		self.splitter.removeWidget(tw)
 
 	@Slot('QWidget*', 'QWidget*')
-	def _appFocusChanged(self, old, new):
+	def _appFocusChanged(self, _, new):
 		if self.centralWidget().isAncestorOf(new):
 			self.lastFocus = ref(new)
 

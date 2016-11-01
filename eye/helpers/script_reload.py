@@ -14,10 +14,10 @@ It relies on :any:`eye.connector.deleteCreatedBy`:
 TODO let scripts provide an `unregister` method so they can undo their effects.
 """
 
-from PyQt5.QtCore import QFileSystemWatcher, pyqtSlot as Slot
-
 import logging
 import os
+
+from PyQt5.QtCore import QFileSystemWatcher, pyqtSlot as Slot
 
 from ..three import str
 from ..app import qApp

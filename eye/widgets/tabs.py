@@ -43,6 +43,9 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 		self.setTabsClosable(True)
 		#~ self.setMovable(True)
 		self.setUsesScrollButtons(True)
+
+		self.tabDrag = None
+
 		self.addCategory('tabbar')
 
 	## drag and drop events

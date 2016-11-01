@@ -32,7 +32,8 @@ def glob2re(globstr, can_escape=False, dotslash=DOTSLASH_NO_SLASH_AND_HIDDEN,
 	"""Convert a globbing pattern to a Python regex pattern
 
 	:param globstr: the glob pattern to convert
-	:param exact:  if True, the pattern will match the start and end of string (``^`` and ``$`` are added)
+	:param exact: if True, the pattern will match the start and end of string (``^`` and ``$`` are
+	              added)
 	:param double_star: if True, "**" is interpreted to match a indefinite number of path components
 	:param sets: if True, "{foo,bar}" will match "foo" or "bar"
 	:param can_escape: if True, backslashes can be used to escape other metacharacters,
@@ -261,7 +262,7 @@ class ReTests(unittest.TestCase):
 			**options)
 
 		self.check_pattern(
-			'\{foo\}',
+			r'\{foo\}',
 			'{foo}'.split(),
 			'foo'.split(),
 			sets=True, **options)
