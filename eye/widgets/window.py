@@ -61,6 +61,8 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 	fileDropped = Signal(str)
 
+	focusedBuffer = Signal(QWidget)
+
 	def __init__(self, *args):
 		super(Window, self).__init__(*args)
 
@@ -217,6 +219,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 	def _appFocusChanged(self, _, new):
 		if self.centralWidget().isAncestorOf(new):
 			self.lastFocus = ref(new)
+			self.focusedBuffer.emit(new)
 
 
 @registerSignal('tabwidget', 'lastTabClosed')
