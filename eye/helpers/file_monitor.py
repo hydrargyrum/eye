@@ -3,7 +3,7 @@
 from logging import getLogger
 import os
 
-from PyQt5.QtCore import QFileSystemWatcher, pyqtSignal as Signal
+from PyQt5.QtCore import QFileSystemWatcher
 
 from ..three import str
 from ..qt import Slot
@@ -25,7 +25,7 @@ class MonitorWithRename(QFileSystemWatcher):
 		if not self.addPath(path):
 			LOGGER.warning('failed to monitor %r', path)
 
-	def delFile(self, path):
+	def removeFile(self, path):
 		LOGGER.debug('stop monitoring %r', path)
 		self.removePath(path)
 
@@ -44,15 +44,13 @@ class Monitor(MonitorWithRename):
 		# TODO WeakValueDictionary is enough? use signal instead of cb?
 		self.watched = {}
 
-	def addFile(self, path, cb):
-		LOGGER.debug('start monitoring %r', path)
-		self.addPath(path)
+	def addFileCallback(self, path, cb):
+		self.addFile(path)
 		self.watched[path] = cb
 		# FIXME removePath when editor is closed
 
-	def delFile(self, path):
-		LOGGER.debug('stop monitoring %r', path)
-		self.removePath(path)
+	def removeFile(self, path):
+		super(Monitor, self).removeFile(path)
 		del self.watched[path]
 
 	@Slot(str)
@@ -67,7 +65,7 @@ class Monitor(MonitorWithRename):
 @registerSignal('editor', 'fileSaved')
 @disabled
 def onOpen(editor, path):
-	MONITOR.addFile(path, editor.fileModifiedExternally.emit)
+	MONITOR.addFileCb(path, editor.fileModifiedExternally.emit)
 
 
 @registerSignal('editor', 'fileAboutToBeSaved')
