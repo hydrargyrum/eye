@@ -27,11 +27,12 @@ def Slot(*args, **kwargs):
 
 			mtc = SLOT_RE.match(srcline)
 			if mtc:
-				signatures.append('@Slot%s' % mtc.group(1))
+				signatures.append(mtc.group(1))
 			elif srcline.startswith('def '):
 				break
 
-		text = '\n\n'.join(signatures)
+		text = '\n\n'.join('This slot has signature ``%s%s``.' % (func.__name__, sig)
+		                   for sig in signatures)
 
 		if func.__doc__ is None:
 			func.__doc__ = text

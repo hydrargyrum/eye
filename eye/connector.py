@@ -311,6 +311,13 @@ def deleteCreatedBy(caller):
 	CONNECTOR.deleteCreatedBy(caller)
 
 
+def _addDoc(func, text):
+	if func.__doc__ is None:
+		func.__doc__ = text
+	else:
+		func.__doc__ += '\n\n' + text
+
+
 def registerSignal(categories, signal, stackoffset=0):
 	"""Decorate a function that should be run when a signal is emitted.
 
@@ -337,6 +344,11 @@ def registerSignal(categories, signal, stackoffset=0):
 		lis = SignalListener(func, categories, signal, CONNECTOR)
 		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
+
+		doctext = ('This handler is registered for categories ``%s`` on signal ``%s``.'
+		               % (list(categories), signal))
+		_addDoc(func, doctext)
+
 		return func
 
 	return deco
@@ -368,6 +380,10 @@ def registerSetup(categories, stackoffset=0):
 		lis = SetupListener(func, categories)
 		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
+
+		doctext = 'This handler is registered as setup for categories ``%s``.' % (list(categories),)
+		_addDoc(func, doctext)
+
 		return func
 
 	return deco
@@ -382,6 +398,10 @@ def registerTeardown(categories, stackoffset=0):
 		lis = TearListener(func, categories)
 		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
+
+		doctext = 'This handler is registered as teardown for categories ``%s``.' % (list(categories),)
+		_addDoc(func, doctext)
+
 		return func
 
 	return deco
@@ -428,6 +448,12 @@ def registerEventFilter(categories, eventTypes, stackoffset=0):
 		lis = EventFilter(func, categories, eventTypes, CONNECTOR)
 		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
+
+		# TODO use textual event type (parse source)
+		doctext = ('This handler is registered as event filter for categories ``%s`` with '
+		           'event types ``%r``.' % (list(categories), eventTypes))
+		_addDoc(func, doctext)
+
 		return func
 
 	return deco
@@ -452,6 +478,10 @@ def disabled(func):
 	an object.
 	"""
 	func.enabled = False
+
+	doctext = 'This handler is disabled by default.'
+	_addDoc(func, doctext)
+
 	return func
 
 
