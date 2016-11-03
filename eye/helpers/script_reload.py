@@ -17,11 +17,12 @@ TODO let scripts provide an `unregister` method so they can undo their effects.
 import logging
 import os
 
-from PyQt5.QtCore import QFileSystemWatcher, pyqtSlot as Slot
+from PyQt5.QtCore import pyqtSlot as Slot
 
 from ..three import str
 from ..app import qApp
 from ..connector import deleteCreatedBy
+from .file_monitor import MonitorWithRename
 
 
 __all__ = ('setEnabled', 'registerStartupFiles')
@@ -32,20 +33,17 @@ LOGGER = logging.getLogger(__name__)
 MONITOR = None
 
 
-class ScriptMonitor(QFileSystemWatcher):
+class ScriptMonitor(MonitorWithRename):
 	def __init__(self, **kwargs):
 		super(ScriptMonitor, self).__init__(**kwargs)
-		self.fileChanged.connect(self.onFileChanged)
+		self.fileChanged.connect(self._onFileChanged)
 
 	@Slot(str)
-	def onFileChanged(self, path):
+	def _onFileChanged(self, path):
 		LOGGER.info('%r has been modified, reloading', path)
 		deleteCreatedBy(path)
 		if os.path.exists(path):
 			qApp().runScript(path)
-
-
-MONITOR = ScriptMonitor()
 
 
 def addScript(path):
@@ -53,11 +51,14 @@ def addScript(path):
 
 
 def registerStartupFiles():
+	"""Start monitoring startup scripts from user configuration."""
 	for path in qApp().startupScripts():
 		addScript(path)
 
 
 def setEnabled(enabled):
+	"""Enable/disable auto-reloading of startup scripts."""
+
 	global MONITOR
 
 	if enabled:
