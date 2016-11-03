@@ -1,11 +1,11 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 
 from ..connector import registerSignal, disabled
 from ..pathutils import isIn
 from ..app import qApp
-from ..widgets.locationlist import LocationList
+from ..widgets.locationlist import LocationList, absolutePathRole
 
 
 __all__ = ('setEnabled',)
@@ -51,6 +51,26 @@ def addLocationList(win, show=True):
 def addItem(builder, info, msg_type):
 	loclist = addLocationList(qApp().lastWindow)
 	loclist.addItem(info)
+
+
+@registerSignal('window', 'focusedBuffer')
+@disabled
+def filterOnFocus(window, focused):
+	loclist = getattr(window, 'build_loclist', None)
+	if not loclist:
+		return
+
+	model = loclist.model()
+	if not getattr(model, 'isFilterOnFocus', False):
+		orig = model
+
+		model = QSortFilterProxyModel()
+		model.isFilterOnFocus = True
+		loclist.setModel(model)
+		model.setSourceModel(orig)
+		model.setFilterRole(absolutePathRole)
+
+	model.setFilterRegExp(QRegExp.escape(focused.path or ''))
 
 
 def setEnabled(enabled=True):
