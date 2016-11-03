@@ -8,6 +8,7 @@ from __future__ import print_function
 import code
 import codecs
 import logging
+import os
 import sys
 
 from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, Qt
@@ -56,8 +57,10 @@ class HistoryLine(QLineEdit):
 
 	def setHistoryFile(self, path):
 		if path is not None:
-			with open(path, 'a+') as fd:
-				self.history = [line.strip() for line in fd]
+			self.history = []
+			if os.path.exists(path):
+				with open(path, 'r+') as fd:
+					self.history = [line.strip() for line in fd]
 		self.history_path = path
 
 	def keyPressEvent(self, ev):
