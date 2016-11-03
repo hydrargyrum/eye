@@ -7,8 +7,9 @@ results (like with grep), or for compile errors/warnings messages, since a locat
 attributes, like a message or a search snippet.
 """
 
-from PyQt5.QtCore import pyqtSignal as Signal
-from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem
+from PyQt5.QtCore import Qt, pyqtSignal as Signal, QModelIndex
+from PyQt5.QtGui import QStandardItemModel, QStandardItem
+from PyQt5.QtWidgets import QTreeView
 
 from ..three import str
 from .helpers import WidgetMixin
@@ -25,7 +26,7 @@ lineRole = consts.registerRole()
 columnRole = consts.registerRole()
 
 
-class LocationList(QTreeWidget, WidgetMixin):
+class LocationList(QTreeView, WidgetMixin):
 	"""Location list widget
 
 	A location is a file path, an optional line number, and various optional attributes.
@@ -46,12 +47,16 @@ class LocationList(QTreeWidget, WidgetMixin):
 	def __init__(self, **kwargs):
 		super(LocationList, self).__init__(**kwargs)
 
+		self.dataModel = QStandardItemModel()
+		self.setModel(self.dataModel)
+
 		self.setAlternatingRowColors(True)
 		self.setAllColumnsShowFocus(True)
 		self.setRootIsDecorated(False)
+		self.setSelectionBehavior(self.SelectRows)
 		self.setWindowTitle('Location list')
 
-		self.itemActivated.connect(self._resultActivated)
+		self.activated.connect(self._resultActivated)
 
 		self.cols = []
 
@@ -69,10 +74,10 @@ class LocationList(QTreeWidget, WidgetMixin):
 		qcols = []
 		for c in self.cols:
 			qcols.append(names.get(c, c))
-		self.setHeaderItem(QTreeWidgetItem(qcols))
+		self.dataModel.setHorizontalHeaderLabels(qcols)
 
 	def clear(self):
-		super(LocationList, self).clear()
+		self.dataModel.clear()
 
 	@Slot(dict)
 	def addItem(self, d):
@@ -85,24 +90,30 @@ class LocationList(QTreeWidget, WidgetMixin):
 			else:
 				cols.append(str(d.get(c, '')))
 
-		item = QTreeWidgetItem(cols)
-		item.setData(0, absolutePathRole, d['path'])
+		items = [QStandardItem(col) for col in cols]
+		items[0].setData(d['path'], absolutePathRole)
 		if line:
-			item.setData(0, lineRole, line)
-		self.addTopLevelItem(item)
+			items[0].setData(line, lineRole)
+
+		for item in items:
+			item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+
+		self.dataModel.appendRow(items)
 
 	@Slot()
 	def resizeAllColumns(self):
 		for i in range(self.columnCount()):
 			self.resizeColumnToContents(i)
 
-	@Slot(QTreeWidgetItem, int)
-	def _resultActivated(self, qitem, col_number):
-		if not qitem:
+	@Slot(QModelIndex)
+	def _resultActivated(self, qidx):
+		if not qidx.isValid():
 			return
 
-		path = qitem.data(0, absolutePathRole) # TODO use roles to have shortname vs longname
-		line = qitem.data(0, lineRole) or None
+		qidx = qidx.sibling(qidx.row(), 0)
+		path = self.model().data(qidx, absolutePathRole)
+		# TODO use roles to have shortname vs longname
+		line = self.model().data(qidx, lineRole) or None
 		self.locationActivated.emit(path, (line,))
 
 	@Slot()
@@ -112,22 +123,20 @@ class LocationList(QTreeWidget, WidgetMixin):
 		If an item is selected in this LocationList, selects the previous item and activates it. If no item
 		was currently select, uses the last element.
 		"""
-		count = self.topLevelItemCount()
+		count = self.model().rowCount()
 		if not count:
 			return
 
 		current = self.currentIndex()
+
 		if not current.isValid():
-			item = self.topLevelItem(count - 1)
+			current = QModelIndex(count - 1, 0)
 		elif current.row() > 0:
-			item = self.topLevelItem(current.row() - 1)
+			current = current.sibling(current.row() - 1, 0)
 		else:
 			return
-		self.setCurrentItem(item)
-
-		self.setCurrentItem(item)
-		self.activated.emit(self.indexFromItem(item))
-		self.itemActivated.emit(item, 0)
+		self.setCurrentIndex(current)
+		self.activated.emit(current)
 
 	@Slot()
 	def activateNext(self):
@@ -136,21 +145,20 @@ class LocationList(QTreeWidget, WidgetMixin):
 		If an item is selected in this LocationList, selects the next item and activates it. If no item
 		was currently select, uses the first element.
 		"""
-		count = self.topLevelItemCount()
+		count = self.model().rowCount()
 		if not count:
 			return
 
 		current = self.currentIndex()
 		if not current.isValid():
-			item = self.topLevelItem(0)
+			current = QModelIndex(0, 0)
 		elif current.row() < count - 1:
-			item = self.topLevelItem(current.row() + 1)
+			current = current.sibling(current.row() + 1, 0)
 		else:
 			return
 
-		self.setCurrentItem(item)
-		self.activated.emit(self.indexFromItem(item))
-		self.itemActivated.emit(item, 0)
+		self.setCurrentIndex(current)
+		self.activated.emit(current)
 
 
 @registerSignal('location_list', 'locationActivated')
