@@ -49,12 +49,13 @@ class LocationList(QTreeWidget, WidgetMixin):
 		self.setAlternatingRowColors(True)
 		self.setAllColumnsShowFocus(True)
 		self.setRootIsDecorated(False)
-
-		self.addCategory('location_list')
+		self.setWindowTitle('Location list')
 
 		self.itemActivated.connect(self._resultActivated)
 
 		self.cols = []
+
+		self.addCategory('location_list')
 
 	def setColumns(self, cols):
 		names = {
