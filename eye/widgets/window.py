@@ -4,6 +4,7 @@ import os
 from weakref import ref
 
 from PyQt5.QtCore import Qt, pyqtSignal as Signal, QEvent
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDockWidget, QWidget
 
 from ..connector import registerSignal, disabled
@@ -87,10 +88,17 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 	def createDefaultMenuBar(self):
 		menu = self.menubar.addMenu('File')
-		menu.addAction('New').triggered.connect(self.bufferNew)
-		menu.addAction('Open...').triggered.connect(self.bufferOpenDialog)
-		menu.addAction('Save').triggered.connect(self.bufferSave)
-		menu.addAction('Quit').triggered.connect(self.quitRequested)
+		action = menu.addAction(QIcon.fromTheme('document-new'), 'New')
+		action.triggered.connect(self.bufferNew)
+
+		action = menu.addAction(QIcon.fromTheme('document-open'), 'Open...')
+		action.triggered.connect(self.bufferOpenDialog)
+
+		action = menu.addAction(QIcon.fromTheme('document-save'), 'Save')
+		action.triggered.connect(self.bufferSave)
+
+		action = menu.addAction(QIcon.fromTheme('application-exit'), 'Quit')
+		action.triggered.connect(self.quitRequested)
 
 	@Slot()
 	def toggleFullScreen(self):
