@@ -80,10 +80,14 @@ class Ycm(QObject, CategoryMixin):
 		self.port = 0
 		"""TCP port of the ycmd server."""
 
-		self.proc = QProcess()
 		self._ready = False
 		self.secret = ''
 		self.config = {}
+
+		self.proc = QProcess()
+		self.proc.started.connect(self.procStarted)
+		self.proc.errorOccurred.connect(self.procError)
+		self.proc.finished.connect(self.procFinished)
 
 		self.pingTimer = QTimer(self)
 		self.pingTimer.timeout.connect(self.ping)
@@ -115,7 +119,7 @@ class Ycm(QObject, CategoryMixin):
 		reply.content = bytes(reply.readAll())
 
 		if reply.error():
-			raise ServerError(reply.error() + 1000, reply.errorString())
+			raise ServerError(reply.error() + 1000, reply.errorString(), reply.content)
 		status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
 		if status_code != 200:
 			data = reply.content.decode('utf-8')
@@ -210,7 +214,6 @@ class Ycm(QObject, CategoryMixin):
 		self.proc.start(cmd[0], cmd[1:])
 
 		self._ready = False
-		self.pingTimer.start(1000)
 
 	@Slot()
 	def stop(self, wait=0.2):
@@ -229,6 +232,21 @@ class Ycm(QObject, CategoryMixin):
 		self.addr = addr
 		self._ready = False
 		self.pingTimer.start(1000)
+
+	@Slot()
+	def procStarted(self):
+		LOGGER.debug('daemon has started')
+		self.pingTimer.start(1000)
+
+	@Slot(int, QProcess.ExitStatus)
+	def procFinished(self, code, status):
+		LOGGER.info('daemon has exited with status %r and code %r', status, code)
+		self.pingTimer.stop()
+		self._ready = False
+
+	@Slot(QProcess.ProcessError)
+	def procError(self, error):
+		LOGGER.warning('daemon failed to start (%r): %s', error, self.errorString())
 
 	ready = Signal()
 
