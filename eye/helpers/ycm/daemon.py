@@ -250,7 +250,7 @@ class Ycm(QObject, CategoryMixin):
 
 	ready = Signal()
 
-	def _commonPostDict(self, filepath, filetype, contents):
+	def _commonPostDict(self, filepath, filetype, contents, line=1, column=1):
 		d = {
 			'filepath': filepath,
 			'filetype': filetype,
@@ -260,8 +260,8 @@ class Ycm(QObject, CategoryMixin):
 					'contents': contents
 				}
 			},
-			'line_num': 1, # useless but required
-			'column_num': 1,
+			'line_num': line,
+			'column_num': column,
 		}
 		return d
 
@@ -311,28 +311,16 @@ class Ycm(QObject, CategoryMixin):
 		reply.finished.connect(handleReply)
 		reply.finished.connect(reply.deleteLater)
 
-	if 0:
-		def querySubcommandsList(self, filepath, filetype, contents, line, col):
-			return self._postSimpleRequest('/defined_subcommands', filepath, filetype, contents)
+	def querySubcommandsList(self, filepath, filetype, contents, line, col):
+		return self._postSimpleRequest('/defined_subcommands', filepath, filetype, contents)
 
-		def _querySubcommand(self, filepath, filetype, contents, line, col, *args):
-			d = {
-				'command_arguments': list(args)
-			}
-			return self._postSimpleRequest('/run_completer_command', filepath, filetype, contents, **d)
-
-		def queryGoTo(self, *args):
-			res = self._querySubcommand(*args)
-			if res.get('filepath'):
-				return {
-					'filepath': res['filepath'],
-					'line': res['line_num'],
-					'column': res['column_num'],
-				}
-
-		def queryInfo(self, *args):
-			res = self._querySubcommand(*args)
-			return res.get('message', '') or res.get('detailed_info', '')
+	def querySubcommand(self, filepath, filetype, contents, line, col, *args):
+		d = {
+			'command_arguments': list(args),
+			'line_num': line,
+			'column_num': col,
+		}
+		return self._postSimpleRequest('/run_completer_command', filepath, filetype, contents, **d)
 
 	def queryCompletions(self, filepath, filetype, contents, line, col):
 		d = {

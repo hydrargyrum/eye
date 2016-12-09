@@ -2,8 +2,10 @@
 
 from __future__ import print_function
 
+from PyQt5.QtCore import QObject, pyqtSignal as Signal, pyqtSlot as Slot
+
 from ...connector import registerSignal, disabled
-from .daemon import getDaemon, isDaemonAvailable
+from .daemon import getDaemon, isDaemonAvailable, ServerError
 
 
 def _query(cb, editor, *args, **kwargs):
@@ -77,12 +79,18 @@ def onActivate(ed, listid, display):
 	ed.setCursorPosition(startl, startc + len(text))
 
 
-if 0:
-	def querySub(editor):
-		res = _query(getDaemon().querySubcommandsList, editor)
+def querySubCommandsList(editor):
+	def handleReply():
+		getDaemon().checkReply(reply)
+		res = getDaemon()._jsonReply(reply)
 		print(res)
 
+	reply = _query(getDaemon().querySubcommandsList, editor)
+	reply.finished.connect(handleReply)
+	reply.finished.connect(reply.deleteLater)
 
+
+if 1:
 	def queryDiag(editor):
 		res = _query(getDaemon().queryDiagnostic, editor)
 		print(res)
@@ -93,11 +101,98 @@ if 0:
 		print(res)
 
 
-	def queryGoTo(editor, *args, **kwargs):
-		res = _query(getDaemon().queryGoTo, editor, *args, **kwargs)
-		print(res)
+	def querySubCommand(editor, *args, **kwargs):
+		def handleReply():
+			getDaemon().checkReply(reply)
+			res = getDaemon()._jsonReply(reply)
+			print(res)
+
+		reply = _query(getDaemon().querySubcommand, editor, *args, **kwargs)
+		reply.finished.connect(handleReply)
+		reply.finished.connect(reply.deleteLater)
 
 
-	def queryInfo(editor, *args, **kwargs):
-		res = _query(getDaemon().queryInfo, editor, *args, **kwargs)
-		print(res)
+class YcmSearch(QObject):
+	"""Search plugin using ycmd engine
+
+	The `started`, `found` and `finished` signals work like other search plugins
+	(see :any:`eye.helpers.file_search_plugins.base.SearchPlugin`).
+	However, the entry point of the search is not a pattern but a position in a
+	file, to follow a symbol name in a source context.
+	"""
+
+	started = Signal()
+	found = Signal(dict)
+	finished = Signal(int)
+
+	searchType = None
+
+	def __init__(self, *args, **kwargs):
+		super(YcmSearch, self).__init__(*args, **kwargs)
+		self.reply = None
+
+	def findUnderCursor(self, editor):
+		self.started.emit()
+		self.reply = _query(getDaemon().querySubcommand, editor, self.searchType)
+		self.reply.finished.connect(self._onReply)
+		self.reply.finished.connect(self.reply.deleteLater)
+
+	@Slot()
+	def interrupt(self):
+		if self.reply:
+			self.reply.finished.disconnect(self._onReply)
+			self.reply.abort()
+			self.reply.deleteLater()
+			self.reply = None
+
+	@Slot()
+	def _onReply(self):
+		resultCode = 1
+
+		try:
+			getDaemon().checkReply(self.reply)
+		except ServerError:
+			pass
+		else:
+			self._handleReply(getDaemon()._jsonReply(self.reply))
+			resultCode = 0
+		finally:
+			self.reply = None
+			self.finished.emit(resultCode)
+
+	def _handleReply(self, obj):
+		if isinstance(obj, dict):
+			obj = [obj]
+		if isinstance(obj, list):
+			for sub in obj:
+				self._sendResult(sub)
+
+	def _sendResult(self, obj):
+		ret = {
+			'path': obj['filepath'],
+			'line': obj['line_num'],
+			'col': obj['column_num'],
+		}
+		if 'description' in obj:
+			ret['snippet'] = obj['description']
+
+		self.found.emit(ret)
+
+
+class YcmGoToDeclaration(YcmSearch):
+	"""Plugin to find the declaration of a symbol"""
+
+	searchType = 'GoToDeclaration'
+
+
+class YcmGoToDefinition(YcmSearch):
+	"""Plugin to find the definition of a symbol"""
+
+	searchType = 'GoToDefinition'
+
+
+class YcmGoToReferences(YcmSearch):
+	"""Plugin to find usage of a symbol"""
+
+	searchType = 'GoToReferences'
+
