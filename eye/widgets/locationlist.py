@@ -54,7 +54,7 @@ class LocationList(QTreeView, WidgetMixin):
 		self.setAllColumnsShowFocus(True)
 		self.setRootIsDecorated(False)
 		self.setSelectionBehavior(self.SelectRows)
-		self.setWindowTitle('Location list')
+		self.setWindowTitle(self.tr('Location list'))
 
 		self.activated.connect(self._resultActivated)
 

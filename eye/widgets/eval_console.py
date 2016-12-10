@@ -136,7 +136,7 @@ class EvalConsole(QWidget, WidgetMixin):
 		layout.addWidget(self.display)
 		layout.addWidget(self.line)
 
-		self.setWindowTitle('Eval console')
+		self.setWindowTitle(self.tr('Eval console'))
 
 		self.addCategory('eval_console')
 

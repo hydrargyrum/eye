@@ -72,6 +72,9 @@ class BaseFileChooser(QWidget, WidgetMixin):
 
 		self.edit.installEventFilter(self)
 
+		self.setWindowTitle(self.tr('File selector'))
+		self.addCategory('filechooser')
+
 	def setModel(self, model):
 		self.view.setModel(model)
 
@@ -265,8 +268,6 @@ class FileChooser(BaseFileChooser):
 		self.filter = QSortFilterProxyModel()
 		self.filter.setSourceModel(self.rootChanger)
 		self.view.setModel(self.filter)
-
-		self.addCategory('filechooser')
 
 	def setModel(self, model):
 		self.baseModel = model
