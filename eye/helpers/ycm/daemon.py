@@ -31,6 +31,7 @@ HMAC_SECRET_LENGTH = 16
 HMAC_HEADER = 'X-Ycm-Hmac'
 
 LOGGER = logging.getLogger(__name__)
+LOGGER_REQUESTS = LOGGER.getChild('requests')
 
 DAEMON = None
 
@@ -160,6 +161,7 @@ class Ycm(QObject, CategoryMixin):
 		for hname in headers:
 			request.setRawHeader(hname, headers[hname])
 
+		LOGGER_REQUESTS.debug('GET %r', url)
 		reply = self.network.get(request)
 		return reply
 
@@ -175,6 +177,7 @@ class Ycm(QObject, CategoryMixin):
 		request = QNetworkRequest(QUrl(url))
 		for hname in headers:
 			request.setRawHeader(hname, headers[hname])
+		LOGGER_REQUESTS.debug('POST %r with data %r', url, body)
 		reply = self.network.post(request, body)
 		return reply
 
