@@ -9,18 +9,18 @@ The `file_search` plugins allow to perform pattern search in multiple files and 
 	The abstract plugin is in :any:`eye.helpers.file_search_plugins.base`.
 """
 
-
 import os
 
 from ..connector import registerSignal, disabled
-
+from ..reutils import qtEnumToCs, qreToPattern
+from ..app import qApp
 from .file_search_plugins.base import enabledPlugins, getPlugin
-
-from ..reutils import csToQtEnum, qtEnumToCs, qreToPattern
+from .intent import sendIntent
 
 
 __all__ = ('enabledPlugins', 'searchWithPlugin', 'searchStart',
-           'setupLocationList')
+           'setupLocationList', 'searchAndOpenFirstResult',
+           'pluginOpenFirstResult')
 
 
 @registerSignal('file_search_widget', 'returnPressed')
@@ -59,3 +59,33 @@ def setupLocationList(plugin, loclist):
 	plugin.started.connect(loclist.clear)
 	plugin.found.connect(loclist.addItem)
 	plugin.finished.connect(loclist.resizeAllColumns)
+
+
+def searchAndOpenFirstResult(plugin_id, path, pattern):
+	plugin = getPlugin(plugin_id)(parent=qApp())
+	pluginOpenFirstResult(plugin)
+
+	if os.path.isfile(path):
+		root = os.path.dirname(path)
+	else:
+		root = path
+
+	plugin.search(root, pattern)
+
+
+def pluginOpenFirstResult(plugin):
+	"""Connect a SearchPlugin to open automatically the first result
+
+	When the :any:`plugin` has found a result, an `openEditor` intent is sent to
+	open the first result.
+	This function must be called before starting the search.
+	"""
+
+	def onFound(res):
+		loc = (res['line'], res.get('col', 1))
+		sendIntent(None, 'openEditor', path=res['path'], loc=loc, reason='file_search')
+
+	plugin.found.connect(onFound)
+	plugin.found.connect(plugin.interrupt)
+	plugin.found.connect(plugin.found.disconnect)
+	plugin.finished.connect(plugin.deleteLater)
