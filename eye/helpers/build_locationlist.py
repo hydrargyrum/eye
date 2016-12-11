@@ -5,7 +5,8 @@ from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 from ..connector import registerSignal, disabled
 from ..pathutils import isIn
 from ..app import qApp
-from ..widgets.locationlist import LocationList, absolutePathRole
+from ..consts import AbsolutePathRole
+from ..widgets.locationlist import LocationList
 
 
 __all__ = ('setEnabled',)
@@ -68,7 +69,7 @@ def filterOnFocus(window, focused):
 		model.isFilterOnFocus = True
 		loclist.setModel(model)
 		model.setSourceModel(orig)
-		model.setFilterRole(absolutePathRole)
+		model.setFilterRole(AbsolutePathRole)
 
 	model.setFilterRegExp(QRegExp.escape(focused.path or ''))
 

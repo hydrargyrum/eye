@@ -16,11 +16,7 @@ from ..reutils import csToQtEnum
 from .locationlist import LocationList
 
 
-__all__ = ('absolutePathRole', 'lineRole', 'columnRole', 'SearchWidget')
-
-absolutePathRole = consts.registerRole()
-lineRole = consts.registerRole()
-columnRole = consts.registerRole()
+__all__ = ('SearchWidget')
 
 
 class SearchOptionsButton(QPushButton):

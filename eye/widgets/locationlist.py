@@ -14,14 +14,14 @@ from PyQt5.QtWidgets import QTreeView
 from ..three import str
 from .helpers import WidgetMixin
 from .. import consts
+from ..consts import AbsolutePathRole
 from ..connector import registerSignal, disabled
 from ..qt import Slot
 from ..helpers.intent import sendIntent
 
 
-__all__ = ('absolutePathRole', 'lineRole', 'columnRole', 'LocationList')
+__all__ = ('lineRole', 'columnRole', 'LocationList')
 
-absolutePathRole = consts.registerRole()
 lineRole = consts.registerRole()
 columnRole = consts.registerRole()
 
@@ -91,7 +91,7 @@ class LocationList(QTreeView, WidgetMixin):
 				cols.append(str(d.get(c, '')))
 
 		items = [QStandardItem(col) for col in cols]
-		items[0].setData(d['path'], absolutePathRole)
+		items[0].setData(d['path'], AbsolutePathRole)
 		if line:
 			items[0].setData(line, lineRole)
 
@@ -111,7 +111,7 @@ class LocationList(QTreeView, WidgetMixin):
 			return
 
 		qidx = qidx.sibling(qidx.row(), 0)
-		path = self.model().data(qidx, absolutePathRole)
+		path = self.model().data(qidx, AbsolutePathRole)
 		# TODO use roles to have shortname vs longname
 		line = self.model().data(qidx, lineRole) or None
 		self.locationActivated.emit(path, (line,))

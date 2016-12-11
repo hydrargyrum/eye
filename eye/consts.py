@@ -51,3 +51,11 @@ MOVES = {
 	LEFT: -1,
 	RIGHT: 1
 }
+
+
+AbsolutePathRole = registerRole()
+
+"""Role for absolute path data.
+
+Used in location lists, file choosers, etc.
+"""

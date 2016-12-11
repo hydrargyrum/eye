@@ -12,6 +12,7 @@ from time import time
 
 from ..three import str, range
 from ..structs import PropDict
+from ..consts import AbsolutePathRole
 from .helpers import WidgetMixin
 from ..helpers.intent import sendIntent
 
@@ -220,9 +221,10 @@ class SubSequenceFileChooser(BaseFileChooser):
 		prefix_len = len(self.root) + 1 # 1 for the /
 
 		for path in self.crawler:
-			path = path[prefix_len:]
+			subpath = path[prefix_len:]
 
-			qitem = QStandardItem(path)
+			qitem = QStandardItem(subpath)
+			qitem.setData(path, AbsolutePathRole)
 			qitem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
 			self.mdl.appendRow(qitem)
 
@@ -240,8 +242,7 @@ class SubSequenceFileChooser(BaseFileChooser):
 
 	@Slot(QModelIndex)
 	def _onActivated(self, qidx):
-		subpath = self.filter.data(qidx)
-		path = os.path.join(self.root, subpath)
+		path = self.filter.data(qidx, AbsolutePathRole)
 		if not os.path.isfile(path): # symlinks?
 			return
 		self.openFile(path)
