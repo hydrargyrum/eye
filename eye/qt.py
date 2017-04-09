@@ -6,10 +6,10 @@ import inspect
 import os
 import re
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
 
-__all__ = ('Slot',)
+__all__ = ('Slot', 'Signal')
 
 
 SLOT_RE = re.compile(r'@(?:\w\.)*Slot(\(.*\))')
@@ -42,3 +42,24 @@ def Slot(*args, **kwargs):
 		return func
 
 	return decorator
+
+
+class SignalDoc(object):
+	def __init__(self, *types):
+		self.types = types
+
+	def _typeString(self, t):
+		if isinstance(t, type):
+			return t.__name__
+		return repr(t)
+
+	def __repr__(self):
+		if not self.types or isinstance(self.types[0], type):
+			return 'Signal(%s)' % ', '.join(self._typeString(t) for t in self.types)
+		return ' '.join(repr(SignalDoc(*arg)) for arg in self.types)
+
+
+def Signal(*args, **kwargs):
+	if os.environ.get('READTHEDOCS') != 'True':
+		return pyqtSignal(*args, **kwargs)
+	return SignalDoc(*args, **kwargs)
