@@ -1,7 +1,7 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
 from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QPoint
-from PyQt5.QtGui import QBrush, QPen, QPainter, QPolygon
+from PyQt5.QtGui import QBrush, QPen, QPainter, QPolygon, QIcon
 from PyQt5.QtWidgets import QFrame, QSizePolicy, QWidget, QHBoxLayout
 
 from ..connector import CategoryMixin, registerSignal, disabled
@@ -122,6 +122,11 @@ class EditorReplacement(QWidget):
 
 	def __getattr__(self, attr):
 		return getattr(self.editor, attr)
+
+	@Slot(QIcon)
+	def setWindowIcon(self, icon):
+		# redefine as a slot to avoid keeping useless refs to self
+		super(EditorReplacement, self).setWindowIcon(icon)
 
 
 @registerSignal('minimap', 'lineClicked')
