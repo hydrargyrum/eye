@@ -1,5 +1,12 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+"""Module for going back/forward in editors
+
+This module allows recording history of cursor positions when switching to another file or jumping
+to a function definition for example. Then, navigation can go back and forth between these
+positions like a browser.
+"""
+
 from weakref import ref
 from logging import getLogger
 
@@ -22,6 +29,12 @@ POPPING = ()
 
 
 def pushHistory(editor, line, col):
+	"""Add an entry in history
+
+	Calling this function pushes an entry on top of the backward history (which is a stack) and
+	erases forward history.
+	"""
+
 	LOGGER.debug('pushing entry')
 
 	BACKWARD.append((ref(editor), line, col))
@@ -29,6 +42,8 @@ def pushHistory(editor, line, col):
 
 
 def goBack():
+	"""Go back in editor position history"""
+
 	global POPPING
 
 	current = qApp().lastWindow.currentBuffer()
@@ -53,6 +68,8 @@ def goBack():
 
 
 def goForward():
+	"""Go forward in editor position history"""
+
 	global POPPING
 
 	try:
@@ -75,6 +92,14 @@ def goForward():
 
 
 def peekHistory():
+	"""Get the backward history entry that could be navigated
+
+	Does not perform any navigation, it just returns a 3-tuple containing the
+	:any:`eye.widgets.editor.Editor` widget, the line number and column number.
+
+	:returns: the entry to go back or None if there is no history
+	:rtype: tuple[Editor, int, int] or None
+	"""
 	if BACKWARD:
 		reditor, line, col = BACKWARD[-1]
 		if reditor:
@@ -84,6 +109,9 @@ def peekHistory():
 @registerSignal('editor', 'cursorPositionChanged')
 @disabled
 def pushHistoryOnEditorChange(editor, line, col):
+	"""Push a history entry when moving cursor to another editor and position.
+	"""
+
 	try:
 		heditor, _, __ = FORWARD[-1]
 	except IndexError:
@@ -118,6 +146,8 @@ def pushHistoryOnJump(editor, line, col):
 
 
 def makeEntry(editor):
+	"""Returns a tuple suitable for putting in the history stack"""
+
 	line, col = editor.getCursorPosition()
 	return (ref(editor), line, col)
 
@@ -135,6 +165,13 @@ class MouseNavFilter(QObject):
 @registerSetup('editor')
 @disabled
 def navigateWithMouseBack(editor):
+	"""Use navigation with Back/Forward mouse buttons
+
+	Certain mice have dedicated back and forward buttons.
+	When this callback is enabled, back and forward mouse buttons will call :any:`goBack` and
+	:any:`goForward`.
+	"""
+
 	# event filter on editor widget will not catch mouse events, use viewport instead
 	view = editor.viewport()
 	filter = MouseNavFilter(parent=view)
