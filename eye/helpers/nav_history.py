@@ -3,12 +3,16 @@
 from weakref import ref
 from logging import getLogger
 
+from PyQt5.QtCore import QEvent, Qt, QObject
+
 from ..app import qApp
-from ..connector import registerSignal, disabled
+from ..connector import registerSignal, disabled, registerSetup
 
 
 __all__ = ('pushHistory', 'goBack', 'goForward', 'peekHistory',
-           'pushHistoryOnEditorChange', 'pushHistoryOnJump')
+           'pushHistoryOnEditorChange', 'pushHistoryOnJump',
+           'navigateWithMouseBack',
+          )
 
 
 LOGGER = getLogger(__name__)
@@ -116,3 +120,22 @@ def pushHistoryOnJump(editor, line, col):
 def makeEntry(editor):
 	line, col = editor.getCursorPosition()
 	return (ref(editor), line, col)
+
+
+class MouseNavFilter(QObject):
+	def eventFilter(self, ed, ev):
+		if ev.type() == QEvent.MouseButtonPress:
+			if ev.buttons() == Qt.BackButton:
+				goBack()
+			elif ev.buttons() == Qt.ForwardButton:
+				goForward()
+		return False
+
+
+@registerSetup('editor')
+@disabled
+def navigateWithMouseBack(editor):
+	# event filter on editor widget will not catch mouse events, use viewport instead
+	view = editor.viewport()
+	filter = MouseNavFilter(parent=view)
+	view.installEventFilter(filter)
