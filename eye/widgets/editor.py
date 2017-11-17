@@ -644,9 +644,31 @@ class BaseEditor(QsciScintilla):
 	See :any:`addSelection`.
 	"""
 
-	dropSelectionN = sciProp1(QsciScintilla.SCI_DROPSELECTIONN)
+	dropSelectionN = sciProp(QsciScintilla.SCI_DROPSELECTIONN, (six.integer_types,))
 
 	"""Deselect the n-th selection."""
+
+	selectionNCaret = sciProp(QsciScintilla.SCI_GETSELECTIONNCARET, (six.integer_types,))
+
+	"""Get the offset of the n-th selection's caret."""
+
+	selectionNAnchor = sciProp(QsciScintilla.SCI_GETSELECTIONNANCHOR, (six.integer_types,))
+
+	"""Get the offset of the n-th selection's anchor."""
+
+	def getSelectionN(self, n):
+		"""Get line-indexes of the n-th selection.
+
+		Returns a 4-tuple with line-index of the anchor and line-index of the caret.
+		Note that the caret may be before or after the anchor.
+
+		:param n: index of the selection
+		:type n: int
+		:rtype: tuple[int, int, int, int]
+		"""
+		anchor = self.lineIndexFromPosition(self.selectionNAnchor(n))
+		caret = self.lineIndexFromPosition(self.selectionNCaret(n))
+		return (anchor[0], anchor[1], caret[0], caret[1])
 
 	setMultiPaste = sciProp1(QsciScintilla.SCI_SETMULTIPASTE)
 
