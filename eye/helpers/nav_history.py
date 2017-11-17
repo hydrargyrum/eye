@@ -53,7 +53,9 @@ def goBack():
 	except IndexError:
 		LOGGER.debug('cannot go back, stack is empty')
 		return False
-	if not rneweditor:
+
+	editor = rneweditor()
+	if not editor:
 		LOGGER.debug('skipping entry, editor was closed')
 		return goBack()
 
@@ -61,7 +63,6 @@ def goBack():
 	FORWARD.append(makeEntry(current))
 
 	LOGGER.debug('going back')
-	editor = rneweditor()
 	editor.setCursorPosition(newline, newcol)
 	editor.giveFocus()
 	return True
@@ -77,7 +78,9 @@ def goForward():
 	except IndexError:
 		LOGGER.debug('cannot go forward, stack is empty')
 		return False
-	if not rneweditor:
+
+	editor = rneweditor()
+	if not editor:
 		LOGGER.debug('skipping entry, editor was closed')
 		return goForward()
 
@@ -85,7 +88,6 @@ def goForward():
 	BACKWARD.append(makeEntry(qApp().lastWindow.currentBuffer()))
 
 	LOGGER.debug('going forward')
-	editor = rneweditor()
 	editor.setCursorPosition(newline, newcol)
 	editor.giveFocus()
 	return True
@@ -102,8 +104,12 @@ def peekHistory():
 	"""
 	if BACKWARD:
 		reditor, line, col = BACKWARD[-1]
-		if reditor:
-			return reditor(), line, col
+		editor = reditor()
+		if editor:
+			return editor, line, col
+		else:
+			BACKWARD.pop()
+			return peekHistory()
 
 
 @registerSignal('editor', 'cursorPositionChanged')
