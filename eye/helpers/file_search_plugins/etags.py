@@ -12,7 +12,7 @@ from ...pathutils import findAncestorContaining, findInAncestors
 from ..confcache import ConfCache
 
 
-__all__ = ('ETagSearch',)
+__all__ = ('ETagsSearch',)
 
 
 LOGGER = logging.getLogger(__name__)
