@@ -3,11 +3,11 @@
 import logging
 from weakref import ref
 
-from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QEventLoop
+from PyQt5.QtCore import QEventLoop
 from PyQt5.QtWidgets import QPlainTextEdit, QLabel, QWidget, QRubberBand, QApplication
 
 from ..app import qApp
-from ..qt import Slot
+from ..qt import Slot, Signal
 from .helpers import WidgetMixin
 
 __all__ = ('LogWidget', 'PositionIndicator', 'WidgetPicker', 'interactiveWidgetPick')

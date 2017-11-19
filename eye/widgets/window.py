@@ -3,13 +3,13 @@
 import os
 from weakref import ref
 
-from PyQt5.QtCore import Qt, pyqtSignal as Signal, QEvent
+from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDockWidget, QWidget
 
 from ..connector import registerSignal, disabled
 from ..three import str
-from ..qt import Slot
+from ..qt import Signal, Slot
 from .. import consts
 from .helpers import CategoryMixin, acceptIf, parentTabWidget
 from .editor import Editor

@@ -30,7 +30,7 @@ from collections import namedtuple
 from weakref import ref
 from logging import getLogger
 
-from PyQt5.QtCore import pyqtSignal as Signal, Qt, QEvent
+from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.Qsci import QsciScintilla, QsciStyledText
@@ -40,7 +40,7 @@ import six
 from ..three import bytes, str
 from ..connector import disabled, registerEventFilter
 from .helpers import CentralWidgetMixin, acceptIf
-from ..qt import Slot
+from ..qt import Slot, Signal
 from .. import structs
 from .. import io
 

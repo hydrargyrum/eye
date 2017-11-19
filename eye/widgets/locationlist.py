@@ -7,7 +7,7 @@ results (like with grep), or for compile errors/warnings messages, since a locat
 attributes, like a message or a search snippet.
 """
 
-from PyQt5.QtCore import Qt, pyqtSignal as Signal, QModelIndex
+from PyQt5.QtCore import Qt, QModelIndex
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QTreeView
 
@@ -16,7 +16,7 @@ from .helpers import WidgetMixin
 from .. import consts
 from ..consts import AbsolutePathRole
 from ..connector import registerSignal, disabled
-from ..qt import Slot
+from ..qt import Signal, Slot
 from ..helpers.intent import sendIntent
 
 

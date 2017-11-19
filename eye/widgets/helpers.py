@@ -1,8 +1,9 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import pyqtSignal as Signal, Qt, QEvent
+from PyQt5.QtCore import Qt, QEvent
 
 from ..connector import CategoryMixin
+from ..qt import Signal
 
 __all__ = ('acceptIf', 'CategoryMixin', 'WidgetMixin', 'CentralWidgetMixin',
            'parentTabWidget')

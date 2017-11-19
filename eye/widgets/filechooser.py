@@ -1,10 +1,8 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, QRegExp, pyqtSignal, pyqtSlot, Qt, QTimer, QElapsedTimer, QEvent
+from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, QRegExp, Qt, QTimer, QElapsedTimer, QEvent
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QTreeView, QWidget, QFileSystemModel, QApplication
-Signal = pyqtSignal
-Slot = pyqtSlot
 
 import os
 import re
@@ -13,6 +11,7 @@ from time import time
 from ..three import str, range
 from ..structs import PropDict
 from ..consts import AbsolutePathRole
+from ..qt import Slot
 from .helpers import WidgetMixin
 from ..helpers.intent import sendIntent
 

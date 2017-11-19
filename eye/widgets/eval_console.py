@@ -11,13 +11,14 @@ import logging
 import os
 import sys
 
-from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, Qt
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget, QAction
 from six import StringIO
 
 from ..three import bytes
 from ..app import qApp
 from ..utils import exceptionLogging
+from ..qt import Signal, Slot
 from .helpers import WidgetMixin
 
 __all__ = ('EvalConsole',)

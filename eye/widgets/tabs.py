@@ -3,13 +3,13 @@
 """Tab widget
 """
 
-from PyQt5.QtCore import pyqtSignal as Signal, Qt, QMimeData
+from PyQt5.QtCore import Qt, QMimeData
 from PyQt5.QtGui import QPolygon, QDrag, QIcon
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget, QToolButton, QMenu
 
 from .. import consts
 from ..three import str
-from ..qt import Slot
+from ..qt import Signal, Slot
 from ..connector import CategoryMixin, disabled, registerSetup
 from .droparea import DropAreaMixin, BandMixin
 from .helpers import WidgetMixin, parentTabWidget

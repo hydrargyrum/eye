@@ -1,6 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal, QTimer, QElapsedTimer
+from PyQt5.QtCore import QTimer, QElapsedTimer
 
 from contextlib import contextmanager
 import fnmatch
@@ -9,6 +9,7 @@ import os
 
 from .base import registerPlugin, SearchPlugin
 from ...pathutils import findAncestorContaining, findInAncestors
+from ...qt import SIgnal, Slot
 from ..confcache import ConfCache
 
 
