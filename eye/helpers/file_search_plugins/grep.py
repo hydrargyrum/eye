@@ -4,7 +4,6 @@ from PyQt5.QtCore import pyqtSlot as Slot
 
 from logging import getLogger
 import os
-import re
 
 from .base import registerPlugin, SearchPlugin
 from ...procutils import findCommand

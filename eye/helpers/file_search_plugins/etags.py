@@ -9,7 +9,7 @@ import os
 
 from .base import registerPlugin, SearchPlugin
 from ...pathutils import findAncestorContaining, findInAncestors
-from ...qt import SIgnal, Slot
+from ...qt import Slot
 from ..confcache import ConfCache
 
 
