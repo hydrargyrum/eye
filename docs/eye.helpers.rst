@@ -43,6 +43,7 @@ Submodules
    eye.helpers.projects
    eye.helpers.qt_all
    eye.helpers.qt_doc
+   eye.helpers.quote_surround
    eye.helpers.remote_control
    eye.helpers.script_reload
    eye.helpers.session
