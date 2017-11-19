@@ -16,7 +16,7 @@ from ..reutils import csToQtEnum
 from .locationlist import LocationList
 
 
-__all__ = ('SearchWidget')
+__all__ = ('SearchWidget',)
 
 
 class SearchOptionsButton(QPushButton):
