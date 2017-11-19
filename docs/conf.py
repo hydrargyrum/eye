@@ -47,7 +47,7 @@ if os.environ.get('READTHEDOCS') == 'True':
 
 
     MOCK_MODULES = ['PyQt5', 'PyQt5.QtCore', 'PyQt5.QtGui', 'PyQt5.QtNetwork',
-                    'PyQt5.QtWidgets', 'PyQt5.Qsci', 'sip',
+                    'PyQt5.QtWidgets', 'PyQt5.Qsci', 'PyQt5.QtDBus', 'sip',
                    ]
     sys.modules.update((mod_name, Mock(_mock=mod_name)) for mod_name in MOCK_MODULES)
 
