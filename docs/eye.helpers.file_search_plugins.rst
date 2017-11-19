@@ -12,6 +12,7 @@ Submodules
 .. toctree::
 
    eye.helpers.file_search_plugins.base
+   eye.helpers.file_search_plugins.etags
    eye.helpers.file_search_plugins.git
    eye.helpers.file_search_plugins.grep
 

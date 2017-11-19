@@ -23,7 +23,10 @@ Submodules
    eye.helpers.bookmarks
    eye.helpers.buffers
    eye.helpers.build
-   eye.helpers.buildmenu
+   eye.helpers.build_annotations
+   eye.helpers.build_locationlist
+   eye.helpers.build_menu
+   eye.helpers.confcache
    eye.helpers.editor_search
    eye.helpers.file_monitor
    eye.helpers.file_search
@@ -35,9 +38,13 @@ Submodules
    eye.helpers.lexercolor
    eye.helpers.macros
    eye.helpers.margins
+   eye.helpers.minimap
    eye.helpers.nav_history
    eye.helpers.projects
+   eye.helpers.qt_all
    eye.helpers.qt_doc
    eye.helpers.remote_control
+   eye.helpers.script_reload
+   eye.helpers.session
    eye.helpers.styles
 

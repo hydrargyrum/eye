@@ -12,7 +12,6 @@ Submodules
 .. toctree::
 
    eye.widgets.dialog
-   eye.widgets.draw_toolbar
    eye.widgets.droparea
    eye.widgets.editor
    eye.widgets.eval_console
