@@ -1253,6 +1253,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	def openFile(self, path):
 		if not self.closeFile():
 			return False
+
+		path = os.path.abspath(path)
 		self.path = path
 
 		try:
