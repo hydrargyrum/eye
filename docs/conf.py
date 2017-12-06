@@ -51,6 +51,8 @@ if os.environ.get('READTHEDOCS') == 'True':
                    ]
     sys.modules.update((mod_name, Mock(_mock=mod_name)) for mod_name in MOCK_MODULES)
 
+os.environ['BUILDING_DOCS'] = 'True'
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
