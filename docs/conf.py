@@ -315,3 +315,7 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+
+# use class docstring and __init__
+autoclass_content = 'both'
