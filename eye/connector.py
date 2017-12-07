@@ -58,6 +58,7 @@ from PyQt5.QtWidgets import QWidget
 from .qt import Signal, Slot
 from .three import bytes, str
 from .utils import exceptionLogging
+from . import BUILDING_DOCS
 
 __all__ = ('registerSignal', 'registerEventFilter', 'disabled',
            'registerSetup', 'registerTeardown',
@@ -336,6 +337,10 @@ def registerSignal(categories, signal, stackoffset=0):
 		def foo(editor_obj, path):
 			print('file %s has been saved', path)
 	"""
+
+	if BUILDING_DOCS:
+		return lambda x: x
+
 	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
@@ -372,6 +377,10 @@ def registerSetup(categories, stackoffset=0):
 		def foo(editor_obj):
 			print('an editor has been created')
 	"""
+
+	if BUILDING_DOCS:
+		return lambda x: x
+
 	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
@@ -390,6 +399,9 @@ def registerSetup(categories, stackoffset=0):
 
 
 def registerTeardown(categories, stackoffset=0):
+	if BUILDING_DOCS:
+		return lambda x: x
+
 	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):
@@ -440,6 +452,9 @@ def registerEventFilter(categories, eventTypes, stackoffset=0):
 	:type eventTypes: list of ints
 	:rtype: bool
 	"""
+	if BUILDING_DOCS:
+		return lambda x: x
+
 	categories = frozenset(to_stringlist(categories))
 
 	def deco(func):

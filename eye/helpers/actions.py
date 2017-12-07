@@ -42,6 +42,7 @@ from PyQt5.Qsci import QsciCommand, QsciScintilla
 from ..three import bytes, str
 from ..connector import categoryObjects, CONNECTOR
 from ..qt import Slot
+from .. import BUILDING_DOCS
 
 
 __all__ = ('registerActionShortcut', 'unregisterActionShortcut',
@@ -335,6 +336,9 @@ def registerAction(categories, actionName):
 
 	The decorated function will be registered as action `actionName` for objects matching the `categories`
 	"""
+	if BUILDING_DOCS:
+		return lambda x: x
+
 	categories = set(to_stringlist(categories))
 	def decorator(cb):
 		newcb = lambda: cb(SHORTCUTS.sender().parent())
@@ -391,6 +395,9 @@ def registerShortcut(categories, keyseq, context=Qt.WidgetShortcut, actionName=N
 	:type keyseq: str, int or QKeySequence
 	:param context: the context where to listen to the shortcut, relative to the widgets matching the categories
 	"""
+
+	if BUILDING_DOCS:
+		return lambda x: x
 
 	key = (QKeySequence(keyseq), context)
 
