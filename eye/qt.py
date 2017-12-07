@@ -58,6 +58,9 @@ class SignalDoc(object):
 			return 'Signal(%s)' % ', '.join(self._typeString(t) for t in self.types)
 		return ' '.join(repr(SignalDoc(*arg)) for arg in self.types)
 
+	def connect(self, *args, **kwargs):
+		pass
+
 
 def Signal(*args, **kwargs):
 	if os.environ.get('READTHEDOCS') != 'True':

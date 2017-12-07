@@ -1,9 +1,9 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import QObject, pyqtSignal as Signal
+from PyQt5.QtCore import QObject
 
 from ...three import str
-from ...qt import Slot
+from ...qt import Signal, Slot
 
 
 __all__ = ('registerPlugin', 'SearchPlugin', 'enabledPlugins', 'getPlugin')

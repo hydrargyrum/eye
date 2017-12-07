@@ -6,7 +6,7 @@ This module adds helpers for builders, programs which process source code and bu
 check syntax, etc.
 """
 
-from PyQt5.QtCore import QObject, pyqtSignal as Signal, pyqtSlot as Slot
+from PyQt5.QtCore import QObject
 
 import logging
 import os
@@ -16,6 +16,7 @@ import shlex
 from ..connector import CategoryMixin
 from ..procutils import LineProcess
 from ..pathutils import getRelativePathIn
+from ..qt import Signal, Slot
 
 
 __all__ = ('Builder', 'registerPlugin',

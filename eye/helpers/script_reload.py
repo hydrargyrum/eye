@@ -17,11 +17,10 @@ TODO let scripts provide an `unregister` method so they can undo their effects.
 import logging
 import os
 
-from PyQt5.QtCore import pyqtSlot as Slot
-
 from ..three import str
 from ..app import qApp
 from ..connector import deleteCreatedBy
+from ..qt import Slot
 from .file_monitor import MonitorWithRename
 
 

@@ -3,9 +3,10 @@
 import logging
 import os
 
-from PyQt5.QtCore import QProcess, pyqtSignal as Signal, pyqtSlot as Slot
+from PyQt5.QtCore import QProcess
 
 from .three import str, bytes
+from .qt import Signal, Slot
 
 
 __all__ = ('findCommand', 'LineProcess')

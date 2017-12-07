@@ -2,9 +2,10 @@
 
 from __future__ import print_function
 
-from PyQt5.QtCore import QObject, pyqtSignal as Signal, pyqtSlot as Slot
+from PyQt5.QtCore import QObject
 
 from ...connector import registerSignal, disabled
+from ...qt import Signal, Slot
 from .daemon import getDaemon, isDaemonAvailable, ServerError
 
 

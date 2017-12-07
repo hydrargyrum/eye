@@ -1,6 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QPoint
+from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QBrush, QPen, QPainter, QPolygon, QIcon
 from PyQt5.QtWidgets import QFrame, QSizePolicy, QWidget, QHBoxLayout
 
@@ -9,6 +9,7 @@ from ..widgets.editor import Editor, SciModification
 from ..widgets.window import Window
 from ..widgets.helpers import acceptIf
 from ..three import range
+from ..qt import Signal, Slot
 
 
 __all__ = ('MiniMap', 'EditorReplacement', 'scrollOnClick', 'install')

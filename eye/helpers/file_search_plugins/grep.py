@@ -1,12 +1,11 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import pyqtSlot as Slot
-
 from logging import getLogger
 import os
 
 from .base import registerPlugin, SearchPlugin
 from ...procutils import findCommand
+from ...qt import Slot
 from ..build import SimpleBuilder
 
 

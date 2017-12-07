@@ -34,13 +34,14 @@ bind keyboard shortcuts to it and let user configuration do it.
 from collections import OrderedDict
 import logging
 
-from PyQt5.QtCore import Qt, QObject, pyqtSlot as Slot
+from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QAction
 from PyQt5.Qsci import QsciCommand, QsciScintilla
 
 from ..three import bytes, str
 from ..connector import categoryObjects, CONNECTOR
+from ..qt import Slot
 
 
 __all__ = ('registerActionShortcut', 'unregisterActionShortcut',

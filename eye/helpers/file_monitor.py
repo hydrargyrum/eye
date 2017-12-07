@@ -7,10 +7,10 @@ from logging import getLogger
 import os
 from weakref import WeakValueDictionary
 
-from PyQt5.QtCore import QFileSystemWatcher, QSignalMapper, QObject, pyqtSignal as Signal
+from PyQt5.QtCore import QFileSystemWatcher, QSignalMapper, QObject
 
 from ..three import str
-from ..qt import Slot
+from ..qt import Signal, Slot
 from ..connector import registerSignal, disabled
 
 __all__ = ('Monitor', 'MonitorWithRename', 'SingleFileWatcher', 'onOpen', 'onBeforeSave', 'MONITOR')

@@ -52,10 +52,10 @@ import inspect
 from logging import getLogger
 import weakref
 
-from PyQt5.QtCore import QObject, pyqtSignal as Signal
+from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QWidget
 
-from .qt import Slot
+from .qt import Signal, Slot
 from .three import bytes, str
 from .utils import exceptionLogging
 
