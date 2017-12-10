@@ -2,13 +2,19 @@
 
 """Helpers for various constants"""
 
+import os
+
 from PyQt5.QtCore import Qt
 
 __all__ = ('registerRole',
            'UP', 'DOWN', 'LEFT', 'RIGHT')
 
 
-LAST_ROLE = Qt.UserRole
+if os.environ.get('READTHEDOCS') == 'True':
+	LAST_ROLE = 256
+else:
+	LAST_ROLE = Qt.UserRole
+
 
 def registerRole():
 	"""Register and return a new Qt data role
