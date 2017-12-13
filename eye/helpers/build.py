@@ -19,8 +19,9 @@ from ..pathutils import getRelativePathIn
 from ..qt import Signal, Slot
 
 
-__all__ = ('Builder', 'registerPlugin',
-           'SimpleBuilder')
+__all__ = ('Builder', 'registerPlugin', 'SimpleBuilder',
+           'JobHolder',
+          )
 
 
 LOGGER = logging.getLogger(__name__)
@@ -87,7 +88,12 @@ class Builder(QObject, CategoryMixin):
 	"""
 
 	def __init__(self, **kwargs):
+		"""
+		:param parent: if not given, a default parent is used (a default :any:`JobHolder` instance)
+		"""
 		super(Builder, self).__init__(**kwargs)
+		if 'parent' not in kwargs:
+			DEFAULT_HOLDER.addJob(self)
 		self.addCategory('builder')
 
 	def columns(self):
@@ -221,3 +227,31 @@ class SimpleBuilder(Builder):
 class PyFlakes(SimpleBuilder):
 	def run(self, path):
 		super(PyFlakes, self).run(['pyflakes', path])
+
+
+class JobHolder(QObject):
+	def addJob(self, job):
+		"""Re-parents the job to self and un-parent when job is finished.
+
+		`addJob` should be called before the job is started, to avoid the possibility of the
+		job being finished before `addJob` has done what it should do.
+
+		The job is re-parented so a reference is kept. When the job is finished, it is un-parented,
+		which may remove the last reference to it. The goal is that the `Builder` object may be
+		garbage-collected once it has emitted its `finished` signal.
+		To achieve this, the `JobHolder` must be the only one keeping a reference to the job object.
+
+		:param job: job to hold
+		:type job: :any:`eye.helpers.build.Builder`
+		:returns: the `job` passed
+		"""
+		job.finished.connect(self._finished)
+		job.setParent(self)
+		return job
+
+	@Slot()
+	def _finished(self):
+		self.sender().setParent(None)
+
+
+DEFAULT_HOLDER = JobHolder()
