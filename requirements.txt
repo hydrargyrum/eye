@@ -1,0 +1,4 @@
+PyQt5==5.9.2
+QScintilla==2.10.2
+six==1.11.0
+pyxdg==0.25

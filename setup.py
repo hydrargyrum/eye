@@ -46,7 +46,7 @@ if __name__ == '__main__':
 		keywords='code development editor qt script ide',
 
 		packages=find_packages(),
-		install_requires=['six'],
+		install_requires=['six', 'PyQt5', 'QScintilla', 'pyxdg'],
 		data_files=[
 			('share/eye/colorschemes', glob.glob('data/colorschemes/*')),
 			('share/applications', ['data/eye.desktop']),
