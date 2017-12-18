@@ -9,10 +9,11 @@ import code
 import codecs
 import logging
 import os
+import rlcompleter
 import sys
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget, QAction
+from PyQt5.QtCore import Qt, QStringListModel
+from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget, QAction, QCompleter
 from six import StringIO
 
 from ..three import bytes
@@ -35,6 +36,31 @@ NAMESPACE = {}
 """
 
 
+class PythonCompleter(QCompleter):
+	def __init__(self, *args, **kwargs):
+		super(PythonCompleter, self).__init__(*args, **kwargs)
+		self.setModel(QStringListModel())
+
+	def splitPath(self, path):
+		# hack, this function seems called everytime
+		# so we can force our custom completion
+		completer = rlcompleter.Completer(self.widget().parent().namespace)
+		text = self.widget().text()
+		text = text[:self.widget().cursorPosition()]
+		i = 0
+		comps = []
+		while True:
+			comp = completer.complete(text, i)
+			if comp is None:
+				break
+			comps.append(comp)
+			i += 1
+
+		self.model().setStringList(comps)
+
+		return super(PythonCompleter, self).splitPath(path)
+
+
 class HistoryLine(QLineEdit):
 	submitted = Signal(str)
 
@@ -44,6 +70,7 @@ class HistoryLine(QLineEdit):
 		self.history_path = None
 		self.idx = None
 		self.returnPressed.connect(self.submit)
+		self.setCompleter(PythonCompleter())
 
 	@Slot()
 	def submit(self):
