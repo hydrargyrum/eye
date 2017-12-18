@@ -167,6 +167,8 @@ class EvalConsole(QWidget, WidgetMixin):
 
 		self.line = HistoryLine()
 		self.line.submitted.connect(self.execCode)
+		self.line.installEventFilter(self)
+		self.line.completer().popup().installEventFilter(self)
 		self.setFocusProxy(self.line)
 
 		layout.addWidget(self.display)
@@ -183,6 +185,13 @@ class EvalConsole(QWidget, WidgetMixin):
 	def execCode(self, code):
 		# TODO be able to define functions, do ifs, fors
 
+		self.setNamespace()
+		output = u'>>> %s\n' % code
+		output += capture_output(self.interpreter.runsource, code)
+		self.display.appendPlainText(output)
+		self.protectNamespace()
+
+	def setNamespace(self):
 		import eye
 		self.namespace['eye'] = eye
 		self.namespace['app'] = qApp()
@@ -191,16 +200,18 @@ class EvalConsole(QWidget, WidgetMixin):
 		self.namespace['import_all_qt'] = self.import_all_qt
 		self.namespace.update(NAMESPACE)
 
-		output = u'>>> %s\n' % code
-		output += capture_output(self.interpreter.runsource, code)
-		self.display.appendPlainText(output)
-
-		self.protectNamespace()
-
 	def protectNamespace(self):
 		# avoid retaining references to widgets
 		self.namespace.pop('window', None)
 		self.namespace.pop('editor', None)
+
+	def eventFilter(self, obj, event):
+		if event.type() in (event.FocusIn, event.FocusOut):
+			if self.line.hasFocus():
+				self.setNamespace()
+			else:
+				self.protectNamespace()
+		return False
 
 
 def capture_output(cb, *args, **kwargs):
