@@ -21,10 +21,18 @@ from ..utils import exceptionLogging
 from ..qt import Signal, Slot
 from .helpers import WidgetMixin
 
-__all__ = ('EvalConsole',)
+__all__ = (
+	'EvalConsole', 'NAMESPACE',
+)
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+NAMESPACE = {}
+
+"""Additional shared namespace between all :any:`EvalConsole` objects.
+"""
 
 
 class HistoryLine(QLineEdit):
@@ -154,6 +162,7 @@ class EvalConsole(QWidget, WidgetMixin):
 		self.namespace['window'] = qApp().lastWindow
 		self.namespace['editor'] = self.namespace['window'].currentBuffer()
 		self.namespace['import_all_qt'] = self.import_all_qt
+		self.namespace.update(NAMESPACE)
 
 		output = u'>>> %s\n' % code
 		output += capture_output(self.interpreter.runsource, code)
