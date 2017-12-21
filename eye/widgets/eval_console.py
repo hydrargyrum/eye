@@ -186,10 +186,12 @@ class EvalConsole(QWidget, WidgetMixin):
 		# TODO be able to define functions, do ifs, fors
 
 		self.setNamespace()
-		output = u'>>> %s\n' % code
-		output += capture_output(self.interpreter.runsource, code)
-		self.display.appendPlainText(output)
-		self.protectNamespace()
+		try:
+			output = u'>>> %s\n' % code
+			output += capture_output(self.interpreter.runsource, code)
+			self.display.appendPlainText(output)
+		finally:
+			self.protectNamespace()
 
 	def setNamespace(self):
 		import eye
