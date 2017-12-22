@@ -28,7 +28,7 @@ from ..intent import sendIntent
 
 
 HMAC_SECRET_LENGTH = 16
-HMAC_HEADER = 'X-Ycm-Hmac'
+HMAC_HEADER = b'X-Ycm-Hmac'
 
 LOGGER = logging.getLogger(__name__)
 LOGGER_REQUESTS = LOGGER.getChild('requests')
@@ -167,11 +167,11 @@ class Ycm(QObject, CategoryMixin):
 
 	def _doPost(self, path, **params):
 		url = urlunsplit(('http', self.addr, path, '', ''))
-		body = json.dumps(params)
-		sig = self._sign(b'POST', path.encode('utf-8'), body.encode('utf-8'))
+		body = json.dumps(params).encode('utf-8')
+		sig = self._sign(b'POST', path.encode('utf-8'), body)
 		headers = {
 			HMAC_HEADER: b64encode(sig),
-			'Content-Type': 'application/json'
+			b'Content-Type': b'application/json'
 		}
 
 		request = QNetworkRequest(QUrl(url))
