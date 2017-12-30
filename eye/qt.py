@@ -8,6 +8,8 @@ import re
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
+from . import _addDoc
+
 
 __all__ = ('Slot', 'Signal')
 
@@ -33,11 +35,7 @@ def Slot(*args, **kwargs):
 
 		text = '\n\n'.join('This slot has signature ``%s%s``.' % (func.__name__, sig)
 		                   for sig in signatures)
-
-		if func.__doc__ is None:
-			func.__doc__ = text
-		else:
-			func.__doc__ += '\n\n' + text
+		_addDoc(func, text)
 
 		return func
 

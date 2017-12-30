@@ -58,7 +58,7 @@ from PyQt5.QtWidgets import QWidget
 from .qt import Signal, Slot
 from .three import bytes, str
 from .utils import exceptionLogging
-from . import BUILDING_DOCS
+from . import BUILDING_DOCS, _addDoc
 
 __all__ = ('registerSignal', 'registerEventFilter', 'disabled',
            'registerSetup', 'registerTeardown',
@@ -310,13 +310,6 @@ def deleteCreatedBy(caller):
 	:type caller: str
 	"""
 	CONNECTOR.deleteCreatedBy(caller)
-
-
-def _addDoc(func, text):
-	if func.__doc__ is None:
-		func.__doc__ = text
-	else:
-		func.__doc__ += '\n\n' + text
 
 
 def registerSignal(categories, signal, stackoffset=0):
