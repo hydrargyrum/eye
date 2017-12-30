@@ -64,3 +64,9 @@ def Signal(*args, **kwargs):
 	if os.environ.get('READTHEDOCS') != 'True':
 		return pyqtSignal(*args, **kwargs)
 	return SignalDoc(*args, **kwargs)
+
+
+def override(func):
+	text = '*Overrides a Qt method.*'
+	_addDoc(func, text)
+	return func
