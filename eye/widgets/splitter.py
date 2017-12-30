@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import QSplitter, QWidget, QStackedLayout
 
 from .. import consts
 from .helpers import WidgetMixin
-from ..qt import Slot
+from ..qt import Slot, override
 
 __all__ = ('SplitManager', 'Splitter', 'QSplitter')
 
@@ -44,10 +44,6 @@ class Splitter(QSplitter, WidgetMixin):
 
 		self.addCategory('splitter')
 
-	def children(self):
-		for i in range(self.count()):
-			yield self.widget(i)
-
 	def childAt(self, pos):
 		"""Return direct child widget at the given position
 
@@ -56,8 +52,8 @@ class Splitter(QSplitter, WidgetMixin):
 
 		:type pos: QPoint
 		:param pos: relative to the top-left corner of this `Splitter` (which is at `(0, 0)`).
-		:return: the direct child at `pos`, a :any:`QSplitterHandle` if `pos` is on a handle, or None if
-		         `pos` is outside `self`'s geometry
+		:return: the direct child at `pos`, a :any:`PyQt5.QtWidgets.QSplitterHandle` if `pos` is
+		         on a handle, or None if `pos` is outside `self`'s geometry
 		:rtype: QWidget
 		"""
 		if not self.rect().contains(pos):
@@ -81,9 +77,12 @@ class Splitter(QSplitter, WidgetMixin):
 		"""Return all direct children widgets
 
 		Children returned by this method may be `Splitter` widgets if there are sub-splitters.
+
 		:rtype: list
 		"""
 		return [self.widget(i) for i in range(self.count())]
+
+	children = widgets
 
 	def removeChild(self, widget):
 		assert self.isAncestorOf(widget)
@@ -155,6 +154,22 @@ class SplitManager(QWidget, WidgetMixin):
 
 	## split/move/delete
 	def splitAt(self, currentWidget, direction, newWidget):
+		"""Insert a widget into the splits
+
+		`newWidget` is inserted next to `currentWidget`, in `direction`. `currentWidget` size is
+		halved, and the newly created space is used for `newWidget`.
+
+		A new `Splitter` may be created if `currentWidget` is not in a `Splitter` of the proper
+		orientation. For example, if `currentWidget` is in horizontal splitter, but `newWidget`
+		should be inserted below, a new vertical splitter replaces `currentWidget` and both
+		`currentWidget` and `newWidget` are put in it.
+
+		:param currentWidget: the widget next to which insert a new widget
+		:param direction: direction relative to `currentWidget` where to insert `newWidget`.
+		                  Possible values are the 4 directions from :any:`eye.consts`.
+		:param newWidget: the widget to insert
+		"""
+
 		if currentWidget is None:
 			parent = self.root
 			idx = 0
@@ -207,6 +222,12 @@ class SplitManager(QWidget, WidgetMixin):
 				currentWidget.setFocus()
 
 	def moveWidget(self, currentWidget, direction, newWidget):
+		"""Move a child widget in another part of the splitting
+
+		`currentWidget`, `direction` and `newWidget` have the same meaning as for the `splitAt`
+		method, except that `newWidget` must be already present in the `SplitManager`.
+		"""
+
 		if currentWidget is newWidget:
 			LOGGER.info('will not move %r over itself', currentWidget)
 			return
@@ -286,9 +307,11 @@ class SplitManager(QWidget, WidgetMixin):
 
 	## getters
 	def allChildren(self):
-		"""Get all non-splitter children widgets
+		"""Get all non-splitter children widgets (recursive)
 
-		:return: the direct children of `Splitter`s that are not `Splitter`s themselves
+		Takes all children :any:`eye.widgets.splitter.Splitter` widgets (recursively) and return
+		their direct children (the children that are not `Splitter` themselves).
+
 		:rtype: list
 		"""
 		return [w for w in self._iterRecursive() if not isinstance(w, self.SplitterClass)]
@@ -331,6 +354,7 @@ class SplitManager(QWidget, WidgetMixin):
 				yield w
 
 	## close management
+	@override
 	def closeEvent(self, ev):
 		for c in self.allChildren():
 			if not c.close():
@@ -339,6 +363,7 @@ class SplitManager(QWidget, WidgetMixin):
 		ev.accept()
 
 	def canClose(self):
+		"""Returns True if all sub-widgets can be closed."""
 		return all(w.canClose() for w in self.allChildren())
 
 

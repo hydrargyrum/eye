@@ -40,7 +40,7 @@ import six
 from ..three import bytes, str
 from ..connector import disabled, registerEventFilter
 from .helpers import CentralWidgetMixin, acceptIf
-from ..qt import Slot, Signal
+from ..qt import Slot, Signal, override
 from .. import structs
 from .. import io
 
@@ -1593,6 +1593,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	"""Signal positionJumped(int, int)"""
 
 	## events
+	@override
 	def closeEvent(self, ev):
 		acceptIf(ev, self.closeFile())
 

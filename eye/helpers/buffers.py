@@ -48,6 +48,19 @@ def _createEditor(path):
 
 
 def openEditor(path, loc=None):
+	"""Open a file in a new editor or focus an existing one.
+
+	If an editor widget already has `path` open, give it focus. Else, create a new editor (in a new
+	tab of the currently focused tab widget).
+
+	:param path: path of the file to open in an editor widget
+	:type path: str
+	:param loc: optional line and column where to focus
+	:type loc: tuple[int, int]
+	:returns: an editor widget open to the file
+	:rtype: :any:`eye.widgets.editor.Editor`
+	"""
+
 	ed = findEditor(path)
 	if not ed:
 		ed = _createEditor(path)
@@ -105,8 +118,9 @@ def newEditorOpen(path, loc=None, parentTabBar=None):
 	:type path: str
 	:param parentTabBar: the parent tab widget where to append the editor.
 	                     If None, the currently focused tab widget will be used.
+	:type parentTabBar: :any:`eye.widgets.tabs.TabWidget`
 	:param loc: if not None, the editor shall be opened with this line/column shown (starting at 1)
-	:type loc: pair of int
+	:type loc: tuple[int, int]
 	:returns: the new editor
 	:rtype: eye.widgets.editor.Editor
 	"""
@@ -130,6 +144,11 @@ def newEditorShare(ed, loc=None, parentTabBar=None):
 
 	:param ed: the editor with which the new editor should share the document
 	:type ed: eye.widgets.editor.Editor
+	:param loc: if not None, the editor shall be opened with this line/column shown (starting at 1)
+	:type loc: tuple[int, int]
+	:param parentTabBar: the parent tab widget where to append the editor.
+	                     If None, the currently focused tab widget will be used.
+	:type parentTabBar: :any:`eye.widgets.tabs.TabWidget`
 	:returns: the new editor
 	:rtype: eye.widgets.editor.Editor
 	"""
@@ -145,6 +164,13 @@ def newEditorTryShare(path, loc=None, parentTabBar=None):
 	If another editor exists with `path` already open, a new editor is created with :any:`newEditorShare`, else
 	a new editor is created with :any:`newEditorOpen`.
 
+	:param path: path of the file to open
+	:type path: str
+	:param loc: if not None, the editor shall be opened with this line/column shown (starting at 1)
+	:type loc: tuple[int, int]
+	:param parentTabBar: the parent tab widget where to append the editor.
+	                     If None, the currently focused tab widget will be used.
+	:type parentTabBar: :any:`eye.widgets.tabs.TabWidget`
 	:rtype: eye.widgets.editor.Editor
 	"""
 	old = findEditor(path)
