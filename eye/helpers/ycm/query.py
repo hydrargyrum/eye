@@ -49,6 +49,21 @@ def doCompletion(editor, replace=True):
 	reply.finished.connect(reply.deleteLater)
 
 
+def doGoTo(editor, go_type):
+	if not isDaemonAvailable():
+		return
+
+	def handleReply():
+		getDaemon().checkReply(reply)
+		res = getDaemon()._jsonReply(reply)
+		from ..buffers import openEditor
+		openEditor(res['filepath'], (res['line_num'], res['column_num']))
+
+	reply = _query(getDaemon().querySubcommand, editor, go_type)
+	reply.finished.connect(handleReply)
+	reply.finished.connect(reply.deleteLater)
+
+
 @registerSignal('editor', 'SCN_CHARADDED')
 @registerSignal('editor', 'SCN_AUTOCCHARDELETED')
 @disabled

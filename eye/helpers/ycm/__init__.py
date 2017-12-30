@@ -2,10 +2,10 @@
 
 from .daemon import getDaemon, buildDaemon
 from .feed import feedOnLoad, feedOnSave, feedOnDaemonReady, feedOnChange
-from .query import completeOnCharAdded, doCompletion
+from .query import completeOnCharAdded, doCompletion, doGoTo
 
 
-__all__ = ('setEnabled', 'doCompletion')
+__all__ = ('setEnabled', 'doCompletion', 'doGoTo')
 
 
 def setEnabled(enabled=True):
