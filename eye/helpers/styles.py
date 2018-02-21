@@ -1,6 +1,20 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
 """Helpers for QsciStyle
+
+`QsciStyle` objects have numeric identifiers, in a limited number.
+This module holds a dictionary for storing QsciStyle and map them to text identifiers.
+
+This allows multiple modules to coordinate by using the same textual key and let user configuration to choose
+how this style should be displayed.
+
+For example, a helper module could run::
+
+	editor.annotate(1, 'Hello world!', eye.helpers.style.STYLES['hello'])
+
+And a user configuration file could contain::
+
+	eye.helpers.style.STYLES['hello'].setPaper(QColor('#ff0000'))
 """
 
 from PyQt5.Qsci import QsciStyle
@@ -44,3 +58,9 @@ class Styles(object):
 
 
 STYLES = Styles()
+
+"""Dict-like for storing QsciStyle objects.
+
+Deleting an item from this mark the id used by the associated QsciStyle as free.
+When a new key is inserted, ids marked as free will be reused first before letting QScintilla find a free id.
+"""
