@@ -331,10 +331,12 @@ def registerSignal(categories, signal, stackoffset=0):
 			print('file %s has been saved', path)
 	"""
 
-	if BUILDING_DOCS:
-		return lambda x: x
-
 	categories = frozenset(to_stringlist(categories))
+	doctext = ('This handler is registered for categories ``%s`` on signal ``%s``.'
+				   % (list(categories), signal))
+
+	if BUILDING_DOCS:
+		return lambda x: _addDoc(x, doctext)
 
 	def deco(func):
 		caller = inspect.stack()[1 + stackoffset][1]
@@ -343,8 +345,6 @@ def registerSignal(categories, signal, stackoffset=0):
 		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
 
-		doctext = ('This handler is registered for categories ``%s`` on signal ``%s``.'
-		               % (list(categories), signal))
 		_addDoc(func, doctext)
 
 		return func
@@ -371,10 +371,11 @@ def registerSetup(categories, stackoffset=0):
 			print('an editor has been created')
 	"""
 
-	if BUILDING_DOCS:
-		return lambda x: x
-
 	categories = frozenset(to_stringlist(categories))
+	doctext = 'This handler is registered as setup for categories ``%s``.' % (list(categories),)
+
+	if BUILDING_DOCS:
+		return lambda x: _addDoc(x, doctext)
 
 	def deco(func):
 		caller = inspect.stack()[1 + stackoffset][1]
@@ -383,7 +384,6 @@ def registerSetup(categories, stackoffset=0):
 		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
 
-		doctext = 'This handler is registered as setup for categories ``%s``.' % (list(categories),)
 		_addDoc(func, doctext)
 
 		return func
@@ -392,10 +392,11 @@ def registerSetup(categories, stackoffset=0):
 
 
 def registerTeardown(categories, stackoffset=0):
-	if BUILDING_DOCS:
-		return lambda x: x
-
 	categories = frozenset(to_stringlist(categories))
+	doctext = 'This handler is registered as teardown for categories ``%s``.' % (list(categories),)
+
+	if BUILDING_DOCS:
+		return lambda x: _addDoc(x, doctext)
 
 	def deco(func):
 		caller = inspect.stack()[1 + stackoffset][1]
@@ -404,7 +405,6 @@ def registerTeardown(categories, stackoffset=0):
 		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
 
-		doctext = 'This handler is registered as teardown for categories ``%s``.' % (list(categories),)
 		_addDoc(func, doctext)
 
 		return func
@@ -445,10 +445,13 @@ def registerEventFilter(categories, eventTypes, stackoffset=0):
 	:type eventTypes: list of ints
 	:rtype: bool
 	"""
-	if BUILDING_DOCS:
-		return lambda x: x
 
 	categories = frozenset(to_stringlist(categories))
+	doctext = ('This handler is registered as event filter for categories ``%s`` with '
+			   'event types ``%r``.' % (list(categories), eventTypes))
+
+	if BUILDING_DOCS:
+		return lambda x: _addDoc(x, doctext)
 
 	def deco(func):
 		caller = inspect.stack()[1 + stackoffset][1]
@@ -458,8 +461,6 @@ def registerEventFilter(categories, eventTypes, stackoffset=0):
 		CONNECTOR.addListener(categories, lis)
 
 		# TODO use textual event type (parse source)
-		doctext = ('This handler is registered as event filter for categories ``%s`` with '
-		           'event types ``%r``.' % (list(categories), eventTypes))
 		_addDoc(func, doctext)
 
 		return func

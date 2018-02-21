@@ -24,3 +24,5 @@ def _addDoc(func, text):
 		text = '\n'.join(indent + line for line in text.split('\n'))
 		func.__doc__ += '\n\n' + text
 
+	return func
+
