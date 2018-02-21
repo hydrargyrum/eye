@@ -7,7 +7,7 @@ This plugins adds automatic syntax coloring in an editor based on file extension
 Simple usage:
 
 	>>> import eye.helpers.lexer
-	>>> eye.helpers.lexer.autoLexer.enabled = True
+	>>> eye.helpers.lexer.setEnabled(True)
 """
 
 from ..connector import registerSignal, disabled
@@ -15,7 +15,7 @@ from .. import lexers
 
 import os
 
-__all__ = ('autoLexer',)
+__all__ = ('setEnabled', 'autoLexer')
 
 @registerSignal(['editor'], 'fileOpened')
 @registerSignal(['editor'], 'fileSaved')
@@ -32,3 +32,8 @@ def autoLexer(editor, path=None):
 	cls = lexers.extensionToLexer(ext)
 	if cls:
 		editor.setLexer(cls())
+
+
+
+def setEnabled(enabled=True):
+	autoLexer.enabled = enabled
