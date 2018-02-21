@@ -18,7 +18,7 @@ from ..connector import registerSignal, disabled, registerSetup
 
 __all__ = ('pushHistory', 'goBack', 'goForward', 'peekHistory',
            'pushHistoryOnEditorChange', 'pushHistoryOnJump',
-           'navigateWithMouseBack',
+           'navigateWithMouseBack', 'setEnabled',
           )
 
 
@@ -176,3 +176,14 @@ def navigateWithMouseBack(editor):
 	view = editor.viewport()
 	filter = MouseNavFilter(parent=view)
 	view.installEventFilter(filter)
+
+
+def setEnabled(enabled):
+	"""
+	Toggles :any:`pushHistoryOnEditorChange`, :any:`pushHistoryOnJump` and :any:`navigateWithMouseBack`.
+	"""
+
+	pushHistoryOnEditorChange.enabled = enabled
+	pushHistoryOnJump.enabled = enabled
+	navigateWithMouseBack.enabled = enabled
+
