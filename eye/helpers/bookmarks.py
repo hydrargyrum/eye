@@ -6,6 +6,15 @@ This plugin allows to set bookmark on lines. It's possible to navigate between b
 Bookmarks do not persist when file is closed.
 
 These bookmarks use a :any:`eye.widgets.editor.Marker` called "bookmark", which can be customized.
+
+Here's a sample customization::
+
+	@defaultEditorConfig
+	def setupBookmarks(ed):
+        ed.createMarker('bookmark', Marker(ed.Circle))
+		ed.setMarkerBackgroundColor(QColor('#0000ff') , 'bookmark')
+		ed.setMarkerForegroundColor(QColor('#cccccc') , 'bookmark')
+
 """
 
 
@@ -19,6 +28,8 @@ __all__ = ('toggleBookmark', 'nextBookmark', 'previousBookmark', 'listBookmarks'
 
 @registerAction('editor', 'toggleBookmark')
 def toggleBookmark(ed):
+	"""Toggle bookmark state of current line of editor."""
+
 	if 'bookmark' not in ed.markers:
 		createMarker(ed)
 
@@ -32,6 +43,8 @@ def toggleBookmark(ed):
 
 
 def nextBookmark(ed):
+	"""Jump to next bookmarked line in editor."""
+
 	ln = ed.getCursorPosition()[0]
 
 	ln = ed.markers['bookmark'].getNext(ln)
@@ -41,6 +54,8 @@ def nextBookmark(ed):
 
 
 def previousBookmark(ed):
+	"""Jump to previous bookmarked line in editor."""
+
 	ln = ed.getCursorPosition()[0]
 
 	ln = ed.markers['bookmark'].getPrevious(ln)
@@ -49,12 +64,19 @@ def previousBookmark(ed):
 
 
 def listBookmarks(ed):
+	"""Return bookmarked lines numbers in editor."""
+
 	return list(ed.markers['bookmark'].listAll())
 
 
 @defaultEditorConfig
 @disabled
 def createMarker(ed):
+	"""Default handler to create a marker style for bookmarks.
+
+	The default marker style is a circle without colors set.
+	"""
+
 	ed.createMarker('bookmark', ed.Circle)
 
 
