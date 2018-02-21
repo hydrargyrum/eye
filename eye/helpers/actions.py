@@ -2,15 +2,15 @@
 
 """Module for registering actions on widgets
 
-This module helps in the creation of `QAction`s. The `actions` module is to `QAction`s what the :any:`eye.connector`
-is to Qt signal and slots.
+This module helps in the creation of `QAction` objects.
+The `actions` module is to `QAction`s what the :any:`eye.connector` is to Qt signal and slots.
 
 An action is registered with a name for a set of categories. The action can be triggered when a particular shortcut
 is pressed, which are registered with :any:`registerActionShortcut`. When the action is triggered, in turn it can
 trigger a callback (with :any:`registerAction`) or a slot (with :any:`registerActionSlot`, but this one is optional),
 or a Scintilla editor action.
 
-The use of categories lets the register be done once, not for every widget instance. Internally, `QAction`s are
+The use of categories lets the register be done once, not for every widget instance. Internally, `QAction` objects are
 created automatically by the module in each instance.
 
 For example, an action `printConsoleFile` could be created for editor widgets and bound to `Ctrl+P`::
