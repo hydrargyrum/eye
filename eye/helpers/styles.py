@@ -51,7 +51,7 @@ class Styles(object):
 				del self.style[name]
 		self.styles[name] = style
 
-	def __delattr__(self, name):
+	def __delitem__(self, name):
 		id = self.styles[name].style()
 		self.reuse.add(id)
 		del self.styles[name]
