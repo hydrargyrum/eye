@@ -89,7 +89,7 @@ class App(QApplication):
 		self.initLogging()
 
 		if self.args.remote and self.processRemote():
-			return
+			return 0
 
 		if not self.args.no_config:
 			self.runStartScripts()
@@ -97,7 +97,7 @@ class App(QApplication):
 		win = self.initUi()
 		win.show()
 		self.openCommandLineFiles()
-		self.exec_()
+		return self.exec_()
 
 	def parseArguments(self):
 		parser = argparse.ArgumentParser()
@@ -184,8 +184,8 @@ def main():
 	setupLogging()
 
 	app = App(sys.argv)
-	app.run()
-	return 0
+	return app.run()
+
 
 if __name__ == '__main__':
-	main()
+	sys.exit(main())
