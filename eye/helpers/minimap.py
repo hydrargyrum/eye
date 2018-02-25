@@ -82,11 +82,8 @@ class MiniMap(QFrame, CategoryMixin):
 				continue
 
 			indicator = self.editor.indicators[name]
-			for offset_start, offset_end, _ in indicator.iterRanges():
-				line_start, _ = self.editor.lineIndexFromPosition(offset_start)
-				line_end, _ = self.editor.lineIndexFromPosition(offset_end)
-				for line in range(line_start, line_end + 1):
-					mpainter.draw(painter, line, total, self)
+			for line in indicator.iterLines():
+				mpainter.draw(painter, line, total, self)
 
 	# TODO mouse cursor changes over highlight zone
 	# TODO thicker zone for easier clicks?

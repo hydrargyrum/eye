@@ -356,6 +356,27 @@ class Indicator(HasWeakEditorMixin):
 			start = end
 			value = self.getAtOffset(start)
 
+	def iterLines(self):
+		ed_end = self.editor.bytesLength()
+
+		start = 0
+		value = self.getAtOffset(start)
+		while start < ed_end:
+			end = self.editor.indicatorEnd(self.id, start)
+			if end == 0:
+				# the indicator is set nowhere
+				break
+
+			if value > 0:
+				linestart, _ = self.editor.lineIndexFromPosition(start)
+				lineend, _ = self.editor.lineIndexFromPosition(end)
+				for line in range(linestart, lineend + 1):
+					yield line
+
+				start = self.editor.positionFromLineIndex(lineend + 1, 0)
+			else:
+				start = end
+			value = self.getAtOffset(start)
 
 	def putAt(self, lineFrom, indexFrom, lineTo, indexTo, value=1):
 		"""Add the indicator to a range of characters (line-index based)
