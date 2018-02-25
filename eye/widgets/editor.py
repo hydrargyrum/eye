@@ -11,7 +11,8 @@ Positions
 Positions in the text of an editor widget can be expressed in multiple ways.
 
 First, the position of a character can be expressed as "line-index", which is the line and column of
-that character, in terms of Unicode codepoints, with the `str` type (see :doc:`eye.three`).
+that character, in terms of Unicode codepoints, with the `str` type (`unicode` for Python 2,
+see :doc:`eye.three`).
 Unless specified otherwise, line and column numbers start at 0 in EYE.
 
 Another way, more low-level, is the byte offset of the byte in the byte text (with type `bytes`, see
@@ -856,6 +857,10 @@ class BaseEditor(QsciScintilla):
 
 	"""Insert byte characters at byte offset"""
 
+	positionRelative = sciProp(QsciScintilla.SCI_POSITIONRELATIVE, (int, int))
+
+	"""Get byte-offset from byte-offset + number of characters"""
+
 	# style
 
 	def setStyleHotspot(self, styleId, b):
@@ -1430,7 +1435,12 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""
 		return self.getCursorPosition()
 
-	cursorLineIndex = cursorPosition
+	def cursorLineIndex(self):
+		"""Return the cursor line-index starting from 0
+
+		See :ref:`positions`.
+		"""
+		return self.getCursorPosition()
 
 	def cursorOffset(self):
 		"""Return the cursor position in byte offset
