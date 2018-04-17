@@ -1,5 +1,7 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+from enum import IntFlag
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QLineEdit, QShortcut
@@ -13,13 +15,19 @@ from .helpers import WidgetMixin
 __all__ = ('Minibuffer', 'openMiniBuffer', 'getMiniBuffer')
 
 
+class CloseFlag(IntFlag):
+	ON_ENTER = 1
+	ON_ESCAPE = 2
+	ON_FOCUS_OUT = 4
+	ALL = ON_ENTER | ON_ESCAPE | ON_FOCUS_OUT
+
+
 class Minibuffer(QLineEdit, WidgetMixin):
 	def __init__(self, parent=None):
 		super(Minibuffer, self).__init__(parent=parent)
 
 		self.statusBar = None
-		self.closeOnEscape = True
-		self.closeOnFocusOut = True
+		self.closeFlags = 0
 
 		sh = QShortcut(QKeySequence(Qt.Key_Escape), self)
 		sh.activated.connect(self.onEscape)
@@ -43,11 +51,8 @@ class Minibuffer(QLineEdit, WidgetMixin):
 			self.statusBar.removeWidget(self)
 			self.statusBar = None
 
-	def setCloseOnEscape(self, b):
-		self.closeOnEscape = b
-
-	def setCloseOnFocusOut(self, b):
-		self.closeOnEscape = b
+	def setCloseFlags(self, f):
+		self.closeFlags = f
 
 	textEntered = Signal(str)
 	cancelled = Signal()
@@ -60,25 +65,27 @@ class Minibuffer(QLineEdit, WidgetMixin):
 	@Slot()
 	def onReturnPressed(self):
 		self.textEntered.emit(self.text())
+		if self.closeFlags & CloseFlag.ON_ENTER:
+			self.remove()
 
 	@Slot()
 	def onEscape(self):
-		if self.closeOnEscape:
+		if self.closeFlags & CloseFlag.ON_ESCAPE:
 			self.cancel()
 
 	def focusOutEvent(self, ev):
 		QLineEdit.focusOutEvent(self, ev)
-		if self.closeOnFocusOut:
+		if self.closeFlags & CloseFlag.ON_FOCUS_OUT:
 			self.cancel()
 
 
-def _makeMiniBuffer(text='', window=None, category=None, closeOnEscape=True, closeOnFocusOut=True):
+def _makeMiniBuffer(text='', placeholder='', window=None, category=None, closeFlags=CloseFlag.ALL):
 	if window is None:
 		window = qApp().lastWindow
 
 	m = Minibuffer()
-	m.setCloseOnEscape(closeOnEscape)
-	m.setCloseOnFocusOut(closeOnFocusOut)
+	m.setCloseFlags(closeFlags)
+	m.setPlaceholderText(placeholder)
 	m.setText(text)
 	m.addToWindow(window)
 	m.giveFocus()
@@ -87,12 +94,12 @@ def _makeMiniBuffer(text='', window=None, category=None, closeOnEscape=True, clo
 	return m
 
 
-def openMiniBuffer(text='', window=None, category=None, closeOnEscape=True, closeOnFocusOut=True):
+def openMiniBuffer(text='', placeholder='', window=None, category=None, closeFlags=CloseFlag.ALL):
 	old = getMiniBuffer(window)
 	if old:
 		old.cancel()
 		old = None
-	return _makeMiniBuffer(text, window, category, closeOnEscape, closeOnFocusOut)
+	return _makeMiniBuffer(text, placeholder, window, category, closeFlags)
 
 
 def getMiniBuffer(window=None, category=None):
