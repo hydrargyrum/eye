@@ -133,7 +133,8 @@ def getConfigPath(*args):
 		return xdg.BaseDirectory.save_config_path('eyeditor', *args)
 	except ImportError:
 		path = os.path.join(os.path.expanduser('~/.config/eyeditor'), *args)
-		os.makedirs(os.path.normpath(path))
+		if not os.path.isdir(path):
+			os.makedirs(os.path.normpath(path))
 		return path
 
 
