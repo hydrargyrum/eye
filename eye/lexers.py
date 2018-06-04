@@ -13,7 +13,7 @@ from PyQt5.Qsci import (
 	QsciLexerCSS, QsciLexerD, QsciLexerFortran, QsciLexerHTML, QsciLexerXML, QsciLexerLua,
 	QsciLexerMakefile, QsciLexerPascal, QsciLexerPerl, QsciLexerPO, QsciLexerPostScript,
 	QsciLexerPOV, QsciLexerProperties, QsciLexerPython, QsciLexerRuby, QsciLexerSQL, QsciLexerTCL,
-	QsciLexerTeX, QsciLexerYAML,
+	QsciLexerTeX, QsciLexerYAML, QsciLexerDiff,
 )
 
 __all__ = ('extensionToLexer', 'mimeToLexer', 'applyStyles', 'stylesFromLexer')
@@ -66,6 +66,7 @@ _extensionLexer = {
 	'json': QsciLexerJavaScript,
 	'css': QsciLexerCSS,
 	'd': QsciLexerD,
+	'patch': QsciLexerDiff,
 	'f': QsciLexerFortran,
 	'html': QsciLexerHTML,
 	'htm': QsciLexerHTML,
