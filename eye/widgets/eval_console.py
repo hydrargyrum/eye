@@ -1,6 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-"""Interactive evaluator console
+"""Interactive Python evaluator console
 """
 
 from __future__ import print_function
@@ -33,6 +33,15 @@ LOGGER = logging.getLogger(__name__)
 NAMESPACE = {}
 
 """Additional shared namespace between all :any:`EvalConsole` objects.
+
+Example::
+
+	def hello():
+		print('Hello world')
+
+	eye.widgets.eval_console.NAMESPACE['hello'] = hello
+
+Then, the `hello()` function can be called in the console.
 """
 
 
