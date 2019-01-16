@@ -152,8 +152,8 @@ def dataPath(*args):
 
 	try:
 		import xdg.BaseDirectory
-		for path in xdg.BaseDirectory.load_data_paths(*args):
+		for path in xdg.BaseDirectory.load_data_paths('eye', *args):
 			return path
 	except ImportError:
 		pass
-	return os.path.join('/usr/share', *args)
+	return os.path.join('/usr/share/eye', *args)
