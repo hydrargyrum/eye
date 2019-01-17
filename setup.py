@@ -49,6 +49,7 @@ if __name__ == '__main__':
 		install_requires=['six', 'PyQt5', 'QScintilla', 'pyxdg'],
 		data_files=[
 			('share/eye/colorschemes', glob.glob('data/colorschemes/*')),
+			('share/eye/sample_conf', glob.glob('data/sample_conf/*')),
 			('share/applications', ['data/eye.desktop']),
 			('share/icons/hicolor/256x256/apps', ['data/eye.png']),
 		],
