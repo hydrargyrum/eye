@@ -91,12 +91,22 @@ class App(QApplication):
 		if self.args.remote and self.processRemote():
 			return 0
 
+		welcome = False
 		if not self.args.no_config:
+			if not self.startupScripts():
+				from eye.helpers.welcome import ask_to_copy, open_welcome_text
+
+				welcome = ask_to_copy()
+
 			self.runStartScripts()
 
 		win = self.initUi()
 		win.show()
 		self.openCommandLineFiles()
+
+		if welcome:
+			open_welcome_text()
+
 		return self.exec_()
 
 	def parseArguments(self):
