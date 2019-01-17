@@ -30,12 +30,12 @@ def winStatusBar(win):
 
 import eye.helpers.lexer
 import eye.helpers.lexercolor
-import os
+import eye.pathutils
 
 eye.helpers.lexer.autoLexer.enabled = True
 eye.helpers.lexercolor.setEnabled(True)
 
-eye.helpers.lexercolor.useSchemeFile(os.path.expanduser('~/prog/qt/vedit/data/colorschemes/solarized-light.eyescheme'))
+eye.helpers.lexercolor.useSchemeFile(eye.pathutils.dataPath('colorschemes/solarized-light.eyescheme'))
 
 
 ## dim-color for non-focused editors
@@ -105,6 +105,26 @@ def brace(ed):
 #def indentConfig(ed):
 #	ed.setIndentationsUseTabs(False)
 #	ed.setIndentationWidth(4)
+
+
+## monospace font
+
+from PyQt5.QtGui import QFont
+from eye.connector import defaultEditorConfig, defaultLexerConfig
+
+def setFont(target):
+	font = QFont('DejaVu Sans mono')
+	font.setPointSize(12)
+	target.setFont(font)
+
+@defaultEditorConfig
+def fontConfig(ed):
+	setFont(ed)
+
+@defaultLexerConfig
+def fontConfigLexer(ed, lex):
+	eye.helpers.lexercolor.lexerSetFontFamily(lex, 'DejaVu Sans mono')
+	eye.helpers.lexercolor.lexerSetFontPointSize(lex, 12)
 
 
 ## code navigation history
