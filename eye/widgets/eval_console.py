@@ -23,7 +23,7 @@ from ..qt import Signal, Slot
 from .helpers import WidgetMixin
 
 __all__ = (
-	'EvalConsole', 'NAMESPACE',
+	'EvalConsole', 'NAMESPACE', 'registerConsoleSymbol',
 )
 
 
@@ -238,3 +238,27 @@ def capture_output(cb, *args, **kwargs):
 	if isinstance(res, bytes):
 		res = res.decode('utf-8', 'replace')
 	return res
+
+
+def registerConsoleSymbol(name):
+	"""Decorator to register a function on the eval console
+
+	Example::
+
+		@registerConsoleSymbol('foo')
+		def foo():
+			pass
+
+	Is equivalent to::
+
+		def foo():
+			pass
+
+		NAMESPACE['foo'] = foo
+
+	"""
+
+	def decorator(cb):
+		NAMESPACE[name] = cb
+		return cb
+	return decorator
