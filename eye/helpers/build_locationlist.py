@@ -3,7 +3,6 @@
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 
 from ..connector import registerSignal, disabled
-from ..pathutils import isIn
 from ..app import qApp
 from ..consts import AbsolutePathRole
 from ..widgets.locationlist import LocationList

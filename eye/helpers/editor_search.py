@@ -181,7 +181,7 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 
 
 def openSearchLine():
-	mb = minibuffer.openMiniBuffer(category='linesearch')
+	minibuffer.openMiniBuffer(category='linesearch')
 
 	editor = buffers.currentBuffer()
 	if not editor:

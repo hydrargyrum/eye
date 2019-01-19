@@ -7,8 +7,7 @@ import os
 from PyQt5.QtCore import QObject, Q_CLASSINFO
 from PyQt5.QtDBus import QDBusConnection, QDBusVariant, QDBusMessage
 
-from ..connector import disabled, CategoryMixin
-from ..app import qApp
+from ..connector import CategoryMixin
 from ..qt import Slot
 from .. import pathutils
 from .intent import registerIntentListener, sendIntent

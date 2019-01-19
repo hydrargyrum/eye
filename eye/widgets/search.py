@@ -1,12 +1,11 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import QModelIndex, QRegExp
-from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem, QPushButton, QMenu
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtWidgets import QPushButton, QMenu
 from PyQt5.QtWidgets import QWidget, QActionGroup, QGridLayout, QLineEdit, QComboBox
 
 import os
 
-from .. import consts
 from .helpers import WidgetMixin
 from ..helpers import file_search, buffers
 from ..reutils import csToQtEnum

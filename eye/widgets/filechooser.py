@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QTreeView, QWidget, QFileSys
 
 import os
 import re
-from time import time
 
 from ..structs import PropDict
 from ..consts import AbsolutePathRole
