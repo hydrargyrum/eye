@@ -5,7 +5,7 @@ from PyQt5.QtGui import QBrush, QPen, QPainter, QPolygon, QIcon
 from PyQt5.QtWidgets import QFrame, QSizePolicy, QWidget, QHBoxLayout
 
 from ..connector import CategoryMixin, registerSignal, disabled
-from ..widgets.editor import Editor, SciModification
+from ..widgets.editor import Editor, SciModification, HasWeakEditorMixin
 from ..widgets.window import Window
 from ..widgets.helpers import acceptIf
 from ..qt import Signal, Slot
@@ -14,7 +14,7 @@ from ..qt import Signal, Slot
 __all__ = ('MiniMap', 'EditorReplacement', 'scrollOnClick', 'install')
 
 
-class MiniMap(QFrame, CategoryMixin):
+class MiniMap(QFrame, CategoryMixin, HasWeakEditorMixin):
 	lineClicked = Signal(int)
 
 	def __init__(self, editor=None, **kwargs):
@@ -89,7 +89,7 @@ class MiniMap(QFrame, CategoryMixin):
 	# TODO thicker zone for easier clicks?
 
 
-class EditorReplacement(QWidget):
+class EditorReplacement(QWidget, HasWeakEditorMixin):
 	EditorClass = Editor
 
 	def __init__(self, **kwargs):
