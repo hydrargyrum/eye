@@ -17,7 +17,6 @@ TODO let scripts provide an `unregister` method so they can undo their effects.
 import logging
 import os
 
-from ..three import str
 from ..app import qApp
 from ..connector import deleteCreatedBy
 from ..qt import Slot

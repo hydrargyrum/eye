@@ -5,7 +5,6 @@ from weakref import WeakValueDictionary
 from PyQt5.QtCore import QObject
 
 from ..qt import Slot
-from ..three import str
 from .file_monitor import MonitorWithRename
 
 

@@ -20,7 +20,6 @@ from six.moves.urllib.parse import urlunsplit
 from PyQt5.QtCore import QObject, QTimer, QProcess, QUrl
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
-from ...three import str, bytes
 from ...connector import CategoryMixin
 from ...qt import Signal, Slot
 from ...app import qApp

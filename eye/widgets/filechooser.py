@@ -8,7 +8,6 @@ import os
 import re
 from time import time
 
-from ..three import str, range
 from ..structs import PropDict
 from ..consts import AbsolutePathRole
 from ..qt import Slot

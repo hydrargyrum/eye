@@ -64,7 +64,6 @@ from six.moves.configparser import ConfigParser
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 
-from ..three import str
 from .actions import registerActionShortcut
 from ..pathutils import getConfigFilePath
 

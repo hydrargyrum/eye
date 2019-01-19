@@ -30,6 +30,5 @@ Submodules
    eye.qt
    eye.reutils
    eye.structs
-   eye.three
    eye.utils
 

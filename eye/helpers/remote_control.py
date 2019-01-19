@@ -7,7 +7,6 @@ import os
 from PyQt5.QtCore import QObject, Q_CLASSINFO
 from PyQt5.QtDBus import QDBusConnection, QDBusVariant, QDBusMessage
 
-from ..three import str
 from ..connector import disabled, CategoryMixin
 from ..app import qApp
 from ..qt import Slot

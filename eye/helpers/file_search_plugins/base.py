@@ -2,7 +2,6 @@
 
 from PyQt5.QtCore import QObject
 
-from ...three import str
 from ...qt import Signal, Slot
 
 

@@ -9,7 +9,6 @@ from weakref import WeakValueDictionary
 
 from PyQt5.QtCore import QFileSystemWatcher, QSignalMapper, QObject
 
-from ..three import str
 from ..qt import Signal, Slot
 from ..connector import registerSignal, disabled
 

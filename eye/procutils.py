@@ -5,7 +5,6 @@ import os
 
 from PyQt5.QtCore import QProcess
 
-from .three import str, bytes
 from .qt import Signal, Slot
 
 

@@ -8,7 +8,6 @@ from ..connector import CategoryMixin, registerSignal, disabled
 from ..widgets.editor import Editor, SciModification
 from ..widgets.window import Window
 from ..widgets.helpers import acceptIf
-from ..three import range
 from ..qt import Signal, Slot
 
 

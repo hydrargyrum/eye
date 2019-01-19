@@ -9,7 +9,6 @@ from binascii import hexlify, unhexlify
 import json
 import os
 
-from ..three import range, bytes
 from ..connector import categoryObjects
 from ..pathutils import getConfigFilePath
 from ..widgets.window import Window

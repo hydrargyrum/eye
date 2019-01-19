@@ -56,7 +56,6 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QWidget
 
 from .qt import Signal, Slot
-from .three import bytes, str
 from .utils import exceptionLogging
 from . import BUILDING_DOCS, _addDoc
 

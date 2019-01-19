@@ -8,7 +8,6 @@ from PyQt5.QtGui import QPolygon, QDrag, QIcon
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget, QToolButton, QMenu
 
 from .. import consts
-from ..three import str
 from ..qt import Signal, Slot, override
 from ..connector import CategoryMixin, disabled, registerSetup
 from .droparea import DropAreaMixin, BandMixin

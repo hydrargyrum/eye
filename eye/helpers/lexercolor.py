@@ -101,7 +101,6 @@ Module contents
 from six.moves.configparser import SafeConfigParser
 from logging import getLogger
 
-from ..three import str
 from ..connector import categoryObjects, registerSignal, registerSetup, disabled
 from ..colorutils import QColorAlpha
 from ..lexers import stylesFromLexer

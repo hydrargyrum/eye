@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
 import argparse
@@ -12,7 +12,6 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 
 qApp = lambda: QApplication.instance()
 
-from .three import execfile
 from .qt import Slot
 from . import pathutils
 from . import connector
@@ -179,6 +178,14 @@ def setupLogging():
 	root = logging.getLogger()
 	root.setLevel(logging.DEBUG)
 	root.handlers[0].setLevel(logging.WARNING)
+
+
+def execfile(path, globals):
+	"""Exec Python `file` with `globals` as in Python 2"""
+	with open(path) as fd:
+		src = fd.read()
+	code = compile(src, path, 'exec')
+	exec(code, globals)  # pylint: disable=exec-used
 
 
 def main():

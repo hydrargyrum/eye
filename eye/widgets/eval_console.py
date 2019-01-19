@@ -16,7 +16,6 @@ from PyQt5.QtCore import Qt, QStringListModel
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget, QAction, QCompleter
 from six import StringIO
 
-from ..three import bytes
 from ..app import qApp
 from ..utils import exceptionLogging
 from ..qt import Signal, Slot

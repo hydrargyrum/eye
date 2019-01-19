@@ -8,7 +8,6 @@ from PyQt5.QtCore import QObject, QTimer, QElapsedTimer
 from ..connector import registerSignal, CategoryMixin
 from ..widgets.editor import HasWeakEditorMixin, SciModification
 from ..widgets import minibuffer
-from ..three import range
 from ..qt import Signal, Slot
 from .. import structs
 from . import buffers

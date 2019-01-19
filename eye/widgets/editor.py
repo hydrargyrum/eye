@@ -11,12 +11,11 @@ Positions
 Positions in the text of an editor widget can be expressed in multiple ways.
 
 First, the position of a character can be expressed as "line-index", which is the line and column of
-that character, in terms of Unicode codepoints, with the `str` type (`unicode` for Python 2,
-see :doc:`eye.three`).
+that character, in terms of Unicode codepoints, with the `str` type.
 Unless specified otherwise, line and column numbers start at 0 in EYE.
 
-Another way, more low-level, is the byte offset of the byte in the byte text (with type `bytes`, see
-:doc:`eye.three`). The internal byte encoding of the editor is UTF-8, regardless of the encoding of
+Another way, more low-level, is the byte offset of the byte in the byte text (with type `bytes`).
+The internal byte encoding of the editor is UTF-8, regardless of the encoding of
 the underlying disk file, which only intervenes when loading/saving.
 
 Module contents
@@ -38,7 +37,6 @@ from PyQt5.Qsci import QsciScintilla, QsciStyledText
 import sip
 import six
 
-from ..three import bytes, str
 from ..connector import disabled, registerEventFilter
 from .helpers import CentralWidgetMixin, acceptIf
 from ..qt import Slot, Signal, override

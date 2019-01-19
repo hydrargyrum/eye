@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import QWidget, QActionGroup, QGridLayout, QLineEdit, QComb
 
 import os
 
-from ..three import str
 from .. import consts
 from .helpers import WidgetMixin
 from ..helpers import file_search, buffers

@@ -11,7 +11,6 @@ from PyQt5.QtCore import Qt, QModelIndex
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QTreeView
 
-from ..three import str
 from .helpers import WidgetMixin
 from .. import consts
 from ..consts import AbsolutePathRole
