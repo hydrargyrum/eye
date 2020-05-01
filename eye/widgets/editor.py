@@ -35,7 +35,6 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.Qsci import QsciScintilla, QsciStyledText
 import sip
-import six
 
 from ..connector import disabled, registerEventFilter
 from .helpers import CentralWidgetMixin, acceptIf
@@ -659,7 +658,7 @@ class BaseEditor(QsciScintilla):
 
 	"""Deselect all selections."""
 
-	setMainSelection = sciProp(QsciScintilla.SCI_SETMAINSELECTION, (six.integer_types,))
+	setMainSelection = sciProp(QsciScintilla.SCI_SETMAINSELECTION, (int,))
 
 	"""Set the index of the main selection.
 
@@ -686,15 +685,15 @@ class BaseEditor(QsciScintilla):
 	See :any:`addSelection`.
 	"""
 
-	dropSelectionN = sciProp(QsciScintilla.SCI_DROPSELECTIONN, (six.integer_types,))
+	dropSelectionN = sciProp(QsciScintilla.SCI_DROPSELECTIONN, (int,))
 
 	"""Deselect the n-th selection."""
 
-	selectionNCaret = sciProp(QsciScintilla.SCI_GETSELECTIONNCARET, (six.integer_types,))
+	selectionNCaret = sciProp(QsciScintilla.SCI_GETSELECTIONNCARET, (int,))
 
 	"""Get the offset of the n-th selection's caret."""
 
-	selectionNAnchor = sciProp(QsciScintilla.SCI_GETSELECTIONNANCHOR, (six.integer_types,))
+	selectionNAnchor = sciProp(QsciScintilla.SCI_GETSELECTIONNANCHOR, (int,))
 
 	"""Get the offset of the n-th selection's anchor."""
 
@@ -780,14 +779,14 @@ class BaseEditor(QsciScintilla):
 	FoldFlagLineState = QsciScintilla.SC_FOLDFLAG_LINESTATE
 
 	setFoldFlags = sciPropSet(QsciScintilla.SCI_SETFOLDFLAGS)
-	setFoldLevel = sciProp(QsciScintilla.SCI_SETFOLDLEVEL, (six.integer_types, six.integer_types))
+	setFoldLevel = sciProp(QsciScintilla.SCI_SETFOLDLEVEL, (int, int))
 
 	"""Set fold level of a line
 
 	Set fold level `arg2` for line `arg1`.
 	"""
 
-	getFoldLevel = sciProp(QsciScintilla.SCI_GETFOLDLEVEL, (six.integer_types,))
+	getFoldLevel = sciProp(QsciScintilla.SCI_GETFOLDLEVEL, (int,))
 
 	"""Get fold level of line `value`"""
 
@@ -813,28 +812,28 @@ class BaseEditor(QsciScintilla):
 	"""addUndoAction(int, int): add a custom action to the undo buffer"""
 
 	# markers
-	_getMarkerPrevious = sciProp(QsciScintilla.SCI_MARKERPREVIOUS, (six.integer_types, six.integer_types))
-	_getMarkerNext = sciProp(QsciScintilla.SCI_MARKERNEXT, (six.integer_types, six.integer_types))
+	_getMarkerPrevious = sciProp(QsciScintilla.SCI_MARKERPREVIOUS, (int, int))
+	_getMarkerNext = sciProp(QsciScintilla.SCI_MARKERNEXT, (int, int))
 
 	# indicators
-	indicatorValueAt = sciProp(QsciScintilla.SCI_INDICATORVALUEAT, (six.integer_types, six.integer_types))
-	indicatorStart = sciProp(QsciScintilla.SCI_INDICATORSTART, (six.integer_types, six.integer_types))
-	indicatorEnd = sciProp(QsciScintilla.SCI_INDICATOREND, (six.integer_types, six.integer_types))
-	_setIndicatorValue = sciProp(QsciScintilla.SCI_SETINDICATORVALUE, (six.integer_types,))
-	_setIndicatorCurrent = sciProp(QsciScintilla.SCI_SETINDICATORCURRENT, (six.integer_types,))
-	_fillIndicatorRange = sciProp(QsciScintilla.SCI_INDICATORFILLRANGE, (six.integer_types, six.integer_types))
+	indicatorValueAt = sciProp(QsciScintilla.SCI_INDICATORVALUEAT, (int, int))
+	indicatorStart = sciProp(QsciScintilla.SCI_INDICATORSTART, (int, int))
+	indicatorEnd = sciProp(QsciScintilla.SCI_INDICATOREND, (int, int))
+	_setIndicatorValue = sciProp(QsciScintilla.SCI_SETINDICATORVALUE, (int,))
+	_setIndicatorCurrent = sciProp(QsciScintilla.SCI_SETINDICATORCURRENT, (int,))
+	_fillIndicatorRange = sciProp(QsciScintilla.SCI_INDICATORFILLRANGE, (int, int))
 	setIndicatorFlags = sciProp2(QsciScintilla.SCI_INDICSETFLAGS)
 	indicatorFlags = sciProp1(QsciScintilla.SCI_INDICGETFLAGS)
 
 	IndicatorFlagValueFore = getattr(QsciScintilla, 'SC_INDICFLAG_VALUEFORE', 1)
 
 	# search
-	setTargetStart = sciProp(QsciScintilla.SCI_SETTARGETSTART, (six.integer_types,))
+	setTargetStart = sciProp(QsciScintilla.SCI_SETTARGETSTART, (int,))
 	targetStart = sciProp0(QsciScintilla.SCI_GETTARGETSTART)
-	setTargetEnd = sciProp(QsciScintilla.SCI_SETTARGETEND, (six.integer_types,))
+	setTargetEnd = sciProp(QsciScintilla.SCI_SETTARGETEND, (int,))
 	targetEnd = sciProp0(QsciScintilla.SCI_GETTARGETEND)
-	setTargetRange = sciProp(QsciScintilla.SCI_SETTARGETRANGE, (six.integer_types, six.integer_types))
-	_searchInTarget = sciProp(QsciScintilla.SCI_SEARCHINTARGET, (six.integer_types, bytes))
+	setTargetRange = sciProp(QsciScintilla.SCI_SETTARGETRANGE, (int, int))
+	_searchInTarget = sciProp(QsciScintilla.SCI_SEARCHINTARGET, (int, bytes))
 	replaceTarget = sciProp2(QsciScintilla.SCI_REPLACETARGET)
 
 	setSearchFlags = sciPropSet(QsciScintilla.SCI_SETSEARCHFLAGS)
@@ -894,7 +893,7 @@ class BaseEditor(QsciScintilla):
 
 	"""Delete characters in byte offset range"""
 
-	insertBytes = sciProp(QsciScintilla.SCI_INSERTTEXT, (six.integer_types, bytes))
+	insertBytes = sciProp(QsciScintilla.SCI_INSERTTEXT, (int, bytes))
 
 	"""Insert byte characters at byte offset"""
 

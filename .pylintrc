@@ -3,7 +3,7 @@ indent-string = "\t"
 max-line-length = 100
 
 [TYPECHECK]
-ignored-modules = PyQt5.QtNetwork, PyQt5.QtWidgets, PyQt5.QtGui, PyQt5.QtCore, sip, PyQt5.Qsci, six
+ignored-modules = PyQt5.QtNetwork, PyQt5.QtWidgets, PyQt5.QtGui, PyQt5.QtCore, sip, PyQt5.Qsci
 
 [MESSAGES CONTROL]
 disable = invalid-name, missing-docstring, redefined-builtin, too-many-public-methods, too-few-public-methods, bad-continuation

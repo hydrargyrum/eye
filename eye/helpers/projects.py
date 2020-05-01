@@ -12,13 +12,13 @@ This sample should be enough for using editorconfig::
 	eye.helpers.projects.onOpenSave.enabled = True
 """
 
+from configparser import RawConfigParser, NoOptionError, Error
+from io import StringIO
 import os
 import re
 from logging import getLogger
 
 from PyQt5.QtCore import QObject
-from six.moves.configparser import RawConfigParser, NoOptionError, Error
-from six import StringIO
 
 from ..qt import Slot
 from ..connector import registerSignal, disabled, categoryObjects

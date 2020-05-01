@@ -98,7 +98,7 @@ Module contents
 
 """
 
-from six.moves.configparser import SafeConfigParser
+from configparser import SafeConfigParser
 from logging import getLogger
 
 from ..connector import categoryObjects, registerSignal, registerSetup, disabled

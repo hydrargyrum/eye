@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import code
 import codecs
+from io import StringIO
 import logging
 import os
 import rlcompleter
@@ -14,7 +15,6 @@ import sys
 
 from PyQt5.QtCore import Qt, QStringListModel
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget, QAction, QCompleter
-from six import StringIO
 
 from ..app import qApp
 from ..utils import exceptionLogging

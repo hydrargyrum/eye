@@ -15,8 +15,8 @@ except ImportError:
 import socket
 import tempfile
 import time
+from urllib.parse import urlunsplit
 
-from six.moves.urllib.parse import urlunsplit
 from PyQt5.QtCore import QObject, QTimer, QProcess, QUrl
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
 

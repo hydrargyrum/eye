@@ -59,7 +59,7 @@ Module contents
 ---------------
 """
 
-from six.moves.configparser import ConfigParser
+from configparser import ConfigParser
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
