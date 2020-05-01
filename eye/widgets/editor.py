@@ -526,6 +526,28 @@ SciModification = namedtuple('SciModification',
 	 'line', 'foldLevelNow', 'foldLevelPrev', 'token', 'annotationLinesAdded'))
 
 
+_SelectionTuple = namedtuple(
+	'Selection', ('anchor_line', 'anchor_index', 'caret_line', 'caret_index')
+)
+
+class Selection(_SelectionTuple):
+	@property
+	def anchor(self):
+		return (self.anchor_line, self.anchor_index)
+
+	@property
+	def caret(self):
+		return (self.caret_line, self.caret_index)
+
+	@property
+	def start(self):
+		return min(self.anchor, self.caret)
+
+	@property
+	def end(self):
+		return max(self.anchor, self.caret)
+
+
 class BaseEditor(QsciScintilla):
 	"""Editor class adding missing Scintilla features
 
@@ -667,7 +689,7 @@ class BaseEditor(QsciScintilla):
 		"""
 		anchor = self.lineIndexFromPosition(self.selectionNAnchor(n))
 		caret = self.lineIndexFromPosition(self.selectionNCaret(n))
-		return (anchor[0], anchor[1], caret[0], caret[1])
+		return Selection(anchor[0], anchor[1], caret[0], caret[1])
 
 	setMultiPaste = sciProp1(QsciScintilla.SCI_SETMULTIPASTE)
 
