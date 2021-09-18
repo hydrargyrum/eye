@@ -927,6 +927,7 @@ class BaseEditor(QsciScintilla):
 		self.indicators = {}
 		self.margins = {}
 		self.autoCompListId = 0
+		self._counterSciModified = 0
 
 		self.createMargin('lines', Margin.NumbersMargin())
 		self.createMargin('folding', Margin.FoldMargin())
@@ -1105,6 +1106,7 @@ class BaseEditor(QsciScintilla):
 	def connectNotify(self, sig):
 		super(BaseEditor, self).connectNotify(sig)
 		if sig.name() == b'sciModified':
+			self._counterSciModified += 1
 			try:
 				self.SCN_MODIFIED.connect(self.scn_modified, Qt.UniqueConnection)
 			except TypeError: # prevent duplicating connection
@@ -1112,8 +1114,13 @@ class BaseEditor(QsciScintilla):
 
 	def disconnectNotify(self, sig):
 		super(BaseEditor, self).disconnectNotify(sig)
-		if sig.name() == b'sciModified' and not self.isSignalConnected(sig):
-			self.SCN_MODIFIED.connect(self.scn_modified)
+		if not sig.isValid():
+			return
+		if sig.name() == b'sciModified':
+			self._counterSciModified -= 1
+			assert self._counterSciModified >= 0
+			if not self._counterSciModified:
+				self.SCN_MODIFIED.disconnect(self.scn_modified)
 
 	@Slot()
 	def scn_autoccancelled(self):
