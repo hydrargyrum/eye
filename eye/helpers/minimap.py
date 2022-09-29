@@ -171,7 +171,7 @@ class Line(MiniMapStyle):
 		self.proportional_thickness = proportional_thickness
 
 	def draw(self, painter, line, total, minimap):
-		line = line * minimap.height() / total
+		line = line * minimap.height() // total
 		pen = QPen(self.pen)
 
 		if self.proportional_thickness:
