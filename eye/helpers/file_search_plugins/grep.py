@@ -84,3 +84,9 @@ class AgGrep(GrepLike):
 class BasicGrep(GrepLike):
 	id = 'rgrep'
 	cmd_base = ['grep', '-n', '-R']
+
+
+@registerPlugin
+class RipGrep(GrepLike):
+	id = 'rg'
+	cmd_base = ['rg']
