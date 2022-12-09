@@ -7,7 +7,6 @@ import glob
 import os
 import re
 
-
 __all__ = ('parseFilename', 'findAncestorContaining', 'findInAncestors',
            'getCommonPrefix', 'getRelativePathIn', 'isIn',
            'getConfigPath', 'getConfigFilePath', 'dataPath')

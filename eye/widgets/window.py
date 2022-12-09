@@ -7,14 +7,14 @@ from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDockWidget, QWidget
 
-from ..connector import registerSignal, disabled
-from ..qt import Signal, Slot
-from .. import consts
-from .helpers import CategoryMixin, acceptIf, parentTabWidget
-from .editor import Editor
-from .tabs import TabWidget
-from .splitter import SplitManager
-from .droparea import DropAreaMixin
+from eye import consts
+from eye.connector import registerSignal, disabled
+from eye.qt import Signal, Slot
+from eye.widgets.droparea import DropAreaMixin
+from eye.widgets.editor import Editor
+from eye.widgets.helpers import CategoryMixin, acceptIf, parentTabWidget
+from eye.widgets.splitter import SplitManager
+from eye.widgets.tabs import TabWidget
 
 __all__ = ('Window', 'titleOnFocus')
 
@@ -79,7 +79,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		self.setCentralWidget(self.splitter)
 
 		self.lastFocus = ref(ed)
-		from ..app import qApp
+		from eye.app import qApp
 		qApp().focusChanged.connect(self._appFocusChanged)
 
 		REGISTRY.append(self)

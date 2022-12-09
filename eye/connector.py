@@ -55,9 +55,9 @@ import weakref
 from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QWidget
 
-from .qt import Signal, Slot
-from .utils import exceptionLogging
-from . import BUILDING_DOCS, _addDoc
+from eye import BUILDING_DOCS, _addDoc
+from eye.qt import Signal, Slot
+from eye.utils import exceptionLogging
 
 __all__ = ('registerSignal', 'registerEventFilter', 'disabled',
            'registerSetup', 'registerTeardown',

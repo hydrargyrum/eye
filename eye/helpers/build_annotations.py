@@ -11,11 +11,10 @@ The global styles `"builder/warning"` and `"builder/error"` are used for annotat
 
 import os
 
-from ..connector import registerSignal, categoryObjects, disabled
-from ..pathutils import isIn
-from .buffers import findEditor
-from .styles import STYLES
-
+from eye.connector import registerSignal, categoryObjects, disabled
+from eye.helpers.buffers import findEditor
+from eye.helpers.styles import STYLES
+from eye.pathutils import isIn
 
 __all__ = ('setEnabled',)
 

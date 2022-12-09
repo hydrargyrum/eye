@@ -18,9 +18,8 @@ Here's a sample customization::
 """
 
 
-from ..connector import defaultEditorConfig, disabled
-from .actions import registerAction
-
+from eye.connector import defaultEditorConfig, disabled
+from eye.helpers.actions import registerAction
 
 __all__ = ('toggleBookmark', 'nextBookmark', 'previousBookmark', 'listBookmarks',
            'createMarker', 'setEnabled')

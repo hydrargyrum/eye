@@ -17,11 +17,10 @@ TODO let scripts provide an `unregister` method so they can undo their effects.
 import logging
 import os
 
-from ..app import qApp
-from ..connector import deleteCreatedBy
-from ..qt import Slot
-from .file_monitor import MonitorWithRename
-
+from eye.app import qApp
+from eye.connector import deleteCreatedBy
+from eye.helpers.file_monitor import MonitorWithRename
+from eye.qt import Slot
 
 __all__ = ('setEnabled', 'registerStartupFiles')
 

@@ -11,13 +11,12 @@ from PyQt5.QtCore import Qt, QModelIndex
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QTreeView
 
-from .helpers import WidgetMixin
-from .. import consts
-from ..consts import AbsolutePathRole
-from ..connector import registerSignal, disabled
-from ..qt import Signal, Slot
-from ..helpers.intent import sendIntent
-
+from eye import consts
+from eye.connector import registerSignal, disabled
+from eye.consts import AbsolutePathRole
+from eye.helpers.intent import sendIntent
+from eye.qt import Signal, Slot
+from eye.widgets.helpers import WidgetMixin
 
 __all__ = ('lineRole', 'columnRole', 'LocationList')
 

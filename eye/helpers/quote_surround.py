@@ -12,8 +12,7 @@ possible to implement different surrounding mappings depending on the edited fil
 
 from PyQt5.QtCore import QEvent, Qt
 
-from ..connector import registerEventFilter, disabled
-
+from eye.connector import registerEventFilter, disabled
 
 __all__ = (
 	'setEnabled', 'autoSurroundSelection',

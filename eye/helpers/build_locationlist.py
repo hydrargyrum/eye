@@ -2,11 +2,10 @@
 
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 
-from ..connector import registerSignal, disabled
-from ..app import qApp
-from ..consts import AbsolutePathRole
-from ..widgets.locationlist import LocationList
-
+from eye.app import qApp
+from eye.connector import registerSignal, disabled
+from eye.consts import AbsolutePathRole
+from eye.widgets.locationlist import LocationList
 
 __all__ = ('setEnabled',)
 

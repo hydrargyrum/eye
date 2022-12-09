@@ -23,9 +23,9 @@ import logging
 from PyQt5.QtCore import Qt, QPoint, QRect, QTimer
 from PyQt5.QtWidgets import QSplitter, QWidget, QStackedLayout
 
-from .. import consts
-from .helpers import WidgetMixin
-from ..qt import Slot, override
+from eye import consts
+from eye.qt import Slot, override
+from eye.widgets.helpers import WidgetMixin
 
 __all__ = ('SplitManager', 'Splitter', 'QSplitter')
 

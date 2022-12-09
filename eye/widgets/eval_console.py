@@ -17,10 +17,10 @@ import sys
 from PyQt5.QtCore import Qt, QStringListModel
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget, QAction, QCompleter
 
-from ..app import qApp
-from ..utils import exceptionLogging
-from ..qt import Signal, Slot
-from .helpers import WidgetMixin
+from eye.app import qApp
+from eye.qt import Signal, Slot
+from eye.utils import exceptionLogging
+from eye.widgets.helpers import WidgetMixin
 
 __all__ = (
 	'EvalConsole', 'NAMESPACE', 'registerConsoleSymbol',

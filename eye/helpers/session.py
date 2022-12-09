@@ -9,13 +9,12 @@ from binascii import hexlify, unhexlify
 import json
 import os
 
-from ..connector import categoryObjects
-from ..pathutils import getConfigFilePath
-from ..widgets.window import Window
-from ..widgets.splitter import Splitter
-from ..widgets.tabs import TabWidget
-from ..widgets.editor import Editor
-
+from eye.connector import categoryObjects
+from eye.pathutils import getConfigFilePath
+from eye.widgets.editor import Editor
+from eye.widgets.splitter import Splitter
+from eye.widgets.tabs import TabWidget
+from eye.widgets.window import Window
 
 __all__ = ('saveSession', 'restoreSession')
 

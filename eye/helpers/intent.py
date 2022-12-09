@@ -18,9 +18,8 @@ import logging
 
 from PyQt5.QtCore import QCoreApplication, QEvent, QObject
 
-from ..connector import registerEventFilter, CategoryMixin
-from ..structs import PropDict
-
+from eye.connector import registerEventFilter, CategoryMixin
+from eye.structs import PropDict
 
 __all__ = ('IntentEvent', 'registerIntentListener', 'dummyListener', 'sendIntent',
            'defaultOpenEditor')
@@ -171,7 +170,7 @@ def dummyListener(source, intent):
 
 @registerIntentListener('openEditor')
 def defaultOpenEditor(source, ev):
-	from .buffers import openEditor
+	from eye.helpers.buffers import openEditor
 
 	editor = openEditor(ev.info.path, ev.info.get('loc'))
 	return editor

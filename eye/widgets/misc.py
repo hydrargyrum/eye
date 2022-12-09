@@ -6,9 +6,9 @@ from weakref import ref
 from PyQt5.QtCore import QEventLoop
 from PyQt5.QtWidgets import QPlainTextEdit, QLabel, QWidget, QRubberBand, QApplication
 
-from ..app import qApp
-from ..qt import Slot, Signal
-from .helpers import WidgetMixin
+from eye.app import qApp
+from eye.qt import Slot, Signal
+from eye.widgets.helpers import WidgetMixin
 
 __all__ = ('LogWidget', 'PositionIndicator', 'WidgetPicker', 'interactiveWidgetPick')
 

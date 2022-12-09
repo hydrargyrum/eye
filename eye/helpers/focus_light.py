@@ -12,11 +12,10 @@ from PyQt5.QtCore import QEvent
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QRubberBand
 
-from ..connector import registerSetup, registerEventFilter, CategoryMixin, disabled
-from ..app import qApp
-from ..colorutils import QColorAlpha
-from ..widgets.helpers import parentTabWidget
-
+from eye.app import qApp
+from eye.colorutils import QColorAlpha
+from eye.connector import registerSetup, registerEventFilter, CategoryMixin, disabled
+from eye.widgets.helpers import parentTabWidget
 
 __all__ = ('setEnabled', 'DimBand')
 

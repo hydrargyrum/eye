@@ -4,7 +4,6 @@ from logging import getLogger
 
 from PyQt5.QtWidgets import QRubberBand
 
-
 LOGGER = getLogger(__name__)
 
 

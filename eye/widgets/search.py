@@ -1,17 +1,15 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import QRegExp
-from PyQt5.QtWidgets import QPushButton, QMenu
-from PyQt5.QtWidgets import QWidget, QActionGroup, QGridLayout, QLineEdit, QComboBox
-
 import os
 
-from .helpers import WidgetMixin
-from ..helpers import file_search, buffers
-from ..reutils import csToQtEnum
-from ..qt import Signal, Slot
-from .locationlist import LocationList
+from PyQt5.QtCore import QRegExp
+from PyQt5.QtWidgets import QPushButton, QMenu, QWidget, QActionGroup, QGridLayout, QLineEdit, QComboBox
 
+from eye.helpers import file_search, buffers
+from eye.qt import Signal, Slot
+from eye.reutils import csToQtEnum
+from eye.widgets.helpers import WidgetMixin
+from eye.widgets.locationlist import LocationList
 
 __all__ = ('SearchWidget',)
 

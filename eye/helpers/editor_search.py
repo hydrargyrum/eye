@@ -5,13 +5,12 @@ import re
 
 from PyQt5.QtCore import QObject, QTimer, QElapsedTimer
 
-from ..connector import registerSignal, CategoryMixin
-from ..widgets.editor import HasWeakEditorMixin, SciModification
-from ..widgets import minibuffer
-from ..qt import Signal, Slot
-from .. import structs
-from . import buffers
-
+from eye import structs
+from eye.connector import registerSignal, CategoryMixin
+from eye.helpers import buffers
+from eye.qt import Signal, Slot
+from eye.widgets import minibuffer
+from eye.widgets.editor import HasWeakEditorMixin, SciModification
 
 __all__ = ('openSearchLine', 'searchForward', 'searchBackward',
            'SearchObject', 'SearchProps', 'performSearch')

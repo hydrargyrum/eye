@@ -14,19 +14,17 @@ This sample should be enough for using editorconfig::
 
 from configparser import RawConfigParser, NoOptionError, Error
 from io import StringIO
+from logging import getLogger
 import os
 import re
-from logging import getLogger
 
 from PyQt5.QtCore import QObject
 
-from ..qt import Slot
-from ..connector import registerSignal, disabled, categoryObjects
-from ..reutils import glob2re
-from .. import pathutils
-from .. import lexers
-from .confcache import ConfCache
-
+from eye import pathutils, lexers
+from eye.connector import registerSignal, disabled, categoryObjects
+from eye.helpers.confcache import ConfCache
+from eye.qt import Slot
+from eye.reutils import glob2re
 
 __all__ = ('setEnabled',
            'Project', 'findProjectForFile', 'getProjectForFile',

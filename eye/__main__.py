@@ -3,6 +3,6 @@
 
 import sys
 
-from .app import main
+from eye.app import main
 
 sys.exit(main())

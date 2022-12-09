@@ -1,18 +1,17 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+import os
+import re
+
 from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, QRegExp, Qt, QTimer, QElapsedTimer, QEvent
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QTreeView, QWidget, QFileSystemModel, QApplication
 
-import os
-import re
-
-from ..structs import PropDict
-from ..consts import AbsolutePathRole
-from ..qt import Slot
-from .helpers import WidgetMixin
-from ..helpers.intent import sendIntent
-
+from eye.consts import AbsolutePathRole
+from eye.helpers.intent import sendIntent
+from eye.qt import Slot
+from eye.structs import PropDict
+from eye.widgets.helpers import WidgetMixin
 
 __all__ = ('FileChooser', 'SubSequenceFileChooser', 'selectFileInChooser')
 

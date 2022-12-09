@@ -12,10 +12,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 
 qApp = lambda: QApplication.instance()
 
-from .qt import Slot
-from . import pathutils
-from . import connector
-
+from eye import pathutils, connector
+from eye.qt import Slot
 
 __all__ = ('App', 'qApp', 'main')
 
@@ -38,7 +36,7 @@ class App(QApplication):
 		self.setWindowIcon(QIcon(pathutils.dataPath('eye.png')))
 
 	def initUi(self):
-		from .widgets import window
+		from eye.widgets import window
 
 		win = window.Window()
 		win.createDefaultMenuBar()
@@ -131,7 +129,7 @@ class App(QApplication):
 			logger.addHandler(handler)
 
 	def processRemote(self):
-		from .helpers import remote_control
+		from eye.helpers import remote_control
 
 		try:
 			remote_control.sendRequest('ping')
@@ -150,7 +148,7 @@ class App(QApplication):
 
 		win = connector.categoryObjects('window')[0]
 
-		from .helpers.intent import sendIntent
+		from eye.helpers.intent import sendIntent
 
 		for name in self.args.files:
 			path, row, col = pathutils.parseFilename(name)

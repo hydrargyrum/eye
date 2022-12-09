@@ -19,7 +19,6 @@ And a user configuration file could contain::
 
 from PyQt5.Qsci import QsciStyle
 
-
 __all__ = ('STYLES',)
 
 

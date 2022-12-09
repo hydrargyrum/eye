@@ -4,8 +4,8 @@ from weakref import WeakValueDictionary
 
 from PyQt5.QtCore import QObject
 
-from ..qt import Slot
-from .file_monitor import MonitorWithRename
+from eye.helpers.file_monitor import MonitorWithRename
+from eye.qt import Slot
 
 
 class ConfCache(QObject):

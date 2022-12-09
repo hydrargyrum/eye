@@ -6,11 +6,10 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QLineEdit, QShortcut
 
-from ..app import qApp
-from ..connector import categoryObjects
-from ..qt import Signal, Slot
-from .helpers import WidgetMixin
-
+from eye.app import qApp
+from eye.connector import categoryObjects
+from eye.qt import Signal, Slot
+from eye.widgets.helpers import WidgetMixin
 
 __all__ = ('Minibuffer', 'openMiniBuffer', 'getMiniBuffer')
 

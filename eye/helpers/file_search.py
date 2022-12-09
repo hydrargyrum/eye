@@ -11,12 +11,11 @@ The `file_search` plugins allow to perform pattern search in multiple files and 
 
 import os
 
-from ..connector import registerSignal, disabled
-from ..reutils import qtEnumToCs, qreToPattern
-from ..app import qApp
-from .file_search_plugins.base import enabledPlugins, getPlugin
-from .intent import sendIntent
-
+from eye.app import qApp
+from eye.connector import registerSignal, disabled
+from eye.helpers.file_search_plugins.base import enabledPlugins, getPlugin
+from eye.helpers.intent import sendIntent
+from eye.reutils import qtEnumToCs, qreToPattern
 
 __all__ = ('enabledPlugins', 'searchWithPlugin', 'searchStart',
            'setupLocationList', 'searchAndOpenFirstResult',

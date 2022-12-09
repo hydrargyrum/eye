@@ -1,8 +1,8 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from .. import connector
-from ..app import qApp
-from ..widgets.helpers import parentTabWidget
+from eye import connector
+from eye.app import qApp
+from eye.widgets.helpers import parentTabWidget
 
 __all__ = ('findEditor', 'openEditor', 'listEditors',
            'newEditorOpen', 'newEditorShare', 'newEditorTryShare')
@@ -31,7 +31,7 @@ def _getWindow():
 
 
 def createEditorWidget():
-	from ..widgets.window import Window
+	from eye.widgets.window import Window
 	return Window.EditorClass()
 
 

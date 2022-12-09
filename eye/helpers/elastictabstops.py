@@ -2,7 +2,6 @@
 
 from eye.connector import registerSignal, disabled
 
-
 # http://nickgravgaard.com/elastic-tabstops/
 
 # Python port of nickgravgaard's ElasticTabstopsForScintilla code.

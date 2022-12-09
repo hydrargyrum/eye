@@ -3,8 +3,9 @@
 import shutil
 
 from PyQt5.QtWidgets import QMessageBox, QApplication
-from eye.pathutils import dataPath, getConfigPath
+
 from eye.connector import categoryObjects
+from eye.pathutils import dataPath, getConfigPath
 
 
 def copy_sample_config():

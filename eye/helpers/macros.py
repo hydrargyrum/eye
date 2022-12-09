@@ -3,8 +3,7 @@
 """Helpers for recording macros
 """
 
-from ..connector import registerSignal, disabled
-
+from eye.connector import registerSignal, disabled
 
 __all__ = ('setEnabled', 'setupRecording', 'recordAction', 'replayRecordedMacro')
 

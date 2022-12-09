@@ -7,11 +7,10 @@ import os
 from PyQt5.QtCore import QObject, Q_CLASSINFO
 from PyQt5.QtDBus import QDBusConnection, QDBusVariant, QDBusMessage
 
-from ..connector import CategoryMixin
-from ..qt import Slot
-from .. import pathutils
-from .intent import registerIntentListener, sendIntent
-
+from eye import pathutils
+from eye.connector import CategoryMixin
+from eye.helpers.intent import registerIntentListener, sendIntent
+from eye.qt import Slot
 
 __all__ = ('registerRemoteRequest', 'onRequestOpen', 'SimpleHandler')
 

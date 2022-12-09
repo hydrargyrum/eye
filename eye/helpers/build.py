@@ -6,18 +6,17 @@ This module adds helpers for builders, programs which process source code and bu
 check syntax, etc.
 """
 
-from PyQt5.QtCore import QObject
-
 import logging
 import os
 import re
 import shlex
 
-from ..connector import CategoryMixin
-from ..procutils import LineProcess
-from ..pathutils import getRelativePathIn
-from ..qt import Signal, Slot
+from PyQt5.QtCore import QObject
 
+from eye.connector import CategoryMixin
+from eye.pathutils import getRelativePathIn
+from eye.procutils import LineProcess
+from eye.qt import Signal, Slot
 
 __all__ = ('Builder', 'registerPlugin', 'SimpleBuilder',
            'JobHolder',

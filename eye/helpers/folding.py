@@ -11,15 +11,14 @@ Simple usage:
 	>>> eye.helpers.folding.setMarkerFolder.enabled = True
 """
 
-from PyQt5.QtCore import QObject, QTimer
-from PyQt5.Qsci import QsciScintilla
-
 import re
 
-from ..connector import disabled, defaultLexerConfig, defaultEditorConfig
-from ..widgets.editor import HasWeakEditorMixin
-from ..qt import Slot
+from PyQt5.Qsci import QsciScintilla
+from PyQt5.QtCore import QObject, QTimer
 
+from eye.connector import disabled, defaultLexerConfig, defaultEditorConfig
+from eye.qt import Slot
+from eye.widgets.editor import HasWeakEditorMixin
 
 __all__ = ('MarkerFolder', 'disableLexerFolding', 'setMarkerFolder')
 

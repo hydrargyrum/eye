@@ -7,12 +7,12 @@ from PyQt5.QtCore import Qt, QMimeData
 from PyQt5.QtGui import QPolygon, QDrag, QIcon
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget, QToolButton, QMenu
 
-from .. import consts
-from ..qt import Signal, Slot, override
-from ..connector import CategoryMixin, disabled, registerSetup
-from .droparea import DropAreaMixin, BandMixin
-from .helpers import WidgetMixin, parentTabWidget
-from ..helpers import buffers
+from eye import consts
+from eye.connector import CategoryMixin, disabled, registerSetup
+from eye.helpers import buffers
+from eye.qt import Signal, Slot, override
+from eye.widgets.droparea import DropAreaMixin, BandMixin
+from eye.widgets.helpers import WidgetMixin, parentTabWidget
 
 __all__ = (
 	'TabWidget', 'TabBar', 'SplitButton',

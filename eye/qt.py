@@ -8,8 +8,7 @@ import re
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
-from . import _addDoc
-
+from eye import _addDoc
 
 __all__ = ('Slot', 'Signal')
 

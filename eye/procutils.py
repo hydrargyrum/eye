@@ -5,8 +5,7 @@ import os
 
 from PyQt5.QtCore import QProcess
 
-from .qt import Signal, Slot
-
+from eye.qt import Signal, Slot
 
 __all__ = ('findCommand', 'LineProcess')
 

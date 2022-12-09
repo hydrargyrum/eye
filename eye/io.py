@@ -1,11 +1,10 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+from logging import getLogger
 import os
 import tempfile
-from logging import getLogger
 
-from .utils import exceptionLogging
-
+from eye.utils import exceptionLogging
 
 __all__ = ('writeBytesToFile', 'readBytesFromFile')
 

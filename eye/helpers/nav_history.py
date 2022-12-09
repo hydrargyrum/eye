@@ -7,14 +7,13 @@ to a function definition for example. Then, navigation can go back and forth bet
 positions like a browser.
 """
 
-from weakref import ref
 from logging import getLogger
+from weakref import ref
 
 from PyQt5.QtCore import QEvent, Qt, QObject
 
-from ..app import qApp
-from ..connector import registerSignal, disabled, registerSetup
-
+from eye.app import qApp
+from eye.connector import registerSignal, disabled, registerSetup
 
 __all__ = ('pushHistory', 'goBack', 'goForward', 'peekHistory',
            'pushHistoryOnEditorChange', 'pushHistoryOnJump',

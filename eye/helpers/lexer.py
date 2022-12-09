@@ -10,10 +10,10 @@ Simple usage:
 	>>> eye.helpers.lexer.setEnabled(True)
 """
 
-from ..connector import registerSignal, disabled
-from .. import lexers
-
 import os
+
+from eye import lexers
+from eye.connector import registerSignal, disabled
 
 __all__ = ('setEnabled', 'autoLexer')
 

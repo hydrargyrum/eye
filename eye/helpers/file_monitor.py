@@ -9,8 +9,8 @@ from weakref import WeakValueDictionary
 
 from PyQt5.QtCore import QFileSystemWatcher, QSignalMapper, QObject
 
-from ..qt import Signal, Slot
-from ..connector import registerSignal, disabled
+from eye.connector import registerSignal, disabled
+from eye.qt import Signal, Slot
 
 __all__ = ('Monitor', 'MonitorWithRename', 'SingleFileWatcher', 'onOpen', 'onBeforeSave', 'MONITOR')
 

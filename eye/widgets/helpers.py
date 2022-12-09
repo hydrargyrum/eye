@@ -2,8 +2,8 @@
 
 from PyQt5.QtCore import Qt, QEvent
 
-from ..connector import CategoryMixin
-from ..qt import Signal
+from eye.connector import CategoryMixin
+from eye.qt import Signal
 
 __all__ = ('acceptIf', 'CategoryMixin', 'WidgetMixin', 'CentralWidgetMixin',
            'parentTabWidget')

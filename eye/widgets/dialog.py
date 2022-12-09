@@ -2,7 +2,7 @@
 
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QLabel
 
-from .helpers import CategoryMixin
+from eye.widgets.helpers import CategoryMixin
 
 __all__ = ('Dialog', 'openDialog')
 

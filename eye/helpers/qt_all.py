@@ -13,8 +13,7 @@ Even though it is bad practice to import `*` in released code, user config files
 simpler to write such file with this module.
 """
 
+from PyQt5.Qsci import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from PyQt5.Qsci import *
-

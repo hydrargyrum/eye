@@ -64,9 +64,8 @@ from configparser import ConfigParser
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 
-from .actions import registerActionShortcut
-from ..pathutils import getConfigFilePath
-
+from eye.helpers.actions import registerActionShortcut
+from eye.pathutils import getConfigFilePath
 
 __all__ = ('loadKeysConfig', 'DEFAULT_KEYS_FILE')
 

@@ -2,7 +2,6 @@
 
 from PyQt5.Qsci import QsciLexerPython, QsciLexerCPP, QsciLexerBash, QsciLexerCSS
 
-
 # TODO case insensitive
 
 # Keyword, Identifier, Number, Comment, String, Operator, Error

@@ -3,10 +3,10 @@
 """Regular expression utilities
 """
 
-from PyQt5.QtCore import Qt
 import re
 import unittest
 
+from PyQt5.QtCore import Qt
 
 __all__ = ('csToQtEnum', 'qtEnumToCs', 'qreToPattern', 'glob2re')
 

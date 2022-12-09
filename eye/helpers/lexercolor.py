@@ -101,11 +101,11 @@ Module contents
 from configparser import SafeConfigParser
 from logging import getLogger
 
-from ..connector import categoryObjects, registerSignal, registerSetup, disabled
-from ..colorutils import QColorAlpha
-from ..lexers import stylesFromLexer
-from ._lexercolorgroups import getIdAndAliases
-from .styles import STYLES
+from eye.colorutils import QColorAlpha
+from eye.connector import categoryObjects, registerSignal, registerSetup, disabled
+from eye.helpers._lexercolorgroups import getIdAndAliases
+from eye.helpers.styles import STYLES
+from eye.lexers import stylesFromLexer
 
 __all__ = ('setEnabled', 'useSchemeFile', 'addSchemeFile',
            'lexerSetFontFamily', 'lexerSetFontPointSize',

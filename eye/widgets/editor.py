@@ -22,26 +22,24 @@ Module contents
 ---------------
 """
 
-import unicodedata
+from collections import namedtuple
+import contextlib
+from logging import getLogger
 import os
 import re
-import contextlib
-from collections import namedtuple
+import unicodedata
 from weakref import ref
-from logging import getLogger
 
+from PyQt5.Qsci import QsciScintilla, QsciStyledText
 from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from PyQt5.Qsci import QsciScintilla, QsciStyledText
 import sip
 
-from ..connector import disabled, registerEventFilter
-from .helpers import CentralWidgetMixin, acceptIf
-from ..qt import Slot, Signal, override
-from .. import structs
-from .. import io
-
+from eye import structs, io
+from eye.connector import disabled, registerEventFilter
+from eye.qt import Slot, Signal, override
+from eye.widgets.helpers import CentralWidgetMixin, acceptIf
 
 __all__ = (
 	'Editor', 'Marker', 'Indicator', 'Margin', 'BaseEditor', 'QsciScintilla', 'SciModification',
