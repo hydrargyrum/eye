@@ -14,7 +14,7 @@ from .helpers import WidgetMixin
 from ..helpers.intent import sendIntent
 
 
-__all__ = ('FileChooser', 'SubSequenceFileChooser')
+__all__ = ('FileChooser', 'SubSequenceFileChooser', 'selectFileInChooser')
 
 
 def commonPrefix(strings):
@@ -309,3 +309,29 @@ class FileChooser(BaseFileChooser):
 			return
 		path = info.absoluteFilePath()
 		self.openFile(path)
+
+
+def selectFileInChooser(path, chooser):
+	"""Select file/dir item in file chooser
+
+	Does nothing if file is not in the tree viewed by file chooser.
+	"""
+
+	if not path.startswith(chooser.root):
+		return False
+
+	model = chooser.view.model()
+	chain = [model]
+	while hasattr(model, "sourceModel"):
+		model = model.sourceModel()
+		chain.append(model)
+
+	qidx = chain[-1].index(path)
+	if not qidx.isValid():
+		return False
+
+	for model in reversed(chain[:-1]):
+		qidx = model.mapFromSource(qidx)
+
+	chooser.view.setCurrentIndex(qidx)
+	return True
