@@ -29,7 +29,7 @@ def commonPrefix(strings):
 
 class RootChangerProxy(QSortFilterProxyModel):
 	def __init__(self, **kwargs):
-		super(RootChangerProxy, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.srcRoot = QModelIndex()
 
 	def setRootSource(self, srcRoot):
@@ -53,7 +53,7 @@ class RootChangerProxy(QSortFilterProxyModel):
 
 class BaseFileChooser(QWidget, WidgetMixin):
 	def __init__(self, **kwargs):
-		super(BaseFileChooser, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.options = PropDict()
 
@@ -88,7 +88,7 @@ class BaseFileChooser(QWidget, WidgetMixin):
 			or ev.type() not in (QEvent.KeyPress, QEvent.KeyRelease)
 			or ev.key() not in (Qt.Key_Down, Qt.Key_Up, Qt.Key_PageUp, Qt.Key_PageDown)):
 
-			return super(BaseFileChooser, self).eventFilter(obj, ev)
+			return super().eventFilter(obj, ev)
 
 		QApplication.sendEvent(self.view, ev)
 		return True
@@ -107,7 +107,7 @@ def walk_files(root, ignore_re=None):
 
 class SubSequenceProxy(QSortFilterProxyModel):
 	def __init__(self, **kwargs):
-		super(SubSequenceProxy, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.reobj = re.compile('')
 		self.scores = {}
 
@@ -174,7 +174,7 @@ class SubSequenceFileChooser(BaseFileChooser):
 	maxSecsPerCrawlBatch = .1
 
 	def __init__(self, **kwargs):
-		super(SubSequenceFileChooser, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.mdl = QStandardItemModel()
 		self.filter = SubSequenceProxy()
@@ -249,7 +249,7 @@ class SubSequenceFileChooser(BaseFileChooser):
 
 class FileChooser(BaseFileChooser):
 	def __init__(self, **kwargs):
-		super(FileChooser, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.options = PropDict()
 
