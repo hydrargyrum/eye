@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import code
 import codecs
+from importlib import reload
 from io import StringIO
 import logging
 import os
@@ -42,6 +43,8 @@ Example::
 
 Then, the `hello()` function can be called in the console.
 """
+
+NAMESPACE["reload"] = reload
 
 
 class PythonCompleter(QCompleter):
