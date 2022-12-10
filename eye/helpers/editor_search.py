@@ -177,12 +177,25 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 
 
 def openSearchLine():
-	minibuffer.openMiniBuffer(category='linesearch')
+	ls = minibuffer.openMiniBuffer(category='linesearch')
 
 	editor = buffers.currentBuffer()
 	if not editor:
 		return
+
 	editor.incSearchStart = editor.cursorOffset()
+
+	prevExpr = None
+	if editor.hasSelectedText():
+		prevExpr = editor.selectedText()
+	else:
+		if getattr(editor, "searchObj", None):
+			# TODO: even better, keep other options
+			prevExpr = editor.searchObj.props.expr
+
+	if prevExpr:
+		ls.setText(prevExpr)
+		ls.selectAll()
 
 
 @registerSignal('linesearch', 'textEdited')
