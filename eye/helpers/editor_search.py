@@ -65,7 +65,7 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 	def safeBatch(self):
 		try:
 			yield
-		except:
+		except Exception:
 			self.timer.stop()
 			self.finished.emit(0)
 			raise
