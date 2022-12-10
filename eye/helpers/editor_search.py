@@ -17,13 +17,10 @@ __all__ = ('openSearchLine', 'searchForward', 'searchBackward',
 
 
 class SearchProps(structs.PropDict):
-	def __init__(self, **kwargs):
-		super(SearchProps, self).__init__()
-
-		self.isRe = False
-		self.caseSensitive = False
-		self.whole = False
-		self.update(**kwargs)
+	def __init__(self, *, expr, isRe=False, caseSensitive=False, whole=False):
+		super(SearchProps, self).__init__(
+			expr=expr, isRe=isRe, caseSensitive=caseSensitive, whole=whole,
+		)
 
 
 def props_to_re(props):
