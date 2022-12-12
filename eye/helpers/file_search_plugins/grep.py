@@ -89,4 +89,4 @@ class BasicGrep(GrepLike):
 @registerPlugin
 class RipGrep(GrepLike):
 	id = 'rg'
-	cmd_base = ['rg']
+	cmd_base = ['rg', '-n']
