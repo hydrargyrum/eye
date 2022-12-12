@@ -7,9 +7,34 @@ import glob
 import os
 import re
 
-__all__ = ('parseFilename', 'findAncestorContaining', 'findInAncestors',
-           'getCommonPrefix', 'getRelativePathIn', 'isIn',
-           'getConfigPath', 'getConfigFilePath', 'dataPath')
+__all__ = (
+	'vimFilenameArg', 'parseFilename',
+	'findAncestorContaining', 'findInAncestors',
+	'getCommonPrefix', 'getRelativePathIn', 'isIn',
+	'getConfigPath', 'getConfigFilePath', 'dataPath',
+)
+
+
+_VIM_JUMP = re.compile(r"\+\d+")
+
+
+def vimFilenameArg(args):
+	"""Parse `+jump filename` args
+
+	Vim and other editors are sometimes called with a filename and a jump argument.
+	Returns (filename, lineno)
+	"""
+
+	if len(args) != 2 or not _VIM_JUMP.fullmatch(args[0]):
+		return
+
+	path = args[1]
+	try:
+		row = int(args[0][1:])
+	except ValueError:
+		return
+	# arg is not a line number, it's a relative jump from first line!
+	return path, row + 1
 
 
 def parseFilename(filepath):

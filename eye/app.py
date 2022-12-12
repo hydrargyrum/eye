@@ -150,6 +150,15 @@ class App(QApplication):
 
 		from eye.helpers.intent import sendIntent
 
+		try:
+			path, row = pathutils.vimFilenameArg(self.args.files)
+		except TypeError:
+			pass
+		else:
+			sendIntent(win, 'openEditor', path=path, loc=(row - 1,), reason='commandline')
+			# only 1 filename in this case
+			return
+
 		for name in self.args.files:
 			path, row, col = pathutils.parseFilename(name)
 			path = os.path.abspath(path)
