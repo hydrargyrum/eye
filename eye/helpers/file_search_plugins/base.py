@@ -2,8 +2,7 @@
 
 from PyQt5.QtCore import QObject
 
-from ...qt import Signal, Slot
-
+from eye.qt import Signal, Slot
 
 __all__ = ('registerPlugin', 'SearchPlugin', 'enabledPlugins', 'getPlugin')
 

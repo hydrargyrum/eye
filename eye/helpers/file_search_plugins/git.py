@@ -1,13 +1,12 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
 import errno
+from logging import getLogger
 import os
 import subprocess
-from logging import getLogger
 
-from .base import registerPlugin
-from .grep import GrepLike
-
+from eye.helpers.file_search_plugins.base import registerPlugin
+from eye.helpers.file_search_plugins.grep import GrepLike
 
 __all__ = ('GitGrep',)
 

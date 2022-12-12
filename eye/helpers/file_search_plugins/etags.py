@@ -1,17 +1,16 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from PyQt5.QtCore import QTimer, QElapsedTimer
-
 from contextlib import contextmanager
 import fnmatch
 import logging
 import os
 
-from .base import registerPlugin, SearchPlugin
-from ...pathutils import findAncestorContaining, findInAncestors
-from ...qt import Slot
-from ..confcache import ConfCache
+from PyQt5.QtCore import QTimer, QElapsedTimer
 
+from eye.helpers.confcache import ConfCache
+from eye.helpers.file_search_plugins.base import registerPlugin, SearchPlugin
+from eye.pathutils import findAncestorContaining, findInAncestors
+from eye.qt import Slot
 
 __all__ = ('ETagsSearch',)
 

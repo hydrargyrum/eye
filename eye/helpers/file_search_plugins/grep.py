@@ -3,11 +3,10 @@
 from logging import getLogger
 import os
 
-from .base import registerPlugin, SearchPlugin
-from ...procutils import findCommand
-from ...qt import Slot
-from ..build import SimpleBuilder
-
+from eye.helpers.build import SimpleBuilder
+from eye.helpers.file_search_plugins.base import registerPlugin, SearchPlugin
+from eye.procutils import findCommand
+from eye.qt import Slot
 
 __all__ = ('AckGrep', 'AgGrep', 'BasicGrep')
 
