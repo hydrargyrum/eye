@@ -100,7 +100,7 @@ class LocationList(QTreeView, WidgetMixin):
 
 	@Slot()
 	def resizeAllColumns(self):
-		for i in range(self.columnCount()):
+		for i in range(self.model().columnCount()):
 			self.resizeColumnToContents(i)
 
 	@Slot(QModelIndex)
