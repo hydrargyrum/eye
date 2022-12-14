@@ -137,6 +137,15 @@ class App(QApplication):
 			remote_control.createServer()
 			return False
 
+		try:
+			path, row = pathutils.vimFilenameArg(self.args.files)
+		except TypeError:
+			pass
+		else:
+			path = os.path.abspath(path)
+			remote_control.sendRequest('open', "%s:%s" % (path, row))
+			return True
+
 		for path in self.args.files:
 			path = os.path.abspath(path)
 			remote_control.sendRequest('open', path)
@@ -155,7 +164,7 @@ class App(QApplication):
 		except TypeError:
 			pass
 		else:
-			sendIntent(win, 'openEditor', path=path, loc=(row - 1,), reason='commandline')
+			sendIntent(win, 'openEditor', path=path, loc=(row,), reason='commandline')
 			# only 1 filename in this case
 			return
 
@@ -165,9 +174,9 @@ class App(QApplication):
 
 			loc = None
 			if row and col:
-				loc = (row - 1, col - 1)
+				loc = (row, col)
 			elif row:
-				loc = (row - 1,)
+				loc = (row,)
 			sendIntent(win, 'openEditor', path=path, loc=loc, reason='commandline')
 
 	@Slot('QWidget*', 'QWidget*')

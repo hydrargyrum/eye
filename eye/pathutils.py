@@ -19,9 +19,9 @@ _VIM_JUMP = re.compile(r"\+\d+")
 
 
 def vimFilenameArg(args):
-	"""Parse `+jump filename` args
+	"""Parse `+line filename` args
 
-	Vim and other editors are sometimes called with a filename and a jump argument.
+	Vim and other editors are sometimes called with a filename and a line argument.
 	Returns (filename, lineno)
 	"""
 
@@ -33,8 +33,7 @@ def vimFilenameArg(args):
 		row = int(args[0][1:])
 	except ValueError:
 		return
-	# arg is not a line number, it's a relative jump from first line!
-	return path, row + 1
+	return path, row
 
 
 def parseFilename(filepath):

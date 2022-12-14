@@ -107,15 +107,6 @@ def onRequestPing(args):
 
 @registerRemoteRequest('open')
 def onRequestOpen(args):
-	try:
-		path, row = pathutils.vimFilenameArg(args)
-	except TypeError:
-		pass
-	else:
-		sendIntent(ROOT_OBJ, 'openEditor', path=path, loc=(row - 1,), reason='remote')
-		# only 1 filename in this case
-		return
-
 	path, row, col = pathutils.parseFilename(args[0])
 	path = os.path.abspath(path)
 	if row is None:
