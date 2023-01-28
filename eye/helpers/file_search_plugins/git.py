@@ -37,4 +37,4 @@ class GitGrep(GrepLike):
 		if os.path.isfile(path):
 			path = os.path.dirname(path)
 		cmd = ['git', 'rev-parse', '--show-toplevel']
-		return subprocess.check_output(cmd, cwd=path).strip()
+		return subprocess.check_output(cmd, cwd=path, encoding="utf-8").strip()
