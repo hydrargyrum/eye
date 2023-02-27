@@ -87,11 +87,11 @@ class HistoryLine(QLineEdit):
 	def submit(self):
 		text = self.text()
 
-		self._addHistory(text)
+		self._add_history(text)
 		self.setText('')
 		self.submitted.emit(text)
 
-	def _addHistory(self, text):
+	def _add_history(self, text):
 		self.idx = None
 		if not text or (self.history and self.history[-1] == text):
 			return

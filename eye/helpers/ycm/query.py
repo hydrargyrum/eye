@@ -32,7 +32,7 @@ def doCompletion(editor, replace=True):
 
 	def handleReply():
 		getDaemon().checkReply(reply)
-		res = getDaemon()._jsonReply(reply)
+		res = getDaemon()._json_reply(reply)
 
 		if res['completions']:
 			col = res['completion_start_column'] - 1
@@ -55,7 +55,7 @@ def doGoTo(editor, go_type):
 
 	def handleReply():
 		getDaemon().checkReply(reply)
-		res = getDaemon()._jsonReply(reply)
+		res = getDaemon()._json_reply(reply)
 		from ..buffers import openEditor
 		openEditor(res['filepath'], (res['line_num'], res['column_num']))
 
@@ -98,7 +98,7 @@ def onActivate(ed, listid, display):
 def querySubCommandsList(editor):
 	def handleReply():
 		getDaemon().checkReply(reply)
-		res = getDaemon()._jsonReply(reply)
+		res = getDaemon()._json_reply(reply)
 		print(res)
 
 	reply = _query(getDaemon().querySubcommandsList, editor)
@@ -120,7 +120,7 @@ if 1:
 	def querySubCommand(editor, *args, **kwargs):
 		def handleReply():
 			getDaemon().checkReply(reply)
-			res = getDaemon()._jsonReply(reply)
+			res = getDaemon()._json_reply(reply)
 			print(res)
 
 		reply = _query(getDaemon().querySubcommand, editor, *args, **kwargs)
@@ -150,19 +150,19 @@ class YcmSearch(QObject):
 	def findUnderCursor(self, editor):
 		self.started.emit()
 		self.reply = _query(getDaemon().querySubcommand, editor, self.searchType)
-		self.reply.finished.connect(self._onReply)
+		self.reply.finished.connect(self._on_reply)
 		self.reply.finished.connect(self.reply.deleteLater)
 
 	@Slot()
 	def interrupt(self):
 		if self.reply:
-			self.reply.finished.disconnect(self._onReply)
+			self.reply.finished.disconnect(self._on_reply)
 			self.reply.abort()
 			self.reply.deleteLater()
 			self.reply = None
 
 	@Slot()
-	def _onReply(self):
+	def _on_reply(self):
 		resultCode = 1
 
 		try:
@@ -170,20 +170,20 @@ class YcmSearch(QObject):
 		except ServerError:
 			pass
 		else:
-			self._handleReply(getDaemon()._jsonReply(self.reply))
+			self._handle_reply(getDaemon()._json_reply(self.reply))
 			resultCode = 0
 		finally:
 			self.reply = None
 			self.finished.emit(resultCode)
 
-	def _handleReply(self, obj):
+	def _handle_reply(self, obj):
 		if isinstance(obj, dict):
 			obj = [obj]
 		if isinstance(obj, list):
 			for sub in obj:
-				self._sendResult(sub)
+				self._send_result(sub)
 
-	def _sendResult(self, obj):
+	def _send_result(self, obj):
 		ret = {
 			'path': obj['filepath'],
 			'line': obj['line_num'],

@@ -31,7 +31,7 @@ class App(QApplication):
 		self.args = None
 
 		self.lastWindow = None
-		self.focusChanged.connect(self._appFocusChanged)
+		self.focusChanged.connect(self._app_focus_changed)
 
 		self.setWindowIcon(QIcon(pathutils.dataPath('eye.png')))
 
@@ -180,7 +180,7 @@ class App(QApplication):
 			sendIntent(win, 'openEditor', path=path, loc=loc, reason='commandline')
 
 	@Slot('QWidget*', 'QWidget*')
-	def _appFocusChanged(self, old, new):
+	def _app_focus_changed(self, old, new):
 		while new and not new.isWindow():
 			new = new.parentWidget()
 		if not new or not isinstance(new, QMainWindow):

@@ -18,10 +18,10 @@ class ConfCache(QObject):
 			self.cache = {}  # pylint: disable=redefined-variable-type
 
 		self.monitor = MonitorWithRename(parent=self)
-		self.monitor.fileChanged.connect(self.onFileChanged)
+		self.monitor.fileChanged.connect(self.on_file_changed)
 
 	@Slot(str)
-	def onFileChanged(self, path):
+	def on_file_changed(self, path):
 		"""Method called when a monitored file changes
 
 		This method should be reimplemented by subclasses to reload a configuration object.
@@ -29,11 +29,11 @@ class ConfCache(QObject):
 		When the cache stores weak-references, config objects may be deleted at anytime, but the associated
 		file will stay monitored.
 		A method reimplementation should check if the config still exists in cache before performing a costly
-		file reload. See :any:`unmonitorCollected`.
+		file reload. See :any:`unmonitor_collected`.
 		"""
 		pass
 
-	def unmonitorCollected(self, path=None):
+	def unmonitor_collected(self, path=None):
 		"""Stop monitoring file if the config object was garbage-collected.
 
 		:param path: if None, verifies all monitored files
@@ -42,7 +42,7 @@ class ConfCache(QObject):
 
 		if path is None:
 			for f in self.monitor.files():
-				self.unmonitorCollected(f)
+				self.unmonitor_collected(f)
 			return False
 		else:
 			if path in self.cache:
@@ -50,18 +50,18 @@ class ConfCache(QObject):
 			self.monitor.removePath(path)
 			return True
 
-	def addConf(self, path, conf):
+	def add_conf(self, path, conf):
 		"""Add a config object to cache
 
 		The config file `path` will be monitored for changes and the `conf` object will be added to cache.
 
 		:param path: path of the config
-		:param conf: the 
+		:param conf: the
 		"""
 		self.cache[path] = conf
 		self.monitor.addPath(path)
 
-	def delConf(self, path):
+	def del_conf(self, path):
 		"""Remove a config from cache.
 
 		The config file at `path` is also unmonitored.

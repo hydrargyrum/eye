@@ -46,7 +46,7 @@ def applyStyles(lexer, spec):
 				lexer.setFont(QFont(values[2]))
 
 
-_extensionLexer = {
+_extension_lexer = {
 	'sh': QsciLexerBash,
 	'bash': QsciLexerBash,
 	'zsh': QsciLexerBash,
@@ -100,7 +100,7 @@ def extensionToLexer(ext):
 	"""
 	if ext and ext.startswith('.'):
 		ext = ext[1:]
-	return _extensionLexer.get(ext)
+	return _extension_lexer.get(ext)
 
 
 def mimeToLexer(mime):

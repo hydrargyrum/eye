@@ -789,8 +789,8 @@ class BaseEditor(QsciScintilla):
 	"""Get fold level of line `value`"""
 
 	# macro
-	_startMacroRecord = sciProp0(QsciScintilla.SCI_STARTRECORD)
-	_stopMacroRecord = sciProp0(QsciScintilla.SCI_STOPRECORD)
+	_start_macro_record = sciProp0(QsciScintilla.SCI_STARTRECORD)
+	_stop_macro_record = sciProp0(QsciScintilla.SCI_STOPRECORD)
 
 	# undo
 	def setUndoCollection(self, b):
@@ -810,16 +810,16 @@ class BaseEditor(QsciScintilla):
 	"""addUndoAction(int, int): add a custom action to the undo buffer"""
 
 	# markers
-	_getMarkerPrevious = sciProp(QsciScintilla.SCI_MARKERPREVIOUS, (int, int))
-	_getMarkerNext = sciProp(QsciScintilla.SCI_MARKERNEXT, (int, int))
+	_get_marker_previous = sciProp(QsciScintilla.SCI_MARKERPREVIOUS, (int, int))
+	_get_marker_next = sciProp(QsciScintilla.SCI_MARKERNEXT, (int, int))
 
 	# indicators
 	indicatorValueAt = sciProp(QsciScintilla.SCI_INDICATORVALUEAT, (int, int))
 	indicatorStart = sciProp(QsciScintilla.SCI_INDICATORSTART, (int, int))
 	indicatorEnd = sciProp(QsciScintilla.SCI_INDICATOREND, (int, int))
-	_setIndicatorValue = sciProp(QsciScintilla.SCI_SETINDICATORVALUE, (int,))
-	_setIndicatorCurrent = sciProp(QsciScintilla.SCI_SETINDICATORCURRENT, (int,))
-	_fillIndicatorRange = sciProp(QsciScintilla.SCI_INDICATORFILLRANGE, (int, int))
+	_set_indicator_value = sciProp(QsciScintilla.SCI_SETINDICATORVALUE, (int,))
+	_set_indicator_current = sciProp(QsciScintilla.SCI_SETINDICATORCURRENT, (int,))
+	_fill_indicator_range = sciProp(QsciScintilla.SCI_INDICATORFILLRANGE, (int, int))
 	setIndicatorFlags = sciProp2(QsciScintilla.SCI_INDICSETFLAGS)
 	indicatorFlags = sciProp1(QsciScintilla.SCI_INDICGETFLAGS)
 
@@ -831,7 +831,7 @@ class BaseEditor(QsciScintilla):
 	setTargetEnd = sciProp(QsciScintilla.SCI_SETTARGETEND, (int,))
 	targetEnd = sciProp0(QsciScintilla.SCI_GETTARGETEND)
 	setTargetRange = sciProp(QsciScintilla.SCI_SETTARGETRANGE, (int, int))
-	_searchInTarget = sciProp(QsciScintilla.SCI_SEARCHINTARGET, (int, bytes))
+	_search_in_target = sciProp(QsciScintilla.SCI_SEARCHINTARGET, (int, bytes))
 	replaceTarget = sciProp2(QsciScintilla.SCI_REPLACETARGET)
 
 	setSearchFlags = sciPropSet(QsciScintilla.SCI_SETSEARCHFLAGS)
@@ -925,7 +925,7 @@ class BaseEditor(QsciScintilla):
 		self.indicators = {}
 		self.margins = {}
 		self.autoCompListId = 0
-		self._counterSciModified = 0
+		self._counter_sci_modified = 0
 
 		self.createMargin('lines', Margin.NumbersMargin())
 		self.createMargin('folding', Margin.FoldMargin())
@@ -967,7 +967,7 @@ class BaseEditor(QsciScintilla):
 		self._disposeMI(self.indicators, self.freeIndicators, name)
 
 	## indicators
-	def _indicatorToId(self, indicator):
+	def _indicator_to_id(self, indicator):
 		if isinstance(indicator, Indicator):
 			return indicator.id
 		elif isinstance(indicator, (str, bytes)):
@@ -975,23 +975,23 @@ class BaseEditor(QsciScintilla):
 		return indicator
 
 	def fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic, value=1):
-		indic = self._indicatorToId(indic)
+		indic = self._indicator_to_id(indic)
 		if indic < 0:
 			return QsciScintilla.fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic)
 
 		offset_start = self.positionFromLineIndex(lineFrom, indexFrom)
 		offset_end = self.positionFromLineIndex(lineTo, indexTo)
 
-		self._setIndicatorCurrent(indic)
-		self._setIndicatorValue(value)
-		self._fillIndicatorRange(offset_start, offset_end - offset_start)
+		self._set_indicator_current(indic)
+		self._set_indicator_value(value)
+		self._fill_indicator_range(offset_start, offset_end - offset_start)
 
 	def clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic):
-		indic = self._indicatorToId(indic)
+		indic = self._indicator_to_id(indic)
 		return QsciScintilla.clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic)
 
 	## markers
-	def _markerToId(self, marker):
+	def _marker_to_id(self, marker):
 		if isinstance(marker, (str, bytes)):
 			return self.markers[marker].id
 		elif isinstance(marker, Marker):
@@ -1000,30 +1000,30 @@ class BaseEditor(QsciScintilla):
 
 	def markerAdd(self, line, marker):
 		"""Add marker with name/id `i` at line `ln`"""
-		marker = self._markerToId(marker)
+		marker = self._marker_to_id(marker)
 		return QsciScintilla.markerAdd(self, line, marker)
 
 	def markerDelete(self, line, marker):
 		"""Delete marker with name/id `i` from line `ln`"""
-		marker = self._markerToId(marker)
+		marker = self._marker_to_id(marker)
 		return QsciScintilla.markerDelete(self, line, marker)
 
 	def setMarkerBackgroundColor(self, color, marker):
 		"""Set background color `c` to marker with id/name `i`"""
-		marker = self._markerToId(marker)
+		marker = self._marker_to_id(marker)
 		return QsciScintilla.setMarkerBackgroundColor(self, color, marker)
 
 	def setMarkerForegroundColor(self, color, marker):
-		marker = self._markerToId(marker)
+		marker = self._marker_to_id(marker)
 		return QsciScintilla.setMarkerForegroundColor(self, color, marker)
 
 	def getMarkerPrevious(self, line, marker):
-		marker = self._markerToId(marker)
-		return self._getMarkerPrevious(line, marker)
+		marker = self._marker_to_id(marker)
+		return self._get_marker_previous(line, marker)
 
 	def getMarkerNext(self, line, marker):
-		marker = self._markerToId(marker)
-		return self._getMarkerNext(line, marker)
+		marker = self._marker_to_id(marker)
+		return self._get_marker_next(line, marker)
 
 	## macros
 	#~ @Slot('uint', 'unsigned long', object)
@@ -1038,7 +1038,7 @@ class BaseEditor(QsciScintilla):
 
 		Also emits `macroRecordStarted()`
 		"""
-		self._startMacroRecord()
+		self._start_macro_record()
 		self.macroRecordStarted.emit()
 
 	def stopMacroRecord(self):
@@ -1046,7 +1046,7 @@ class BaseEditor(QsciScintilla):
 
 		Also emits `macroRecordStopped()`
 		"""
-		self._stopMacroRecord()
+		self._stop_macro_record()
 		self.macroRecordStopped.emit()
 
 	def replayMacroAction(self, action):
@@ -1059,7 +1059,7 @@ class BaseEditor(QsciScintilla):
 	def searchInTarget(self, s):
 		if isinstance(s, str):
 			s = s.encode('utf-8')
-		return self._searchInTarget(len(s), s)
+		return self._search_in_target(len(s), s)
 
 	## annotations
 	def annotationStyledText(self, line):
@@ -1104,7 +1104,7 @@ class BaseEditor(QsciScintilla):
 	def connectNotify(self, sig):
 		super(BaseEditor, self).connectNotify(sig)
 		if sig.name() == b'sciModified':
-			self._counterSciModified += 1
+			self._counter_sci_modified += 1
 			try:
 				self.SCN_MODIFIED.connect(self.scn_modified, Qt.UniqueConnection)
 			except TypeError: # prevent duplicating connection
@@ -1115,9 +1115,9 @@ class BaseEditor(QsciScintilla):
 		if not sig.isValid():
 			return
 		if sig.name() == b'sciModified':
-			self._counterSciModified -= 1
-			assert self._counterSciModified >= 0
-			if not self._counterSciModified:
+			self._counter_sci_modified -= 1
+			assert self._counter_sci_modified >= 0
+			if not self._counter_sci_modified:
 				self.SCN_MODIFIED.disconnect(self.scn_modified)
 
 	@Slot()
@@ -1182,8 +1182,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		self.path = ''
 		self.modificationChanged.connect(self.setWindowModified)
-		self.modificationChanged.connect(self._updateTitle)
-		self._updateTitle()
+		self.modificationChanged.connect(self._update_title)
+		self._update_title()
 
 		self.saving = structs.PropDict()
 		self.saving.trim_whitespace = False
@@ -1209,7 +1209,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	def __repr__(self):
 		return '<Editor path=%r>' % self.path
 
-	def _updateTitle(self):
+	def _update_title(self):
 		t = os.path.basename(self.path) or '<untitled>'
 		if self.isModified():
 			t = '%s*' % t
@@ -1218,7 +1218,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.setToolTip(self.path or '<untitled>')
 
 	## file management
-	def _getFilename(self):
+	def _get_filename(self):
 		if not self.path:
 			return ''
 		return os.path.basename(self.path)
@@ -1238,7 +1238,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 				return False
 			path = path
 
-		data = self._writeText(self.text())
+		data = self._write_text(self.text())
 		self.fileAboutToBeSaved.emit(path)
 		try:
 			io.writeBytesToFile(path, data)
@@ -1275,7 +1275,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 				ret = self.saveFile()
 		return ret
 
-	def _newlineString(self):
+	def _newline_string(self):
 		modes = {
 			QsciScintilla.SC_EOL_LF: '\n',
 			QsciScintilla.SC_EOL_CR: '\r',
@@ -1284,20 +1284,20 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		return modes.get(self.eolMode(), '\n')
 
-	def _readText(self, data):
+	def _read_text(self, data):
 		text = data.decode(self.saving.encoding)
-		if self.saving.final_newline and text.endswith(self._newlineString()):
+		if self.saving.final_newline and text.endswith(self._newline_string()):
 			text = text[:-1]
 		return text
 
-	def _removeTrailingWhitespace(self, text):
+	def _remove_trailing_whitespace(self, text):
 		return re.sub(r'[ \t]+$', '', text, flags=re.MULTILINE)
 
-	def _writeText(self, text):
+	def _write_text(self, text):
 		if self.saving.trim_whitespace:
-			text = self._removeTrailingWhitespace(text)
+			text = self._remove_trailing_whitespace(text)
 		if self.saving.final_newline:
-			text += self._newlineString()
+			text += self._newline_string()
 		return text.encode(self.saving.encoding)
 
 	def openFile(self, path):
@@ -1314,7 +1314,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			return False
 		self.fileAboutToBeOpened.emit(path)
 
-		text = self._readText(data)
+		text = self._read_text(data)
 		self.setText(text)
 		self.setModified(False)
 		self.fileOpened.emit(path)
@@ -1344,7 +1344,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		except IOError:
 			LOGGER.error('cannot reload file %r', self.path, exc_info=True)
 			return False
-		text = self._readText(data)
+		text = self._read_text(data)
 
 		with self.undoGroup():
 			# XXX setText would clear the history
@@ -1505,23 +1505,23 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 	## search
 	@classmethod
-	def _smartCase(cls, txt, cs):
+	def _smart_case(cls, txt, cs):
 		if cs is cls.SmartCaseSensitive:
 			return (txt.lower() != txt)
 		else:
 			return cs
 
-	def _searchOptionsToRe(self):
+	def _search_options_to_re(self):
 		expr = self.search.expr if self.search.isRe else re.escape(self.search.expr)
 		if self.search.whole:
 			expr = '\b%s\b' % expr
-		caseSensitive = self._smartCase(expr, self.search.caseSensitive)
+		caseSensitive = self._smart_case(expr, self.search.caseSensitive)
 		flags = 0 if caseSensitive else re.I
 		return re.compile(expr, flags)
 
-	def _highlightSearch(self):
+	def _highlight_search(self):
 		txt = self.text()
-		reobj = self._searchOptionsToRe()
+		reobj = self._search_options_to_re()
 		for mtc in reobj.finditer(txt):
 			self.indicators['searchHighlight'].putAtOffset(mtc.start(), mtc.end())
 
@@ -1543,22 +1543,22 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			self.search.wrap = wrap
 		self.search.forward = True
 
-		caseSensitive = self._smartCase(expr, self.search.caseSensitive)
+		caseSensitive = self._smart_case(expr, self.search.caseSensitive)
 
 		if self.search.highlight:
-			self._highlightSearch()
+			self._highlight_search()
 
 		lfrom, ifrom, lto, ito = self.getSelection()
 		self.setCursorPosition(*min([(lfrom, ifrom), (lto, ito)]))
 
 		return self.findFirst(self.search.expr, self.search.isRe, caseSensitive, self.search.whole, self.search.wrap, True)
 
-	def _findInDirection(self, forward):
+	def _find_in_direction(self, forward):
 		if self.search.get('forward') == forward:
 			return self.findNext()
 		else:
 			self.search.forward = forward
-			caseSensitive = self._smartCase(self.search.expr, self.search.caseSensitive)
+			caseSensitive = self._smart_case(self.search.expr, self.search.caseSensitive)
 			b = self.findFirst(self.search.expr, self.search.isRe, caseSensitive, self.search.whole, self.search.wrap, self.search.forward)
 			if b and not forward:
 				# weird behavior when switching from forward to backward
@@ -1566,10 +1566,10 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			return b
 
 	def findForward(self):
-		return self._findInDirection(True)
+		return self._find_in_direction(True)
 
 	def findBackward(self):
-		return self._findInDirection(False)
+		return self._find_in_direction(False)
 
 	def wordAtCursor(self):
 		return self.wordAtLineIndex(*self.getCursorPosition())

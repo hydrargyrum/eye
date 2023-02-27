@@ -132,7 +132,7 @@ class ETagsSearch(SearchPlugin):
 		self.request = None
 
 		self.timer = QTimer(self)
-		self.timer.timeout.connect(self._batchLoad)
+		self.timer.timeout.connect(self._batch_load)
 
 	@classmethod
 	def isAvailable(cls, path):
@@ -164,7 +164,7 @@ class ETagsSearch(SearchPlugin):
 		self.timer.start()
 
 	@Slot()
-	def _batchLoad(self):
+	def _batch_load(self):
 		with self.safeBatch():
 			duration = QElapsedTimer()
 			duration.start()
@@ -175,7 +175,7 @@ class ETagsSearch(SearchPlugin):
 				if duration.hasExpired(10):
 					return
 
-			CACHE.addConf(self.parser.path, self.db)
+			CACHE.add_conf(self.parser.path, self.db)
 			self.timer.stop()
 
 			LOGGER.debug('db %r has finished loading', self.parser.path)

@@ -435,7 +435,7 @@ def setEnabled(enabled=True):
 	applySchemeOnLexerChange.enabled = enabled
 
 
-def _lexerSetFont(lexer, cb, style):
+def _lexer_set_font(lexer, cb, style):
 	if style >= 0:
 		font = lexer.font(style)
 		cb(font)
@@ -445,7 +445,7 @@ def _lexerSetFont(lexer, cb, style):
 	for i in range(1 << lexer.styleBitsNeeded()):
 		desc = lexer.description(i)
 		if desc:
-			_lexerSetFont(lexer, cb, i)
+			_lexer_set_font(lexer, cb, i)
 
 
 def lexerSetFontFamily(lexer, family, style=-1):
@@ -460,7 +460,7 @@ def lexerSetFontFamily(lexer, family, style=-1):
 	:param style: if negative, modifies all styles of `lexer`
 	"""
 	cb = lambda font: font.setFamily(family)
-	_lexerSetFont(lexer, cb, style)
+	_lexer_set_font(lexer, cb, style)
 
 
 def lexerSetFontPointSize(lexer, size, style=-1):
@@ -475,4 +475,4 @@ def lexerSetFontPointSize(lexer, size, style=-1):
 	:param style: if negative, modifies all styles of `lexer`
 	"""
 	cb = lambda font: font.setPointSize(size)
-	_lexerSetFont(lexer, cb, style)
+	_lexer_set_font(lexer, cb, style)

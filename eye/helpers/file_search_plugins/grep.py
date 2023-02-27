@@ -29,7 +29,7 @@ class GrepLike(SearchPlugin):
 		super(GrepLike, self).__init__(**kwargs)
 		self.runner = GrepProcess()
 		self.runner.started.connect(self.started)
-		self.runner.warningPrinted.connect(self._gotResult)
+		self.runner.warningPrinted.connect(self._got_result)
 		self.runner.finished.connect(self.finished)
 
 	def __del__(self):
@@ -47,7 +47,7 @@ class GrepLike(SearchPlugin):
 		return path
 
 	@Slot(dict)
-	def _gotResult(self, d):
+	def _got_result(self, d):
 		self.found.emit(d)
 
 	def interrupt(self):

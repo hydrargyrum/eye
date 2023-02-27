@@ -80,7 +80,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 		self.lastFocus = ref(ed)
 		from eye.app import qApp
-		qApp().focusChanged.connect(self._appFocusChanged)
+		qApp().focusChanged.connect(self._app_focus_changed)
 
 		REGISTRY.append(self)
 		self.addCategory('window')
@@ -171,7 +171,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		"""Save current buffer."""
 		self.currentBuffer().saveFile()
 
-	def _bufferNewSplit(self, orientation, widget=None):
+	def _buffer_new_split(self, orientation, widget=None):
 		if widget is None:
 			widget = self.currentBuffer()
 		parent = parentTabWidget(widget)
@@ -192,7 +192,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 		A new empty editor is created.
 		"""
-		self._bufferNewSplit(Qt.Horizontal, widget)
+		self._buffer_new_split(Qt.Horizontal, widget)
 
 	@Slot()
 	def bufferSplitVertical(self, widget=None):
@@ -200,7 +200,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 		A new empty editor is created.
 		"""
-		self._bufferNewSplit(Qt.Vertical, widget)
+		self._buffer_new_split(Qt.Vertical, widget)
 
 	## signals
 	quitRequested = Signal()
@@ -223,7 +223,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		self.splitter.removeWidget(tw)
 
 	@Slot('QWidget*', 'QWidget*')
-	def _appFocusChanged(self, _, new):
+	def _app_focus_changed(self, _, new):
 		if self.centralWidget().isAncestorOf(new):
 			self.lastFocus = ref(new)
 			self.focusedBuffer.emit(new)

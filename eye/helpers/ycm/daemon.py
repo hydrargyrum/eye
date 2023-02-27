@@ -133,23 +133,23 @@ class Ycm(QObject, CategoryMixin):
 		if not self.CHECK_REPLY_SIGNATURE:
 			return
 		actual = b64decode(bytes(reply.rawHeader(HMAC_HEADER)))
-		expected = self._hmacDigest(reply.content)
+		expected = self._hmac_digest(reply.content)
 
 		if not hmac.compare_digest(expected, actual):
 			raise RuntimeError('Server signature did not match')
 
-	def _jsonReply(self, reply):
+	def _json_reply(self, reply):
 		body = reply.content.decode('utf-8')
 		return json.loads(body)
 
-	def _hmacDigest(self, msg):
+	def _hmac_digest(self, msg):
 		return hmac.new(self.secret, msg, hashlib.sha256).digest()
 
 	def _sign(self, verb, path, body=b''):
-		digests = [self._hmacDigest(part) for part in [verb, path, body]]
-		return self._hmacDigest(b''.join(digests))
+		digests = [self._hmac_digest(part) for part in [verb, path, body]]
+		return self._hmac_digest(b''.join(digests))
 
-	def _doGet(self, path):
+	def _do_get(self, path):
 		url = urlunsplit(('http', self.addr, path, '', ''))
 		sig = self._sign(b'GET', path.encode('utf-8'), b'')
 		headers = {
@@ -164,7 +164,7 @@ class Ycm(QObject, CategoryMixin):
 		reply = self.network.get(request)
 		return reply
 
-	def _doPost(self, path, **params):
+	def _do_post(self, path, **params):
 		url = urlunsplit(('http', self.addr, path, '', ''))
 		body = json.dumps(params).encode('utf-8')
 		sig = self._sign(b'POST', path.encode('utf-8'), body)
@@ -188,7 +188,7 @@ class Ycm(QObject, CategoryMixin):
 				self.pingTimer.start(60000)
 				self.ready.emit()
 
-		reply = self._doGet('/healthy')
+		reply = self._do_get('/healthy')
 		reply.finished.connect(handleReply)
 		reply.finished.connect(reply.deleteLater)
 
@@ -252,7 +252,7 @@ class Ycm(QObject, CategoryMixin):
 
 	ready = Signal()
 
-	def _commonPostDict(self, filepath, filetype, contents, line=1, column=1):
+	def _common_post_dict(self, filepath, filetype, contents, line=1, column=1):
 		d = {
 			'filepath': filepath,
 			'filetype': filetype,
@@ -267,18 +267,18 @@ class Ycm(QObject, CategoryMixin):
 		}
 		return d
 
-	def _postSimpleRequest(self, urlpath, filepath, filetype, contents, **kwargs):
-		d = self._commonPostDict(filepath, filetype, contents)
+	def _post_simple_request(self, urlpath, filepath, filetype, contents, **kwargs):
+		d = self._common_post_dict(filepath, filetype, contents)
 		d.update(**kwargs)
 
-		return self._doPost(urlpath, **d)
+		return self._do_post(urlpath, **d)
 
 	def acceptExtraConf(self, filepath, filetype, contents):
-		reply = self._postSimpleRequest('/load_extra_conf_file', filepath, filetype, contents)
+		reply = self._post_simple_request('/load_extra_conf_file', filepath, filetype, contents)
 		reply.finished.connect(reply.deleteLater)
 
 	def rejectExtraConf(self, filepath, filetype, contents):
-		reply = self._postSimpleRequest('/ignore_extra_conf_file', filepath, filetype, contents,
+		reply = self._post_simple_request('/ignore_extra_conf_file', filepath, filetype, contents,
 		                                _ignore_body=True)
 		reply.finished.connect(reply.deleteLater)
 
@@ -286,7 +286,7 @@ class Ycm(QObject, CategoryMixin):
 		d = {
 			'event_name': 'FileReadyToParse'
 		}
-		reply = self._postSimpleRequest('/event_notification', filepath, filetype, contents, **d)
+		reply = self._post_simple_request('/event_notification', filepath, filetype, contents, **d)
 
 		def handleReply():
 			try:
@@ -314,7 +314,7 @@ class Ycm(QObject, CategoryMixin):
 		reply.finished.connect(reply.deleteLater)
 
 	def querySubcommandsList(self, filepath, filetype, contents, line, col):
-		return self._postSimpleRequest('/defined_subcommands', filepath, filetype, contents)
+		return self._post_simple_request('/defined_subcommands', filepath, filetype, contents)
 
 	def querySubcommand(self, filepath, filetype, contents, line, col, *args):
 		d = {
@@ -322,21 +322,21 @@ class Ycm(QObject, CategoryMixin):
 			'line_num': line,
 			'column_num': col,
 		}
-		return self._postSimpleRequest('/run_completer_command', filepath, filetype, contents, **d)
+		return self._post_simple_request('/run_completer_command', filepath, filetype, contents, **d)
 
 	def queryCompletions(self, filepath, filetype, contents, line, col):
 		d = {
 			'line_num': line,
 			'column_num': col,
 		}
-		return self._postSimpleRequest('/completions', filepath, filetype, contents, **d)
+		return self._post_simple_request('/completions', filepath, filetype, contents, **d)
 
 	if 0:
 		def queryDiagnostic(self, filepath, filetype, contents, line, col):
-			return self._postSimpleRequest('/detailed_diagnostic', filepath, filetype, contents)
+			return self._post_simple_request('/detailed_diagnostic', filepath, filetype, contents)
 
 		def queryDebug(self, filepath, filetype, contents, line, col):
-			return self._postSimpleRequest('/debug_info', filepath, filetype, contents)
+			return self._post_simple_request('/debug_info', filepath, filetype, contents)
 
 
 def getDaemon():

@@ -8,7 +8,7 @@ import re
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
-from eye import _addDoc
+from eye import _add_doc
 
 __all__ = ('Slot', 'Signal')
 
@@ -34,7 +34,7 @@ def Slot(*args, **kwargs):
 
 		text = '\n\n'.join('This slot has signature ``%s%s``.' % (func.__name__, sig)
 		                   for sig in signatures)
-		_addDoc(func, text)
+		_add_doc(func, text)
 
 		return func
 
@@ -45,14 +45,14 @@ class SignalDoc(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def _typeString(self, t):
+	def _type_string(self, t):
 		if isinstance(t, type):
 			return t.__name__
 		return repr(t)
 
 	def __repr__(self):
 		if not self.types or isinstance(self.types[0], type):
-			return 'Signal(%s)' % ', '.join(self._typeString(t) for t in self.types)
+			return 'Signal(%s)' % ', '.join(self._type_string(t) for t in self.types)
 		return ' '.join(repr(SignalDoc(*arg)) for arg in self.types)
 
 	def connect(self, *args, **kwargs):
@@ -67,5 +67,5 @@ def Signal(*args, **kwargs):
 
 def override(func):
 	text = '*Overrides a Qt method.*'
-	_addDoc(func, text)
+	_add_doc(func, text)
 	return func

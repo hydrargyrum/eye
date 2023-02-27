@@ -54,7 +54,7 @@ class LocationList(QTreeView, WidgetMixin):
 		self.setSelectionBehavior(self.SelectRows)
 		self.setWindowTitle(self.tr('Location list'))
 
-		self.activated.connect(self._resultActivated)
+		self.activated.connect(self._result_activated)
 
 		self.cols = []
 
@@ -104,7 +104,7 @@ class LocationList(QTreeView, WidgetMixin):
 			self.resizeColumnToContents(i)
 
 	@Slot(QModelIndex)
-	def _resultActivated(self, qidx):
+	def _result_activated(self, qidx):
 		if not qidx.isValid():
 			return
 

@@ -22,7 +22,7 @@ def findEditor(path):
 			return ed
 
 
-def _getWindow():
+def _get_window():
 	win = qApp().lastWindow
 	if win is None:
 		for win in connector.categoryObjects('window'):
@@ -35,8 +35,8 @@ def createEditorWidget():
 	return Window.EditorClass()
 
 
-def _createEditor(path):
-	win = _getWindow()
+def _create_editor(path):
+	win = _get_window()
 	cur = win.currentBuffer()
 	tabs = parentTabWidget(cur)
 
@@ -63,7 +63,7 @@ def openEditor(path, loc=None):
 
 	ed = findEditor(path)
 	if not ed:
-		ed = _createEditor(path)
+		ed = _create_editor(path)
 
 	if loc:
 		ed.goto1(*loc)
@@ -84,19 +84,19 @@ def listEditors():
 
 def currentBuffer():
 	"""Get currently focused editor"""
-	win = _getWindow()
+	win = _get_window()
 	return win.currentBuffer()
 
 
-def _defaultTabs():
-	win = _getWindow()
+def _default_tabs():
+	win = _get_window()
 	cur = win.currentBuffer()
 	return parentTabWidget(cur)
 
 
-def _doNew(ed, loc, parentTabBar):
+def _do_new(ed, loc, parentTabBar):
 	if parentTabBar is None:
-		parentTabBar = _defaultTabs()
+		parentTabBar = _default_tabs()
 	if loc:
 		ed.goto1(*loc)
 	parentTabBar.addWidget(ed)
@@ -126,7 +126,7 @@ def newEditorOpen(path, loc=None, parentTabBar=None):
 	"""
 	ed = createEditorWidget()
 	ed.openFile(path)
-	_doNew(ed, loc, parentTabBar)
+	_do_new(ed, loc, parentTabBar)
 	return ed
 
 
@@ -154,7 +154,7 @@ def newEditorShare(ed, loc=None, parentTabBar=None):
 	"""
 	new = createEditorWidget()
 	new.openDocument(ed)
-	_doNew(new, loc, parentTabBar)
+	_do_new(new, loc, parentTabBar)
 	return new
 
 

@@ -248,7 +248,7 @@ class SplitManager(QWidget, WidgetMixin):
 	## balance
 	@Slot()
 	def balanceSplitsRecursive(self, startAt=None):
-		for w in self._iterRecursive(startAt):
+		for w in self._iter_recursive(startAt):
 			if isinstance(w, self.SplitterClass):
 				self.balanceSplits(w)
 
@@ -314,7 +314,7 @@ class SplitManager(QWidget, WidgetMixin):
 
 		:rtype: list
 		"""
-		return [w for w in self._iterRecursive() if not isinstance(w, self.SplitterClass)]
+		return [w for w in self._iter_recursive() if not isinstance(w, self.SplitterClass)]
 
 	def childRect(self, widget):
 		return QRect(widget.mapTo(self, QPoint()), widget.size())
@@ -339,7 +339,7 @@ class SplitManager(QWidget, WidgetMixin):
 			widget = widget.childAt(widget.mapFrom(self, pos))
 		return widget
 
-	def _iterRecursive(self, startAt=None):
+	def _iter_recursive(self, startAt=None):
 		if startAt is None:
 			startAt = self.root
 

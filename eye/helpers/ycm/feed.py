@@ -75,7 +75,7 @@ def feedOnSave(editor, path):
 	getDaemon().sendParse(path, editor.ycm.filetype, editor.text())
 
 
-def _timeoutFeed():
+def _timeout_feed():
 	if not isDaemonAvailable():
 		return
 
@@ -92,7 +92,7 @@ def feedOnChange(editor):
 	if not hasattr(editor, 'ycmFeedTimer'):
 		editor.ycmFeedTimer = QTimer(editor)
 		editor.ycmFeedTimer.setSingleShot(True)
-		editor.ycmFeedTimer.timeout.connect(_timeoutFeed)
+		editor.ycmFeedTimer.timeout.connect(_timeout_feed)
 	# reboot timer
 	editor.ycmFeedTimer.start(FEED_ON_EDIT_PAUSE_MS)
 

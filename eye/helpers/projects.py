@@ -54,7 +54,7 @@ class Project(QObject):
 		self.sections_re = None
 		self.parentProject = None
 
-	def _parseFile(self, cfgpath):
+	def _parse_file(self, cfgpath):
 		# add a starting section so it becomes INI format
 		try:
 			with open(cfgpath) as fp:
@@ -76,7 +76,7 @@ class Project(QObject):
 	def load(self, cfgpath):
 		assert not self.cfgpath or cfgpath == self.cfgpath
 
-		cfg = self._parseFile(cfgpath)
+		cfg = self._parse_file(cfgpath)
 		if cfg is None:
 			return False
 
@@ -106,7 +106,7 @@ class Project(QObject):
 			self.parentProject = getProjectForFile(parent)
 		return True
 
-	def _projectHierarchy(self):
+	def _project_hierarchy(self):
 		items = []
 		current = self
 		while current is not None:
@@ -115,11 +115,11 @@ class Project(QObject):
 		items.reverse()
 		return items
 
-	def _applySectionOptions(self, editor, section):
+	def _apply_section_options(self, editor, section):
 		dct = dict(self.cfg.items(section))
 		applyOptionsDict(editor, dct)
 
-	def _sectionsForFile(self, relpath):
+	def _sections_for_file(self, relpath):
 		sections = []
 		for section in self.cfg.sections():
 			if self.sections_re[section].match(relpath) or self.sections_re[section].match(os.path.basename(relpath)):
@@ -213,11 +213,11 @@ def parseBool(s, default=False):
 
 
 def mergedOptionsForFile(project, filepath):
-	projects = project._projectHierarchy()
+	projects = project._project_hierarchy()
 	options = {}
 	for project in projects:
 		relpath = project.pathRelativeToProject(filepath)
-		for section in project._sectionsForFile(relpath):
+		for section in project._sections_for_file(relpath):
 			options.update(project.cfg.items(section))
 	return options
 
@@ -337,7 +337,7 @@ def openProjectFile(filepath):
 	project = Project()
 	if not project.load(filepath):
 		return None
-	PROJECT_CACHE.addConf(filepath, project)
+	PROJECT_CACHE.add_conf(filepath, project)
 
 	return project
 

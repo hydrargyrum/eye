@@ -52,7 +52,7 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 			self.indicator = editor.createIndicator(indicatorName, 0)
 
 		self.timer = QTimer(self)
-		self.timer.timeout.connect(self._searchBatch)
+		self.timer.timeout.connect(self._search_batch)
 
 		self.start_line = 0
 		self.reobj = None
@@ -83,10 +83,10 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 			self.indicator.clear()
 			self.timer.start()
 			if needOne:
-				self._searchBatch(needOne=True)
+				self._search_batch(needOne=True)
 
 	@Slot()
-	def _searchBatch(self, needOne=False):
+	def _search_batch(self, needOne=False):
 		with self.safeBatch():
 			start_time = QElapsedTimer()
 			start_time.start()
@@ -143,12 +143,12 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 	def getRanges(self):
 		return list(self.indicator.iterRanges())
 
-	def _seekForward(self, start, wrap):
+	def _seek_forward(self, start, wrap):
 		r = self.indicator.getNextRange(start)
 
 		if r is None:
 			if wrap:
-				self._seekForward(0, wrap=False)
+				self._seek_forward(0, wrap=False)
 			return
 
 		start, end, _ = r
@@ -156,12 +156,12 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 		endl, endc = self.editor.lineIndexFromPosition(end)
 		self.editor.setSelection(startl, startc, endl, endc)
 
-	def _seekBackward(self, end, wrap):
+	def _seek_backward(self, end, wrap):
 		r = self.indicator.getPreviousRange(end)
 
 		if r is None:
 			if wrap:
-				self._seekBackward(self.editor.bytesLength(), wrap=False)
+				self._seek_backward(self.editor.bytesLength(), wrap=False)
 			return
 
 		start, end, _ = r
@@ -171,9 +171,9 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 
 	def seekSelect(self, start=0, forward=True, wrap=True):
 		if forward:
-			self._seekForward(start, wrap)
+			self._seek_forward(start, wrap)
 		else:
-			self._seekBackward(start, wrap)
+			self._seek_backward(start, wrap)
 
 
 def openSearchLine():
@@ -235,7 +235,7 @@ def searchText(ls, text):
 	performSearchSeek(editor, SearchProps(expr=text))
 
 
-def _searchNext(editor, forward):
+def _search_next(editor, forward):
 	if not hasattr(editor, 'searchObj'):
 		return
 
@@ -244,8 +244,8 @@ def _searchNext(editor, forward):
 
 
 def searchForward(editor):
-	_searchNext(editor, True)
+	_search_next(editor, True)
 
 
 def searchBackward(editor):
-	_searchNext(editor, False)
+	_search_next(editor, False)

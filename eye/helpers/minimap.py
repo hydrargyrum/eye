@@ -42,17 +42,17 @@ class MiniMap(QFrame, CategoryMixin, HasWeakEditorMixin):
 	def setLines(self, lines):
 		self.lines = lines
 
-	def _doMove(self, ev):
+	def _do_move(self, ev):
 		line = ev.pos().y() * self.editor.lines() / self.height()
 		line = max(0, min(self.editor.lines(), line))
 		self.lineClicked.emit(line)
 
 	def mousePressEvent(self, ev):
 		self.setCursor(Qt.ClosedHandCursor)
-		self._doMove(ev)
+		self._do_move(ev)
 
 	def mouseMoveEvent(self, ev):
-		self._doMove(ev)
+		self._do_move(ev)
 
 	def mouseReleaseEvent(self, ev):
 		self.setCursor(Qt.OpenHandCursor)

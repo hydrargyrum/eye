@@ -55,7 +55,7 @@ import weakref
 from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QWidget
 
-from eye import BUILDING_DOCS, _addDoc
+from eye import BUILDING_DOCS, _add_doc
 from eye.qt import Signal, Slot
 from eye.utils import exceptionLogging
 
@@ -335,7 +335,7 @@ def registerSignal(categories, signal, stackoffset=0):
 				   % (list(categories), signal))
 
 	if BUILDING_DOCS:
-		return lambda x: _addDoc(x, doctext)
+		return lambda x: _add_doc(x, doctext)
 
 	def deco(func):
 		caller = inspect.stack()[1 + stackoffset][1]
@@ -344,7 +344,7 @@ def registerSignal(categories, signal, stackoffset=0):
 		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
 
-		_addDoc(func, doctext)
+		_add_doc(func, doctext)
 
 		return func
 
@@ -374,7 +374,7 @@ def registerSetup(categories, stackoffset=0):
 	doctext = 'This handler is registered as setup for categories ``%s``.' % (list(categories),)
 
 	if BUILDING_DOCS:
-		return lambda x: _addDoc(x, doctext)
+		return lambda x: _add_doc(x, doctext)
 
 	def deco(func):
 		caller = inspect.stack()[1 + stackoffset][1]
@@ -383,7 +383,7 @@ def registerSetup(categories, stackoffset=0):
 		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
 
-		_addDoc(func, doctext)
+		_add_doc(func, doctext)
 
 		return func
 
@@ -395,7 +395,7 @@ def registerTeardown(categories, stackoffset=0):
 	doctext = 'This handler is registered as teardown for categories ``%s``.' % (list(categories),)
 
 	if BUILDING_DOCS:
-		return lambda x: _addDoc(x, doctext)
+		return lambda x: _add_doc(x, doctext)
 
 	def deco(func):
 		caller = inspect.stack()[1 + stackoffset][1]
@@ -404,7 +404,7 @@ def registerTeardown(categories, stackoffset=0):
 		lis.caller = caller
 		CONNECTOR.addListener(categories, lis)
 
-		_addDoc(func, doctext)
+		_add_doc(func, doctext)
 
 		return func
 
@@ -450,7 +450,7 @@ def registerEventFilter(categories, eventTypes, stackoffset=0):
 			   'event types ``%r``.' % (list(categories), eventTypes))
 
 	if BUILDING_DOCS:
-		return lambda x: _addDoc(x, doctext)
+		return lambda x: _add_doc(x, doctext)
 
 	def deco(func):
 		caller = inspect.stack()[1 + stackoffset][1]
@@ -460,7 +460,7 @@ def registerEventFilter(categories, eventTypes, stackoffset=0):
 		CONNECTOR.addListener(categories, lis)
 
 		# TODO use textual event type (parse source)
-		_addDoc(func, doctext)
+		_add_doc(func, doctext)
 
 		return func
 
@@ -488,7 +488,7 @@ def disabled(func):
 	func.enabled = False
 
 	doctext = 'This handler is disabled by default.'
-	_addDoc(func, doctext)
+	_add_doc(func, doctext)
 
 	return func
 

@@ -33,10 +33,10 @@ MONITOR = None
 class ScriptMonitor(MonitorWithRename):
 	def __init__(self, **kwargs):
 		super(ScriptMonitor, self).__init__(**kwargs)
-		self.fileChanged.connect(self._onFileChanged)
+		self.fileChanged.connect(self._on_file_changed)
 
 	@Slot(str)
-	def _onFileChanged(self, path):
+	def _on_file_changed(self, path):
 		LOGGER.info('%r has been modified, reloading', path)
 		deleteCreatedBy(path)
 		if os.path.exists(path):

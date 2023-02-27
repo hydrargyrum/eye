@@ -9,7 +9,7 @@ __version__ = '0.0.1'
 BUILDING_DOCS = os.environ.get('BUILDING_DOCS') == 'True'
 
 
-def _addDoc(func, text):
+def _add_doc(func, text):
 	"""Append `text` to `func` __doc__"""
 
 	if func.__doc__ is None:

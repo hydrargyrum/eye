@@ -126,7 +126,7 @@ class SubSequenceProxy(QSortFilterProxyModel):
 		text = mdl.data(qidx)
 		mtc = self.reobj.search(text)
 		if mtc:
-			self.scores[text] = self._scoreMatch(mtc, text)
+			self.scores[text] = self._score_match(mtc, text)
 		return bool(mtc)
 
 	def _score(self, qidx):
@@ -137,10 +137,10 @@ class SubSequenceProxy(QSortFilterProxyModel):
 			pass
 
 		mtc = self.reobj.search(text)
-		self.scores[text] = self._scoreMatch(mtc, text)
+		self.scores[text] = self._score_match(mtc, text)
 		return self.scores[text]
 
-	def _scoreMatch(self, mtc, text):
+	def _score_match(self, mtc, text):
 		n = self.reobj.groups
 
 		seq = 0
@@ -184,9 +184,9 @@ class SubSequenceFileChooser(BaseFileChooser):
 		self.view.setAlternatingRowColors(True)
 		self.view.sortByColumn(0, Qt.AscendingOrder)
 
-		self.view.activated.connect(self._onActivated)
+		self.view.activated.connect(self._on_activated)
 
-		self.edit.textEdited.connect(self._onTextEdited)
+		self.edit.textEdited.connect(self._on_text_edited)
 
 		self.crawlTimer = QTimer()
 		# restart the timer manually so an exception breaks the loop and timer
@@ -195,7 +195,7 @@ class SubSequenceFileChooser(BaseFileChooser):
 		self.crawler = None
 
 	@Slot(str)
-	def _onTextEdited(self, text):
+	def _on_text_edited(self, text):
 		selected = self.view.selectedIndexes()
 		qidx = None
 		if len(selected):
@@ -237,7 +237,7 @@ class SubSequenceFileChooser(BaseFileChooser):
 		self.crawlTimer.start(0)
 
 	@Slot(QModelIndex)
-	def _onActivated(self, qidx):
+	def _on_activated(self, qidx):
 		path = self.filter.data(qidx, AbsolutePathRole)
 		if not os.path.isfile(path): # symlinks?
 			return
@@ -252,9 +252,9 @@ class FileChooser(BaseFileChooser):
 
 		self.options = PropDict()
 
-		self.edit.textEdited.connect(self._onTextEdited)
+		self.edit.textEdited.connect(self._on_text_edited)
 
-		self.view.activated.connect(self._onActivated)
+		self.view.activated.connect(self._on_activated)
 
 		# models
 		self.rootChanger = RootChangerProxy()
@@ -278,7 +278,7 @@ class FileChooser(BaseFileChooser):
 		self.view.setRootIndex(QModelIndex())
 
 	@Slot(str)
-	def _onTextEdited(self, txt):
+	def _on_text_edited(self, txt):
 		elems = txt.rsplit('/', 1)
 		if len(elems) == 2:
 			dir, base = elems
@@ -300,7 +300,7 @@ class FileChooser(BaseFileChooser):
 			self.edit.setSelection(cursor, len(self.edit.text()))
 
 	@Slot(QModelIndex)
-	def _onActivated(self, idx):
+	def _on_activated(self, idx):
 		idx = self.filter.mapToSource(idx)
 		idx = self.rootChanger.mapToSource(idx)
 		info = self.baseModel.fileInfo(idx)

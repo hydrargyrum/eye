@@ -78,7 +78,7 @@ class Minibuffer(QLineEdit, WidgetMixin):
 			self.cancel()
 
 
-def _makeMiniBuffer(text='', placeholder='', window=None, category=None, closeFlags=CloseFlag.ALL):
+def _make_mini_buffer(text='', placeholder='', window=None, category=None, closeFlags=CloseFlag.ALL):
 	if window is None:
 		window = qApp().lastWindow
 
@@ -98,7 +98,7 @@ def openMiniBuffer(text='', placeholder='', window=None, category=None, closeFla
 	if old:
 		old.cancel()
 		old = None
-	return _makeMiniBuffer(text, placeholder, window, category, closeFlags)
+	return _make_mini_buffer(text, placeholder, window, category, closeFlags)
 
 
 def getMiniBuffer(window=None, category=None):

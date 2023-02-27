@@ -33,7 +33,7 @@ class MonitorWithRename(QFileSystemWatcher):
 	"""
 	def __init__(self, **kwargs):
 		super(MonitorWithRename, self).__init__(**kwargs)
-		self.fileChanged.connect(self._checkRetrack)
+		self.fileChanged.connect(self._check_retrack)
 
 	def addPath(self, path):
 		"""Start monitoring file at `path`.
@@ -53,7 +53,7 @@ class MonitorWithRename(QFileSystemWatcher):
 		super(MonitorWithRename, self).removePath(path)
 
 	@Slot(str)
-	def _checkRetrack(self, path):
+	def _check_retrack(self, path):
 		if path not in self.files():
 			LOGGER.debug('file has been untracked: %r', path)
 			if os.path.exists(path):
@@ -98,7 +98,7 @@ class Monitor(QObject):
 		self.delMapper.mapped[str].connect(self.unmonitorFile)
 
 		self.watcher = MonitorWithRename(parent=self)
-		self.watcher.fileChanged.connect(self._onFileChanged)
+		self.watcher.fileChanged.connect(self._on_file_changed)
 
 	def monitorFile(self, path):
 		"""Monitor a file and return an object that tracks only `path`
@@ -136,7 +136,7 @@ class Monitor(QObject):
 		self.watched.pop(path, None)
 
 	@Slot(str)
-	def _onFileChanged(self, path):
+	def _on_file_changed(self, path):
 		proxy = self.watched.get(path)
 		if proxy:
 			proxy.modified.emit()
