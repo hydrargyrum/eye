@@ -53,7 +53,7 @@ LOGGER = getLogger(__name__)
 class HasWeakEditorMixin(object):
 	def __init__(self, editor=None, **kwargs):
 		super(HasWeakEditorMixin, self).__init__(**kwargs)
-		self.__editor = editor
+		self.editor = editor
 
 	@property
 	def editor(self):
