@@ -16,11 +16,11 @@ from PyQt5.Qsci import (
 	QsciLexerTeX, QsciLexerYAML, QsciLexerDiff,
 )
 
-__all__ = ('extensionToLexer', 'mimeToLexer', 'applyStyles', 'stylesFromLexer')
+__all__ = ('extension_to_lexer', 'mime_to_lexer', 'apply_styles', 'styles_from_lexer')
 
 
-def stylesFromLexer(lexer):
-	"""Return the style names used by a QsciLexer object
+def styles_from_lexer(lexer):
+	"""Return the style names used by a Qsci_lexer object
 
 	Lexers provide a number of styles names, like "Comment", "Operator", "Identifier", etc.
 	"""
@@ -33,17 +33,17 @@ def stylesFromLexer(lexer):
 	return styles
 
 
-def applyStyles(lexer, spec):
-	styles = stylesFromLexer(lexer)
+def apply_styles(lexer, spec):
+	styles = styles_from_lexer(lexer)
 
 	for name, values in spec:
 		style = styles.get(name, -1)
 		if style >= 0:
-			lexer.setColor(QColor(values[0]))
+			lexer.set_color(QColor(values[0]))
 			if len(values) > 1:
-				lexer.setPaper(QColor(values[1]))
+				lexer.set_paper(QColor(values[1]))
 			if len(values) > 2:
-				lexer.setFont(QFont(values[2]))
+				lexer.set_font(QFont(values[2]))
 
 
 _extension_lexer = {
@@ -93,7 +93,7 @@ _extension_lexer = {
 }
 
 
-def extensionToLexer(ext):
+def extension_to_lexer(ext):
 	"""Return a QsciLexer corresponding to extension
 
 	If no appropriate lexer is found for `ext`, `None` is returned.
@@ -103,9 +103,9 @@ def extensionToLexer(ext):
 	return _extension_lexer.get(ext)
 
 
-def mimeToLexer(mime):
+def mime_to_lexer(mime):
 	"""Return a QsciLexer corresponding to mimetype
 
 	If no appropriate lexer is found for `mime`, `None` is returned.
 	"""
-	return extensionToLexer(mimetypes.guess_extension(mime))
+	return extension_to_lexer(mimetypes.guess_extension(mime))

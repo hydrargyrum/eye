@@ -7,18 +7,18 @@ import os
 from PyQt5.QtWidgets import QMessageBox
 
 from ...connector import disabled
-from ...pathutils import getConfigFilePath
-from ..intent import registerIntentListener
+from ...pathutils import get_config_file_path
+from ..intent import register_intent_listener
 
 
-__all__ = ('queryExtraConfUseConf', 'queryExtraConfDialog', 'CONF_ACCEPT', 'CONF_REJECT')
+__all__ = ('query_extra_conf_use_conf', 'query_extra_conf_dialog', 'CONF_ACCEPT', 'CONF_REJECT')
 
 
 CONF_ACCEPT = 'ycm.extra.accept.conf'
 CONF_REJECT = 'ycm.extra.reject.conf'
 
 
-def isInFile(expected, path):
+def is_in_file(expected, path):
 	if os.path.exists(path):
 		with open(path) as fd:
 			for line in fd:
@@ -30,30 +30,30 @@ def isInFile(expected, path):
 	return False
 
 
-def addToFile(line, path):
+def add_to_file(line, path):
 	with open(path, 'a') as fd:
 		print(line, file=fd)
 
 
-@registerIntentListener('queryExtraConf')
+@register_intent_listener('query_extra_conf')
 @disabled
-def queryExtraConfUseConf(source, ev, defaultReject=True):
+def query_extra_conf_use_conf(source, ev, default_reject=True):
 	ycmpath = ev.info['conf']
-	if isInFile(ycmpath, getConfigFilePath(CONF_ACCEPT)):
+	if is_in_file(ycmpath, get_config_file_path(CONF_ACCEPT)):
 		ev.accept(True)
 		return True
 
-	if defaultReject or isInFile(ycmpath, getConfigFilePath(CONF_REJECT)):
+	if default_reject or is_in_file(ycmpath, get_config_file_path(CONF_REJECT)):
 		ev.accept(False)
 		return True
 
 	return False
 
 
-@registerIntentListener('queryExtraConf')
+@register_intent_listener('query_extra_conf')
 @disabled
-def queryExtraConfDialog(source, ev):
-	if queryExtraConfUseConf(source, ev, defaultReject=False):
+def query_extra_conf_dialog(source, ev):
+	if query_extra_conf_use_conf(source, ev, default_reject=False):
 		return True
 
 	ycmpath = ev.info['conf']
@@ -72,12 +72,12 @@ def queryExtraConfDialog(source, ev):
 	clicked = dlg.clickedButton()
 	if clicked in (bOkOnce, bOkAlways):
 		if clicked is bOkAlways:
-			addToFile(ycmpath, getConfigFilePath(CONF_ACCEPT))
+			add_to_file(ycmpath, get_config_file_path(CONF_ACCEPT))
 		ev.accept(True)
 		return True
 	elif clicked in (bNoOnce, bNoAlways):
 		if clicked is bNoAlways:
-			addToFile(ycmpath, getConfigFilePath(CONF_REJECT))
+			add_to_file(ycmpath, get_config_file_path(CONF_REJECT))
 		ev.accept(False)
 		return True
 

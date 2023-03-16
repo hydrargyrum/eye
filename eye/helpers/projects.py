@@ -21,16 +21,18 @@ import re
 from PyQt5.QtCore import QObject
 
 from eye import pathutils, lexers
-from eye.connector import registerSignal, disabled, categoryObjects
+from eye.connector import register_signal, disabled, category_objects
 from eye.helpers.confcache import ConfCache
 from eye.qt import Slot
 from eye.reutils import glob2re
 
-__all__ = ('setEnabled',
-           'Project', 'findProjectForFile', 'getProjectForFile',
-           'mergedOptionsForFile',
-           'applyPreOptionsDict', 'applyOptionsDict',
-           'onPreOpen', 'onOpenSave')
+__all__ = (
+	'set_enabled',
+	'Project', 'find_project_for_file', 'get_project_for_file',
+	'merged_options_for_file',
+	'apply_pre_options_dict', 'apply_options_dict',
+	'on_pre_open', 'on_open_save',
+)
 
 # uses .editorconfig format http://editorconfig.org/
 
@@ -52,7 +54,7 @@ class Project(QObject):
 		self.cfgpath = None
 		self.cfg = None
 		self.sections_re = None
-		self.parentProject = None
+		self.parent_project = None
 
 	def _parse_file(self, cfgpath):
 		# add a starting section so it becomes INI format
@@ -83,7 +85,7 @@ class Project(QObject):
 		self.cfgpath = cfgpath
 		self.cfg = cfg
 		self.dir = os.path.dirname(cfgpath)
-		self.parentProject = None
+		self.parent_project = None
 
 		self.sections_re = {}
 		for section in self.cfg.sections():
@@ -98,12 +100,12 @@ class Project(QObject):
 		except NoOptionError:
 			isroot = True
 		else:
-			isroot = parseBool(opt, default=True)
+			isroot = parse_bool(opt, default=True)
 
 		if not isroot:
 			LOGGER.debug('searching parent project of %r', self.cfgpath)
 			parent = os.path.dirname(self.dir)
-			self.parentProject = getProjectForFile(parent)
+			self.parent_project = get_project_for_file(parent)
 		return True
 
 	def _project_hierarchy(self):
@@ -111,13 +113,13 @@ class Project(QObject):
 		current = self
 		while current is not None:
 			items.append(current)
-			current = current.parentProject
+			current = current.parent_project
 		items.reverse()
 		return items
 
 	def _apply_section_options(self, editor, section):
 		dct = dict(self.cfg.items(section))
-		applyOptionsDict(editor, dct)
+		apply_options_dict(editor, dct)
 
 	def _sections_for_file(self, relpath):
 		sections = []
@@ -132,46 +134,46 @@ class Project(QObject):
 			LOGGER.debug('no sections in %r apply for %r', self.cfgpath, relpath)
 		return sections
 
-	def rootProject(self):
+	def root_project(self):
 		current = self
-		while current.parentProject is not None:
-			current = current.parentProject
+		while current.parent_project is not None:
+			current = current.parent_project
 		return current
 
-	def isAncestorOf(self, other):
+	def is_ancestor_of(self, other):
 		if self is other:
 			return True
-		elif other is None or other.isroot or other.parentProject is None:
+		elif other is None or other.isroot or other.parent_project is None:
 			return False
-		return self.isAncestorOf(other.parentProject)
+		return self.is_ancestor_of(other.parent_project)
 
-	def appliesTo(self, path):
+	def applies_to(self, path):
 		# TODO: support excludes
-		return bool(pathutils.getCommonPrefix(self.dir, path))
+		return bool(pathutils.get_common_prefix(self.dir, path))
 
-	def pathRelativeToProject(self, path):
-		return pathutils.getRelativePathIn(path, self.dir)
+	def path_relative_to_project(self, path):
+		return pathutils.get_relative_path_in(path, self.dir)
 
-	def applyOptions(self, editor):
-		options = mergedOptionsForFile(self, editor.path)
+	def apply_options(self, editor):
+		options = merged_options_for_file(self, editor.path)
 		if options:
 			LOGGER.debug('applying options for editor %r', editor.path)
-			applyOptionsDict(editor, options)
+			apply_options_dict(editor, options)
 		else:
 			LOGGER.debug('no options apply to editor %r', editor.path)
 
-	def applyPreOptions(self, editor):
-		options = mergedOptionsForFile(self, editor.path)
+	def apply_pre_options(self, editor):
+		options = merged_options_for_file(self, editor.path)
 		if options:
 			LOGGER.debug('applying pre-options for editor %r', editor.path)
-			applyPreOptionsDict(editor, options)
+			apply_pre_options_dict(editor, options)
 		else:
 			LOGGER.debug('no options apply to editor %r', editor.path)
 
 
 class ProjectCache(ConfCache):
 	@Slot(str)
-	def onFileChanged(self, path):
+	def on_file_changed(self, path):
 		"""Reload project and apply to editors"""
 		project = self.cache.get(path)
 		if project is None:
@@ -181,14 +183,14 @@ class ProjectCache(ConfCache):
 			LOGGER.debug('could not reload project %r', path)
 			return
 
-		for editor in categoryObjects('editor'):
-			if project.isAncestorOf(getattr(editor, 'project', None)):
+		for editor in category_objects('editor'):
+			if project.is_ancestor_of(getattr(editor, 'project', None)):
 				LOGGER.debug('applying new project %r to editor %r', path, editor)
 
-				if getattr(onPreOpen, 'enabled', True):
-					onPreOpen(editor, editor.path)
-				if getattr(onOpenSave, 'enabled', True):
-					onOpenSave(editor, editor.path)
+				if getattr(on_pre_open, 'enabled', True):
+					on_pre_open(editor, editor.path)
+				if getattr(on_open_save, 'enabled', True):
+					on_open_save(editor, editor.path)
 
 
 PROJECT_CACHE = ProjectCache()
@@ -197,7 +199,8 @@ PROJECT_CACHE = ProjectCache()
 TRUE_STRINGS = ['true', 'yes', 'on', '1']
 FALSE_STRINGS = ['false', 'no', 'off', '0']
 
-def parseBool(s, default=False):
+
+def parse_bool(s, default=False):
 	"""Parse a string according to editorconfig and return a boolean value
 
 	The recognized `True` values are "true", "yes", "on" and "1". The recognized `False` values are "false",
@@ -212,17 +215,17 @@ def parseBool(s, default=False):
 		return default
 
 
-def mergedOptionsForFile(project, filepath):
+def merged_options_for_file(project, filepath):
 	projects = project._project_hierarchy()
 	options = {}
 	for project in projects:
-		relpath = project.pathRelativeToProject(filepath)
+		relpath = project.path_relative_to_project(filepath)
 		for section in project._sections_for_file(relpath):
 			options.update(project.cfg.items(section))
 	return options
 
 
-def applyPreOptionsDict(editor, dct):
+def apply_pre_options_dict(editor, dct):
 	val = dct.get('charset')
 	if val is not None:
 		try:
@@ -230,18 +233,18 @@ def applyPreOptionsDict(editor, dct):
 		except LookupError:
 			LOGGER.info('unknown charset: %r', val)
 		else:
-			editor.setEncoding(val)
+			editor.set_encoding(val)
 
 	val = dct.get('insert_final_newline')
 	if val == 'true':
-		editor.setUseFinalNewline(True)
+		editor.set_use_final_newline(True)
 	elif val == 'false':
-		editor.setUseFinalNewline(False)
+		editor.set_use_final_newline(False)
 	elif val is not None:
 		LOGGER.info('unknown insert_final_newline: %r', val)
 
 
-def applyOptionsDict(editor, dct):
+def apply_options_dict(editor, dct):
 	val = dct.get('indent_style')
 	if val == 'space':
 		editor.setIndentationsUseTabs(False)
@@ -281,33 +284,33 @@ def applyOptionsDict(editor, dct):
 
 	val = dct.get('trim_trailing_whitespace')
 	if val is not None:
-		editor.setRemoveTrailingWhitespace(parseBool(val))
+		editor.set_remove_trailing_whitespace(parse_bool(val))
 
 	k = 'eye.lexer_extension'
 	if k in dct:
-		lexer_type = lexers.extensionToLexer(dct[k])
+		lexer_type = lexers.extension_to_lexer(dct[k])
 		if lexer_type:
 			editor.setLexer(lexer_type())
 
 
-def findProjectForFile(path):
+def find_project_for_file(path):
 	"""Find the nearest editorconfig file for a directory
 
-	`path` can be any file or dir, `findProjectForFile` will search in the ancestors for a `.editorconfig` file.
+	`path` can be any file or dir, `find_project_for_file` will search in the ancestors for a `.editorconfig` file.
 	"""
-	ret = pathutils.findInAncestors(path, [PROJECT_FILENAME])
+	ret = pathutils.find_in_ancestors(path, [PROJECT_FILENAME])
 	if ret is not None:
 		return os.path.abspath(ret)
 
 
-def getProjectForFile(path):
+def get_project_for_file(path):
 	"""Find and load an editorconfig for file
 
-	`path` can be any file or dir, :any:`findProjectForFile` will search a `.editorconfig`, then this file will
+	`path` can be any file or dir, :any:`find_project_for_file` will search a `.editorconfig`, then this file will
 	be loaded as a :any:`Project` and will be returned. If the `Project` was in cache, it will be returned
 	directly.
 	"""
-	found = findProjectForFile(path)
+	found = find_project_for_file(path)
 	if not found:
 		LOGGER.debug('no project conf for %r', path)
 		return
@@ -316,18 +319,18 @@ def getProjectForFile(path):
 	if project is not None:
 		LOGGER.debug('found project %r in cache for %r', found, path)
 	else:
-		project = openProjectFile(found)
+		project = open_project_file(found)
 	if project is None:
 		LOGGER.info('could not open project %r for %r', found, path)
 		return
 
-	if project.appliesTo(path):
+	if project.applies_to(path):
 		return project
 	else:
 		LOGGER.debug('project does not apply for %r', path)
 
 
-def openProjectFile(filepath):
+def open_project_file(filepath):
 	"""Load and get a :any:`Project` object
 
 	`filepath` is loaded as a editorconfig file and a :any:`Project` is returned.
@@ -342,43 +345,43 @@ def openProjectFile(filepath):
 	return project
 
 
-@registerSignal('editor', 'fileAboutToBeOpened')
+@register_signal('editor', 'file_about_to_be_opened')
 @disabled
-def onPreOpen(editor, path):
+def on_pre_open(editor, path):
 	"""Handler when any file is about to be opened
 
 	This handler will search a editorconfig for this editor widget, load it and apply options to the editor.
 	"""
 
-	project = getProjectForFile(path)
+	project = get_project_for_file(path)
 	if not project:
 		return
 
 	editor.project = project
-	project.applyPreOptions(editor)
+	project.apply_pre_options(editor)
 
 
-@registerSignal('editor', 'fileOpened')
-@registerSignal('editor', 'fileSavedAs')
+@register_signal('editor', 'file_opened')
+@register_signal('editor', 'file_saved_as')
 @disabled
-def onOpenSave(editor, path):
+def on_open_save(editor, path):
 	"""Handler when any file is opened/saved
 
 	This handler will search a editorconfig for this editor widget, load it and apply options to the editor.
 	"""
-	project = getProjectForFile(path)
+	project = get_project_for_file(path)
 	if not project:
 		return
 
 	editor.project = project
-	project.applyOptions(editor)
+	project.apply_options(editor)
 
 
-def setEnabled(enabled):
+def set_enabled(enabled):
 	"""Enable/disable the module
 
 	When enabled, `.editorconfig` files are automatically applied when a file is loaded, or a file is
 	saved in a tree where a `.editorconfig` is present.
 	"""
-	onOpenSave.enabled = enabled
-	onPreOpen.enabled = enabled
+	on_open_save.enabled = enabled
+	on_pre_open.enabled = enabled

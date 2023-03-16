@@ -102,15 +102,17 @@ from configparser import SafeConfigParser
 from logging import getLogger
 
 from eye.colorutils import QColorAlpha
-from eye.connector import categoryObjects, registerSignal, registerSetup, disabled
-from eye.helpers._lexercolorgroups import getIdAndAliases
+from eye.connector import category_objects, register_signal, register_setup, disabled
+from eye.helpers._lexercolorgroups import get_id_and_aliases
 from eye.helpers.styles import STYLES
-from eye.lexers import stylesFromLexer
+from eye.lexers import styles_from_lexer
 
-__all__ = ('setEnabled', 'useSchemeFile', 'addSchemeFile',
-           'lexerSetFontFamily', 'lexerSetFontPointSize',
-           'applySchemeToEditor', 'applySchemeDictToEditor',
-           'applySchemeOnLexerChange', 'applySchemeOnCreate')
+__all__ = (
+	'set_enabled', 'use_scheme_file', 'add_scheme_file',
+	'lexer_set_font_family', 'lexer_set_font_point_size',
+	'apply_scheme_to_editor', 'apply_scheme_dict_to_editor',
+	'apply_scheme_on_lexer_change', 'apply_scheme_on_create',
+)
 
 
 LOGGER = getLogger(__name__)
@@ -121,26 +123,26 @@ BG_ATTRS = frozenset(['bg', 'background'])
 SCHEME = None
 
 
-def newScheme():
+def new_scheme():
 	parser = SafeConfigParser()
 	parser.optionxform = str
 	return parser
 
 
-def fuzzyEquals(a, b):
+def fuzzy_equals(a, b):
 	def norm(name):
 		return name.lower().replace(' ', '_')
 	return norm(a) == norm(b)
 
 
-def getStyleByDesc(lexer, desc, fuzzy=False):
+def get_style_by_desc(lexer, desc, fuzzy=False):
 	for i in range(1 << lexer.styleBitsNeeded()):
 		idesc = lexer.description(i)
-		if idesc == desc or (fuzzy and fuzzyEquals(desc, idesc)):
+		if idesc == desc or (fuzzy and fuzzy_equals(desc, idesc)):
 			return i
 
 
-def parseBool(s):
+def parse_bool(s):
 	s = s.lower()
 	if s in ['1', 'true', 'yes', 'y', 'on']:
 		return True
@@ -159,21 +161,21 @@ class Modificator(object):
 		self.key = key
 		self.strvalue = strvalue
 
-	def applyGeneric(self, attr, *args):
+	def apply_generic(self, attr, *args):
 		if attr == 'font':
-			self.setFont('Family', self.strvalue, *args)
+			self.set_font('Family', self.strvalue, *args)
 		elif attr == 'points':
-			self.setFont('PointSizeF', float(self.strvalue), *args)
+			self.set_font('PointSizeF', float(self.strvalue), *args)
 		elif attr == 'bold':
-			self.setFont('Bold', parseBool(self.strvalue), *args)
+			self.set_font('Bold', parse_bool(self.strvalue), *args)
 		elif attr == 'italic':
-			self.setFont('Italic', parseBool(self.strvalue), *args)
+			self.set_font('Italic', parse_bool(self.strvalue), *args)
 		elif attr == 'underline':
-			self.setFont('Underline', parseBool(self.strvalue), *args)
+			self.set_font('Underline', parse_bool(self.strvalue), *args)
 		elif attr in FG_ATTRS:
-			self.setColor(QColorAlpha(self.strvalue), *args)
+			self.set_color(QColorAlpha(self.strvalue), *args)
 		elif attr in BG_ATTRS:
-			self.setPaper(QColorAlpha(self.strvalue), *args)
+			self.set_paper(QColorAlpha(self.strvalue), *args)
 		else:
 			raise UnsupportedModification()
 
@@ -187,45 +189,45 @@ class LexerModificator(Modificator):
 			return
 
 		if tokenname == '*':
-			ids = stylesFromLexer(lexer).values()
+			ids = styles_from_lexer(lexer).values()
 		elif tokenname == '_default':
 			ids = [self.editor.STYLE_DEFAULT]
 		else:
-			ids = getIdAndAliases(lexer, tokenname)
+			ids = get_id_and_aliases(lexer, tokenname)
 
 		for id in ids:
-			self.applyOne(id, attr)
+			self.apply_one(id, attr)
 
-	def applyOne(self, styleId, attr):
+	def apply_one(self, style_id, attr):
 		lexer = self.editor.lexer()
 
-		self.applyGeneric(attr, lexer, styleId)
+		self.apply_generic(attr, lexer, style_id)
 
-	def applyGeneric(self, attr, lexer, styleId):
+	def apply_generic(self, attr, lexer, style_id):
 		if attr == 'eolfill':
-			lexer.setEolFill(parseBool(self.strvalue))
+			lexer.setEolFill(parse_bool(self.strvalue))
 		else:
-			super(LexerModificator, self).applyGeneric(attr, lexer, styleId)
+			super(LexerModificator, self).apply_generic(attr, lexer, style_id)
 
-	def setColor(self, qc, lexer, styleId):
-		lexer.setColor(QColorAlpha(self.strvalue), styleId)
+	def set_color(self, qc, lexer, style_id):
+		lexer.setColor(QColorAlpha(self.strvalue), style_id)
 
-	def setPaper(self, qc, lexer, styleId):
-		lexer.setPaper(QColorAlpha(self.strvalue), styleId)
+	def set_paper(self, qc, lexer, style_id):
+		lexer.setPaper(QColorAlpha(self.strvalue), style_id)
 
-	def setFont(self, fontAttr, value, lexer, styleId):
-		font = lexer.font(styleId)
-		fontAttr = 'set%s' % fontAttr
-		getattr(font, fontAttr)(value)
-		lexer.setFont(font, styleId)
+	def set_font(self, font_attr, value, lexer, style_id):
+		font = lexer.font(style_id)
+		font_attr = 'set%s' % font_attr
+		getattr(font, font_attr)(value)
+		lexer.setFont(font, style_id)
 
 
 class EditorModificator(Modificator):
 	def apply(self):
 		element, attr = self.key.split('.')
-		self.applyGeneric(attr, element)
+		self.apply_generic(attr, element)
 
-	def applyCaret(self, attr, strvalue):
+	def apply_caret(self, attr, strvalue):
 		if attr in FG_ATTRS:
 			qc = QColorAlpha(strvalue)
 			self.editor.setCaretForegroundColor(qc)
@@ -235,7 +237,7 @@ class EditorModificator(Modificator):
 		else:
 			raise UnsupportedModification('only elements in %s are supported for caret' % (FG_ATTRS + BG_ATTRS))
 
-	def setColor(self, qc, element):
+	def set_color(self, qc, element):
 		attrs = {
 			'text': 'setColor',
 			'selection': 'setSelectionForegroundColor',
@@ -249,7 +251,7 @@ class EditorModificator(Modificator):
 
 		getattr(self.editor, attrs[element])(qc)
 
-	def setPaper(self, qc, element):
+	def set_paper(self, qc, element):
 		attrs = {
 			'text': 'setPaper',
 			'selection': 'setSelectionBackgroundColor',
@@ -263,14 +265,14 @@ class EditorModificator(Modificator):
 
 		getattr(self.editor, attrs[element])(qc)
 
-	def setFont(self, fontAttr, value, element):
+	def set_font(self, font_attr, value, element):
 		if element != 'text':
 			raise UnsupportedModification('only "text" is supported')
 		# margin.* lacks a Editor.marginsFont()
 
 		font = self.editor.font()
-		fontAttr = 'set%s' % fontAttr
-		getattr(font, fontAttr)(value)
+		font_attr = 'set%s' % font_attr
+		getattr(font, font_attr)(value)
 		self.editor.setFont(font)
 
 
@@ -280,23 +282,23 @@ class IndicatorModificator(Modificator):
 
 		indicator = self.editor.indicators.get(name)
 		if not indicator:
-			indicator = self.editor.createIndicator(name, self.editor.PlainIndicator)
+			indicator = self.editor.create_indicator(name, self.editor.PlainIndicator)
 
-		self.applyGeneric(attr, indicator)
+		self.apply_generic(attr, indicator)
 
-	def applyGeneric(self, attr, indicator):
+	def apply_generic(self, attr, indicator):
 		if attr == 'style':
-			indicator.setStyle(getattr(self.editor, self.strvalue))
+			indicator.set_style(getattr(self.editor, self.strvalue))
 		else:
-			super(IndicatorModificator, self).applyGeneric(attr, indicator)
+			super(IndicatorModificator, self).apply_generic(attr, indicator)
 
-	def setColor(self, qc, indicator):
-		indicator.setColor(qc)
+	def set_color(self, qc, indicator):
+		indicator.set_color(qc)
 
-	def setPaper(self, qc, indicator):
+	def set_paper(self, qc, indicator):
 		indicator.setOutlineColor(qc)
 
-	def setFont(self, *args):
+	def set_font(self, *args):
 		raise UnsupportedModification('font cannot be set for indicators')
 
 
@@ -304,28 +306,28 @@ class StyleModificator(Modificator):
 	def apply(self):
 		name, attr = self.key.split('.')
 
-		self.applyGeneric(attr, STYLES[name])
+		self.apply_generic(attr, STYLES[name])
 
-	def applyGeneric(self, attr, style):
+	def apply_generic(self, attr, style):
 		if attr == 'eolfill':
-			style.setEolFill(parseBool(self.strvalue))
+			style.setEolFill(parse_bool(self.strvalue))
 		else:
-			super(StyleModificator, self).applyGeneric(attr, style)
+			super(StyleModificator, self).apply_generic(attr, style)
 
-	def setFont(self, fontAttr, value, style):
+	def set_font(self, font_attr, value, style):
 		font = style.font()
-		fontAttr = 'set%s' % fontAttr
-		getattr(font, fontAttr)(value)
+		font_attr = 'set%s' % font_attr
+		getattr(font, font_attr)(value)
 		style.setFont(font)
 
-	def setColor(self, qc, style):
-		style.setColor(qc)
+	def set_color(self, qc, style):
+		style.set_color(qc)
 
-	def setPaper(self, qc, style):
-		style.setPaper(qc)
+	def set_paper(self, qc, style):
+		style.set_paper(qc)
 
 
-def getModificator(name):
+def get_modificator(name):
 	modificators = {
 		'token': LexerModificator,
 		'indicator': IndicatorModificator,
@@ -336,7 +338,7 @@ def getModificator(name):
 	return modificators.get(name)
 
 
-def applySchemeDictToEditor(dct, editor):
+def apply_scheme_dict_to_editor(dct, editor):
 	for key in sorted(dct):
 		value = dct[key]
 		try:
@@ -345,7 +347,7 @@ def applySchemeDictToEditor(dct, editor):
 			LOGGER.info('ignoring malformed style key %r', key)
 			continue
 
-		modificator_type = getModificator(styletype)
+		modificator_type = get_modificator(styletype)
 		if modificator_type is None:
 			LOGGER.info('ignoring unknown style type %r', styletype)
 			continue
@@ -360,7 +362,7 @@ def applySchemeDictToEditor(dct, editor):
 		LOGGER.debug('applied %r=%r to %r', key, value, editor)
 
 
-def applySchemeToEditor(parser, editor):
+def apply_scheme_to_editor(parser, editor):
 	lexer = editor.lexer()
 
 	lexer_name = lexer.language() if lexer else 'None'
@@ -369,10 +371,10 @@ def applySchemeToEditor(parser, editor):
 			LOGGER.debug('using section %r for file %r', section, editor.path)
 
 			dict_scheme = dict(parser.items(section))
-			applySchemeDictToEditor(dict_scheme, editor)
+			apply_scheme_dict_to_editor(dict_scheme, editor)
 
 
-def useSchemeFile(path, applyToAll=True):
+def use_scheme_file(path, apply_to_all=True):
 	"""Use a color scheme file
 
 	Reset current color scheme and load a new scheme file.
@@ -388,51 +390,51 @@ def useSchemeFile(path, applyToAll=True):
 		return
 
 	SCHEME = None
-	addSchemeFile(path, applyToAll)
+	add_scheme_file(path, apply_to_all)
 
 
-def addSchemeFile(path, applyToAll=True):
+def add_scheme_file(path, apply_to_all=True):
 	"""Load a color scheme file
 
-	Unlike :any:`useSchemeFile`, it does not reset the current color scheme but adds new definitions.
+	Unlike :any:`use_scheme_file`, it does not reset the current color scheme but adds new definitions.
 	If a previous scheme file had some definitions which are redefined in the new scheme, they are replaced by the
 	new one.
 
 	:param path: color scheme file
-	:param applyToAll: if True, apply to existing editor widgets
+	:param apply_to_all: if True, apply to existing editor widgets
 	"""
 	global SCHEME
 
 	if SCHEME is None:
 		LOGGER.info('starting with empty scheme')
-		SCHEME = newScheme()
+		SCHEME = new_scheme()
 
 	LOGGER.info('adding scheme %r', path)
 	SCHEME.read([path])
 
-	if applyToAll:
-		for ed in categoryObjects('editor'):
-			applySchemeToEditor(SCHEME, ed)
+	if apply_to_all:
+		for ed in category_objects('editor'):
+			apply_scheme_to_editor(SCHEME, ed)
 
 
-@registerSetup('editor')
+@register_setup('editor')
 @disabled
-def applySchemeOnCreate(editor):
+def apply_scheme_on_create(editor):
 	if SCHEME:
-		applySchemeToEditor(SCHEME, editor)
+		apply_scheme_to_editor(SCHEME, editor)
 
 
-@registerSignal('editor', 'lexerChanged')
+@register_signal('editor', 'lexer_changed')
 @disabled
-def applySchemeOnLexerChange(editor, lexer):
+def apply_scheme_on_lexer_change(editor, lexer):
 	if SCHEME:
-		applySchemeToEditor(SCHEME, editor)
+		apply_scheme_to_editor(SCHEME, editor)
 
 
-def setEnabled(enabled=True):
+def set_enabled(enabled=True):
 	"""Enabled/disable automatic color scheme application to editors"""
-	applySchemeOnCreate.enabled = enabled
-	applySchemeOnLexerChange.enabled = enabled
+	apply_scheme_on_create.enabled = enabled
+	apply_scheme_on_lexer_change.enabled = enabled
 
 
 def _lexer_set_font(lexer, cb, style):
@@ -448,7 +450,7 @@ def _lexer_set_font(lexer, cb, style):
 			_lexer_set_font(lexer, cb, i)
 
 
-def lexerSetFontFamily(lexer, family, style=-1):
+def lexer_set_font_family(lexer, family, style=-1):
 	"""Set the font family of a lexer
 
 	Set just the font family for `style` of `lexer`.
@@ -459,11 +461,13 @@ def lexerSetFontFamily(lexer, family, style=-1):
 	:param family: font family to use
 	:param style: if negative, modifies all styles of `lexer`
 	"""
-	cb = lambda font: font.setFamily(family)
+	def cb(font):
+		font.setFamily(family)
+
 	_lexer_set_font(lexer, cb, style)
 
 
-def lexerSetFontPointSize(lexer, size, style=-1):
+def lexer_set_font_point_size(lexer, size, style=-1):
 	"""Set the font size of a lexer
 
 	Set just the font size for `style` of `lexer`.
@@ -474,5 +478,7 @@ def lexerSetFontPointSize(lexer, size, style=-1):
 	:param size: font size to use (in points)
 	:param style: if negative, modifies all styles of `lexer`
 	"""
-	cb = lambda font: font.setPointSize(size)
+	def cb(font):
+		font.setPointSize(size)
+
 	_lexer_set_font(lexer, cb, style)

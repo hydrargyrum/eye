@@ -42,13 +42,13 @@ class SearchOptionsButton(QPushButton):
 
 		self.setMenu(menu)
 
-	def shouldFindRoot(self):
+	def should_find_root(self):
 		return self.actionRoot.isChecked()
 
-	def caseSensitive(self):
+	def case_sensitive(self):
 		return not self.actionCi.isChecked()
 
-	def reFormat(self):
+	def re_format(self):
 		if self.actionPlain.isChecked():
 			return QRegExp.FixedString
 		elif self.actionRe.isChecked():
@@ -71,7 +71,7 @@ class SearchWidget(QWidget, WidgetMixin):
 		self.optionsButton = SearchOptionsButton()
 
 		self.pluginChoice = QComboBox()
-		plugins = sorted(file_search.enabledPlugins(), key=lambda p: p.name())
+		plugins = sorted(file_search.enabled_plugins(), key=lambda p: p.name())
 		for plugin in plugins:
 			self.pluginChoice.addItem(plugin.name(), plugin.id)
 
@@ -85,7 +85,7 @@ class SearchWidget(QWidget, WidgetMixin):
 		layout.addWidget(self.pluginChoice, 0, 2)
 		layout.addWidget(self.results, 1, 0, 1, -1)
 
-		self.addCategory('file_search_widget')
+		self.add_category('file_search_widget')
 
 	def setPlugin(self, id):
 		index = self.pluginChoice.findData(id)
@@ -95,23 +95,23 @@ class SearchWidget(QWidget, WidgetMixin):
 	def setText(self, text):
 		self.exprEdit.setText(text)
 
-	def selectedPlugin(self):
+	def selected_plugin(self):
 		return self.pluginChoice.itemData(self.pluginChoice.currentIndex())
 
 	def regexp(self):
 		re = QRegExp(self.exprEdit.text())
 		re.setCaseSensitivity(csToQtEnum(self.optionsButton.caseSensitive()))
-		re.setPatternSyntax(self.optionsButton.reFormat())
+		re.setPatternSyntax(self.optionsButton.re_format())
 		return re
 
-	def shouldFindRoot(self):
-		return self.optionsButton.shouldFindRoot()
+	def should_find_root(self):
+		return self.optionsButton.should_find_root()
 
-	def makeArgs(self, plugin):
-		ed = buffers.currentBuffer()
+	def make_args(self, plugin):
+		ed = buffers.current_buffer()
 
-		if self.shouldFindRoot():
-			path = plugin.searchRootPath(ed.path)
+		if self.should_find_root():
+			path = plugin.search_root_path(ed.path)
 		else:
 			path = os.path.dirname(ed.path)
 		pattern = self.exprEdit.text()
@@ -119,12 +119,12 @@ class SearchWidget(QWidget, WidgetMixin):
 		return (path, pattern, ci)
 
 	@Slot()
-	def doSearch(self):
+	def do_search(self):
 		self.results.clear()
-		plugin_type = file_search.getPlugin(self.selectedPlugin())
+		plugin_type = file_search.get_plugin(self.selected_plugin())
 		self.searcher = plugin_type()
 		file_search.setupLocationList(self.searcher, self.results)
-		args = self.makeArgs(self.searcher)
+		args = self.make_args(self.searcher)
 		self.searcher.search(*args)
 
 	returnPressed = Signal()

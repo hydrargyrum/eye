@@ -37,13 +37,13 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox
 import sip
 
 from eye import structs, io
-from eye.connector import disabled, registerEventFilter
+from eye.connector import disabled, register_event_filter
 from eye.qt import Slot, Signal, override
-from eye.widgets.helpers import CentralWidgetMixin, acceptIf
+from eye.widgets.helpers import CentralWidgetMixin, accept_if
 
 __all__ = (
 	'Editor', 'Marker', 'Indicator', 'Margin', 'BaseEditor', 'QsciScintilla', 'SciModification',
-	'zoomOnWheel'
+	'zoom_on_wheel'
 )
 
 
@@ -80,7 +80,7 @@ class Marker(HasWeakEditorMixin):
 
 	Example::
 
-		marker = editor.createMarker('breakpoint', editor.Circle)
+		marker = editor.create_marker('breakpoint', editor.Circle)
 		# declare a marker type called 'breakpoint' which will show a circle in the margin
 		# the Marker instance can be retrieved if needed
 		# marker = editor.markers['breakpoint']
@@ -101,7 +101,7 @@ class Marker(HasWeakEditorMixin):
 		if editor:
 			self._create()
 
-	def toBit(self):
+	def to_bit(self):
 		"""Return the internal Scintilla marker id in this editor instance"""
 		return 1 << self.id
 
@@ -110,63 +110,63 @@ class Marker(HasWeakEditorMixin):
 			self.editor = editor
 
 		if self.id < 0:
-			if len(getattr(self.editor, 'freeMarkers', [])):
-				self.id = self.editor.freeMarkers.pop()
+			if len(getattr(self.editor, 'free_markers', [])):
+				self.id = self.editor.free_markers.pop()
 			self.id = self.editor.markerDefine(self.sym, self.id)
 			del self.sym
 
-	def setSymbol(self, param):
+	def set_symbol(self, param):
 		"""Change the visual symbol of the marker"""
 		newid = self.editor.markerDefine(param, self.id)
 		assert newid == self.id
 
-	def putAt(self, line):
+	def put_at(self, line):
 		"""Add a marker symbol of this type at `line`"""
 		return self.editor.markerAdd(line, self.id)
 
-	def removeAt(self, line):
+	def remove_at(self, line):
 		"""Remove marker of this type at `line` if present"""
 		self.editor.markerDelete(line, self.id)
 
-	def toggleAt(self, line):
+	def toggle_at(self, line):
 		"""Toggle marker of this type at `line`"""
-		if self.isAt(line):
-			self.removeAt(line)
+		if self.is_at(line):
+			self.remove_at(line)
 		else:
-			self.putAt(line)
+			self.put_at(line)
 
-	def isAt(self, line):
+	def is_at(self, line):
 		"""Return `True` if a marker of this type is present at `line`"""
-		return self.toBit() & self.editor.markersAtLine(line)
+		return self.to_bit() & self.editor.markersAtLine(line)
 
-	def getNext(self, line):
+	def get_next(self, line):
 		"""Return the line number of first line having this marker after `line`
 
 		-1 is returned if there is no line with the marker after `line`.
 		"""
-		return self.editor.getMarkerNext(line + 1, self.toBit())
+		return self.editor.get_marker_next(line + 1, self.to_bit())
 
-	def getPrevious(self, line):
+	def get_previous(self, line):
 		"""Return the line number of first line having this marker before `line`
 
 		-1 is returned if there is no line with the marker before `line`.
 		"""
-		return self.editor.getMarkerPrevious(line - 1, self.toBit())
+		return self.editor.get_marker_previous(line - 1, self.to_bit())
 
-	def listAll(self):
+	def list_all(self):
 		"""List all lines that have this marker set"""
 		ln = -1
 		while True:
-			ln = self.editor.markerFindNext(ln + 1, self.toBit())
+			ln = self.editor.marker_find_next(ln + 1, self.to_bit())
 			if ln < 0:
 				return
 			yield ln
 
-	def setBackgroundColor(self, color):
+	def set_background_color(self, color):
 		"""Set background color of this marker type"""
 		self.editor.setMarkerBackgroundColor(color, self.id)
 
-	def setColor(self, color):
+	def set_color(self, color):
 		"""Set foreground color of this marker type"""
 		self.editor.setMarkerForegroundColor(color, self.id)
 
@@ -186,7 +186,7 @@ class Indicator(HasWeakEditorMixin):
 
 	Example:
 
-		indic = editor.createIndicator('highlight', editor.BoxIndicator)
+		indic = editor.create_indicator('highlight', editor.BoxIndicator)
 		# declare an indicator named 'highlight' with a "box" style (the text will be surrounded by a box)
 		# the Indicator instance can be retrieved later:
 		# indic = editor.indicators['highlight']
@@ -208,26 +208,26 @@ class Indicator(HasWeakEditorMixin):
 			self.editor = editor
 
 		if self.id < 0:
-			if len(getattr(self.editor, 'freeIndicators', [])):
-				self.id = self.editor.freeIndicators.pop()
+			if len(getattr(self.editor, 'free_indicators', [])):
+				self.id = self.editor.free_indicators.pop()
 			self.id = self.editor.indicatorDefine(self.style, self.id)
 			del self.style
 
-	def getAtOffset(self, offset):
+	def get_at_offset(self, offset):
 		"""Return the value of the indicator is present at byte `offset`
 
 		If the indicator is not set at byte `offset`, 0 is returned, else the value of the indicator
 		at this offset is returned.
 		"""
-		return self.editor.indicatorValueAt(self.id, offset)
+		return self.editor.indicator_value_at(self.id, offset)
 
-	def isOnEdge(self, offset):
+	def is_on_edge(self, offset):
 		if offset == 0:
-			return bool(self.getAtOffset(offset))
+			return bool(self.get_at_offset(offset))
 		else:
-			return self.getAtOffset(offset) != self.getAtOffset(offset - 1)
+			return self.get_at_offset(offset) != self.get_at_offset(offset - 1)
 
-	def getPreviousEdge(self, offset):
+	def get_previous_edge(self, offset):
 		"""Return the offset of the first edge of this indicator before `offset`.
 
 		If `offset` is inside a range of characters with this indicator set, the start of the range
@@ -240,40 +240,40 @@ class Indicator(HasWeakEditorMixin):
 
 		Example::
 
-			>>> indicator.putAtOffset(4, 10)
-			>>> indicator.getPreviousEdge(12)
+			>>> indicator.put_at_offset(4, 10)
+			>>> indicator.get_previous_edge(12)
 			10
-			>>> indicator.getPreviousEdge(10)
+			>>> indicator.get_previous_edge(10)
 			4
-			>>> indicator.getPreviousEdge(4)
+			>>> indicator.get_previous_edge(4)
 			-1
 		"""
 		if offset > 0:
 			offset -= 1
 			# in scintilla, 'end' always advances, but 'start' blocks...
 
-		res = self.editor.indicatorStart(self.id, offset)
-		if res == 0 and not self.getAtOffset(0):
+		res = self.editor.indicator_start(self.id, offset)
+		if res == 0 and not self.get_at_offset(0):
 			return -1
 		return res
 
-	def getPreviousRange(self, offset, expected=None):
-		end = self.getPreviousEdge(offset)
+	def get_previous_range(self, offset, expected=None):
+		end = self.get_previous_edge(offset)
 		if end < 0:
 			return None
 
 		while True:
-			start = self.getPreviousEdge(end)
+			start = self.get_previous_edge(end)
 			if start < 0:
 				return None
 
-			value = self.getAtOffset(start)
+			value = self.get_at_offset(start)
 			if value and (expected is None or expected == value):
 				return (start, end, value)
 
 			end = start
 
-	def getNextEdge(self, offset):
+	def get_next_edge(self, offset):
 		"""Return the offset of the first edge of this indicator after `offset`.
 
 		If `offset` is inside a range of characters with this indicator set, the end of the range is
@@ -286,63 +286,63 @@ class Indicator(HasWeakEditorMixin):
 
 		Example::
 
-			>>> indicator.putAtOffset(4, 10)
-			>>> indicator.getNextEdge(0)
+			>>> indicator.put_at_offset(4, 10)
+			>>> indicator.get_next_edge(0)
 			4
-			>>> indicator.getNextEdge(4)
+			>>> indicator.get_next_edge(4)
 			10
-			>>> indicator.getNextEdge(10)
+			>>> indicator.get_next_edge(10)
 			-1
 		"""
-		blen = self.editor.bytesLength()
+		blen = self.editor.bytes_length()
 		if offset == blen:
 			return -1
 
-		res = self.editor.indicatorEnd(self.id, offset)
+		res = self.editor.indicator_end(self.id, offset)
 		if res == 0:
 			# 0 is returned when indicator is never set
 			return -1
-		elif res == blen and not self.getAtOffset(offset):
-			# bytesLength() is returned after last range
+		elif res == blen and not self.get_at_offset(offset):
+			# bytes_length() is returned after last range
 			return -1
 		return res
 
-	def getNextRange(self, offset, expected=None):
-		start = self.getNextEdge(offset)
+	def get_next_range(self, offset, expected=None):
+		start = self.get_next_edge(offset)
 		if start < 0:
 			return None
 
 		while True:
-			end = self.getNextEdge(start)
+			end = self.get_next_edge(start)
 			if end < 0:
 				return None
 
-			value = self.getAtOffset(start)
+			value = self.get_at_offset(start)
 			if value and (expected is None or expected == value):
 				return (start, end, value)
 
 			start = end
 
-	def getCurrentRange(self, offset):
-		val = self.getAtOffset(offset)
-		prev = self.getPreviousEdge(offset)
-		if self.getAtOffset(prev) != val:
+	def get_current_range(self, offset):
+		val = self.get_at_offset(offset)
+		prev = self.get_previous_edge(offset)
+		if self.get_at_offset(prev) != val:
 			prev = offset
-		next = self.getNextEdge(offset)
+		next = self.get_next_edge(offset)
 		return (prev, next, val)
 
-	def iterRanges(self):
+	def iter_ranges(self):
 		"""Return (start, end, value) tuples listing the ranges where the indicator is set.
 
 		Returns an iterator of `(start, end, value)` range tuple. For each tuple, `start` (inclusive) and
 		`end` (exclusive) are byte offsets. `value` is the value of the indicator in this range.
 		"""
-		ed_end = self.editor.bytesLength()
+		ed_end = self.editor.bytes_length()
 
 		start = 0
-		value = self.getAtOffset(start)
+		value = self.get_at_offset(start)
 		while start < ed_end:
-			end = self.editor.indicatorEnd(self.id, start)
+			end = self.editor.indicator_end(self.id, start)
 			if value > 0:
 				yield (start, end, value)
 
@@ -351,15 +351,15 @@ class Indicator(HasWeakEditorMixin):
 				break
 
 			start = end
-			value = self.getAtOffset(start)
+			value = self.get_at_offset(start)
 
-	def iterLines(self):
-		ed_end = self.editor.bytesLength()
+	def iter_lines(self):
+		ed_end = self.editor.bytes_length()
 
 		start = 0
-		value = self.getAtOffset(start)
+		value = self.get_at_offset(start)
 		while start < ed_end:
-			end = self.editor.indicatorEnd(self.id, start)
+			end = self.editor.indicator_end(self.id, start)
 			if end == 0:
 				# the indicator is set nowhere
 				break
@@ -373,17 +373,17 @@ class Indicator(HasWeakEditorMixin):
 				start = self.editor.positionFromLineIndex(lineend + 1, 0)
 			else:
 				start = end
-			value = self.getAtOffset(start)
+			value = self.get_at_offset(start)
 
-	def putAt(self, lineFrom, indexFrom, lineTo, indexTo, value=1):
+	def put_at(self, line_from, index_from, line_to, index_to, value=1):
 		"""Add the indicator to a range of characters (line-index based)
 
-		The indicator is set from `(lineFrom, indexFrom)` (inclusive) to `(lineTo, indexTo)` (exclusive).
+		The indicator is set from `(line_from, index_from)` (inclusive) to `(line_to, index_to)` (exclusive).
 		In this range, the indicator will have `value`.
 		"""
-		self.editor.fillIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, self.id, value)
+		self.editor.fillIndicatorRange(line_from, index_from, line_to, index_to, self.id, value)
 
-	def putAtOffset(self, start, end, value=1):
+	def put_at_offset(self, start, end, value=1):
 		"""Add the indicator to a range of characters (byte offset based)
 
 		:param start: start offset (inclusive)
@@ -392,18 +392,18 @@ class Indicator(HasWeakEditorMixin):
 		"""
 		startl, startc = self.editor.lineIndexFromPosition(start)
 		endl, endc = self.editor.lineIndexFromPosition(end)
-		self.putAt(startl, startc, endl, endc, value)
+		self.put_at(startl, startc, endl, endc, value)
 
-	def removeAt(self, lineFrom, indexFrom, lineTo, indexTo):
+	def remove_at(self, line_from, index_from, line_to, index_to):
 		"""Remove the indicator from a range of characters (line-index based)
 
 		The indicator is unset from `(lineFrom, indexFrom)` (inclusive) to `(lineTo, indexTo)`
 		(exclusive).
 		In this range, the indicator value will be reset to 0.
 		"""
-		self.editor.clearIndicatorRange(lineFrom, indexFrom, lineTo, indexTo, self.id)
+		self.editor.clearIndicatorRange(line_from, index_from, line_to, index_to, self.id)
 
-	def removeAtOffset(self, start, end):
+	def remove_at_offset(self, start, end):
 		"""Remove the indicator from a range of characters (byte offset based)
 
 		In this range, the indicator value will be reset to 0.
@@ -413,21 +413,21 @@ class Indicator(HasWeakEditorMixin):
 		"""
 		startl, startc = self.editor.lineIndexFromPosition(start)
 		endl, endc = self.editor.lineIndexFromPosition(end)
-		self.removeAt(startl, startc, endl, endc)
+		self.remove_at(startl, startc, endl, endc)
 
 	def clear(self):
 		"""Remove the indicator from all characters in the editor widget"""
-		self.removeAtOffset(0, self.editor.bytesLength())
+		self.remove_at_offset(0, self.editor.bytes_length())
 
-	def setColor(self, col):
+	def set_color(self, col):
 		"""Set the color of the text marked by this indicator"""
 		self.editor.setIndicatorForegroundColor(col, self.id)
 
-	def setOutlineColor(self, col):
+	def set_outline_color(self, col):
 		"""Set the outline color of the text marked by this indicator"""
 		self.editor.setIndicatorOutlineColor(col, self.id)
 
-	def setStyle(self, style):
+	def set_style(self, style):
 		"""Set the visual style of the text marked by this indicator
 
 		:param style: the new visual style to use
@@ -435,11 +435,11 @@ class Indicator(HasWeakEditorMixin):
 		"""
 		self.id = self.editor.indicatorDefine(style, self.id)
 
-	def setFlags(self, flags):
-		self.editor.setIndicatorFlags(self.id, flags)
+	def set_flags(self, flags):
+		self.editor.set_indicator_flags(self.id, flags)
 
-	def getFlags(self):
-		return self.editor.indicatorFlags(self.id)
+	def get_flags(self):
+		return self.editor.indicator_flags(self.id)
 
 
 class Margin(HasWeakEditorMixin):
@@ -467,21 +467,21 @@ class Margin(HasWeakEditorMixin):
 		if self.editor:
 			self.width = self.editor.marginWidth(self.id)
 
-	def setWidth(self, w):
+	def set_width(self, w):
 		self.width = w
 		if self.visible:
 			self.show()
 
-	def setMarkerTypes(self, names):
+	def set_marker_types(self, names):
 		bits = 0
 		for name in names:
-			bits |= self.editor.markers[name].toBit()
+			bits |= self.editor.markers[name].to_bit()
 		self.editor.setMarginMarkerMask(self.id, bits)
 
-	def setAllMarkerTypes(self):
+	def set_all_marker_types(self):
 		self.editor.setMarginMarkerMask(self.id, (1 << 32) - 1)
 
-	def setText(self, line, txt):
+	def set_text(self, line, txt):
 		if isinstance(txt, (str, bytes)):
 			self.editor.setMarginText(self.id, txt, 0)
 		else:
@@ -496,7 +496,7 @@ class Margin(HasWeakEditorMixin):
 		self.editor.setMarginWidth(self.id, 0)
 
 
-def sciProp(prop, expected_args):
+def sci_prop(prop, expected_args):
 	def func(self, *args):
 		if len(args) != len(expected_args):
 			raise TypeError("this function takes exactly %d argument(s)" % len(expected_args))
@@ -508,26 +508,26 @@ def sciProp(prop, expected_args):
 	return func
 
 
-def sciProp2(prop):
+def sci_prop_2(prop):
 	def func(self, arg1, arg2):
 		return self.SendScintilla(prop, arg1, arg2)
 	return func
 
 
-def sciPropSet(prop):
+def sci_prop_set(prop):
 	def func(self, value):
 		return self.SendScintilla(prop, value)
 	return func
 
-sciProp1 = sciPropSet
+sci_prop_1 = sci_prop_set
 
 
-def sciPropGet(prop):
+def sci_prop_get(prop):
 	def func(self):
 		return self.SendScintilla(prop)
 	return func
 
-sciProp0 = sciPropGet
+sci_prop_0 = sci_prop_get
 
 
 def sipvoid_as_str(v):
@@ -539,9 +539,13 @@ def sipvoid_as_str(v):
 		i += 1
 
 
-SciModification = namedtuple('SciModification',
-	('position', 'modificationType', 'text', 'length', 'linesAdded',
-	 'line', 'foldLevelNow', 'foldLevelPrev', 'token', 'annotationLinesAdded'))
+SciModification = namedtuple(
+	'SciModification',
+	(
+		'position', 'modificationType', 'text', 'length', 'linesAdded',
+		'line', 'foldLevelNow', 'foldLevelPrev', 'token', 'annotationLinesAdded'
+	)
+)
 
 
 _SelectionTuple = namedtuple(
@@ -615,10 +619,10 @@ class BaseEditor(QsciScintilla):
 
 	SelectionThin = QsciScintilla.SC_SEL_THIN
 
-	setSelectionMode = sciPropSet(QsciScintilla.SCI_SETSELECTIONMODE)
-	selectionMode = sciPropGet(QsciScintilla.SCI_GETSELECTIONMODE)
+	set_selection_mode = sci_prop_set(QsciScintilla.SCI_SETSELECTIONMODE)
+	selection_mode = sci_prop_get(QsciScintilla.SCI_GETSELECTIONMODE)
 
-	setMultipleSelection = sciPropSet(QsciScintilla.SCI_SETMULTIPLESELECTION)
+	set_multiple_selection = sci_prop_set(QsciScintilla.SCI_SETMULTIPLESELECTION)
 
 	"""setMultipleSelection(bool)
 
@@ -626,10 +630,10 @@ class BaseEditor(QsciScintilla):
 	selection mode.
 	"""
 
-	multipleSelection = sciProp0(QsciScintilla.SCI_GETMULTIPLESELECTION)
+	multiple_selection = sci_prop_0(QsciScintilla.SCI_GETMULTIPLESELECTION)
 	"""Return `True` if multiple selection is enabled"""
 
-	setAdditionalSelectionTyping = sciProp(QsciScintilla.SCI_SETADDITIONALSELECTIONTYPING, (bool,))
+	set_additional_selection_typing = sci_prop(QsciScintilla.SCI_SETADDITIONALSELECTIONTYPING, (bool,))
 
 	"""Set whether typing in a multi-selection should type in all selections.
 
@@ -637,65 +641,65 @@ class BaseEditor(QsciScintilla):
 	all selections instead of the main selection only.
 	"""
 
-	additionalSelectionTyping = sciProp0(QsciScintilla.SCI_GETADDITIONALSELECTIONTYPING)
+	additional_selection_typing = sci_prop_0(QsciScintilla.SCI_GETADDITIONALSELECTIONTYPING)
 
 	"""Return True if typing operates on all selections.
 
-	See :any:`setAdditionalSelectionTyping`.
+	See :any:`set_additional_selection_typing`.
 	"""
 
-	selectionsCount = sciPropGet(QsciScintilla.SCI_GETSELECTIONS)
+	selections_count = sci_prop_get(QsciScintilla.SCI_GETSELECTIONS)
 
 	"""Return the number of selection ranges (if multiple selections are enabled, else 1)"""
 
-	selectionsEmpty = sciProp0(QsciScintilla.SCI_GETSELECTIONEMPTY)
+	selections_empty = sci_prop_0(QsciScintilla.SCI_GETSELECTIONEMPTY)
 
 	"""Return True if all selections are empty."""
 
-	clearSelections = sciProp0(QsciScintilla.SCI_CLEARSELECTIONS)
+	clear_selections = sci_prop_0(QsciScintilla.SCI_CLEARSELECTIONS)
 
 	"""Deselect all selections."""
 
-	setMainSelection = sciProp(QsciScintilla.SCI_SETMAINSELECTION, (int,))
+	set_main_selection = sci_prop(QsciScintilla.SCI_SETMAINSELECTION, (int,))
 
 	"""Set the index of the main selection.
 
 	When there are multiple selections, set the main selection to be the n-th selection.
 	"""
 
-	mainSelection = sciProp0(QsciScintilla.SCI_GETMAINSELECTION)
+	main_selection = sci_prop_0(QsciScintilla.SCI_GETMAINSELECTION)
 
 	"""Return the main selection index."""
 
-	def addSelection(self, lineFrom, indexFrom, lineTo, indexTo):
+	def add_selection(self, line_from, index_from, line_to, index_to):
 		"""Add a new selection (line-index based).
 
 		The first selection should be set with :any:`setSelection`, and the next ones with this method.
 		"""
-		offsetFrom = self.positionFromLineIndex(lineFrom, indexFrom)
-		offsetTo = self.positionFromLineIndex(lineTo, indexTo)
-		self.addSelectionOffsets(offsetFrom, offsetTo)
+		offset_from = self.positionFromLineIndex(line_from, index_from)
+		offset_to = self.positionFromLineIndex(line_to, index_to)
+		self.add_selection_offsets(offset_from, offset_to)
 
-	addSelectionOffsets = sciProp2(QsciScintilla.SCI_ADDSELECTION)
+	add_selection_offsets = sci_prop_2(QsciScintilla.SCI_ADDSELECTION)
 
 	"""Add a new selection (offset based).
 
-	See :any:`addSelection`.
+	See :any:`add_selection`.
 	"""
 
-	dropSelectionN = sciProp(QsciScintilla.SCI_DROPSELECTIONN, (int,))
+	drop_selection_n = sci_prop(QsciScintilla.SCI_DROPSELECTIONN, (int,))
 
 	"""Deselect the n-th selection."""
 
-	selectionNCaret = sciProp(QsciScintilla.SCI_GETSELECTIONNCARET, (int,))
+	selection_n_caret = sci_prop(QsciScintilla.SCI_GETSELECTIONNCARET, (int,))
 
 	"""Get the offset of the n-th selection's caret."""
 
-	selectionNAnchor = sciProp(QsciScintilla.SCI_GETSELECTIONNANCHOR, (int,))
+	selection_nAnchor = sci_prop(QsciScintilla.SCI_GETSELECTIONNANCHOR, (int,))
 
 	"""Get the offset of the n-th selection's anchor."""
 
-	def getSelectionN(self, n):
+	def get_selection_n(self, n):
 		"""Get line-indexes of the n-th selection.
 
 		Returns a 4-tuple with line-index of the anchor and line-index of the caret.
@@ -705,11 +709,11 @@ class BaseEditor(QsciScintilla):
 		:type n: int
 		:rtype: tuple[int, int, int, int]
 		"""
-		anchor = self.lineIndexFromPosition(self.selectionNAnchor(n))
-		caret = self.lineIndexFromPosition(self.selectionNCaret(n))
+		anchor = self.lineIndexFromPosition(self.selection_n_anchor(n))
+		caret = self.lineIndexFromPosition(self.selection_n_caret(n))
 		return Selection(anchor[0], anchor[1], caret[0], caret[1])
 
-	setMultiPaste = sciProp1(QsciScintilla.SCI_SETMULTIPASTE)
+	set_multi_paste = sci_prop_1(QsciScintilla.SCI_SETMULTIPASTE)
 
 	"""Set whether pasting in a multi-selection should paste in all selections
 
@@ -717,7 +721,7 @@ class BaseEditor(QsciScintilla):
 	instead of the main selection only.
 	"""
 
-	multiPaste = sciProp0(QsciScintilla.SCI_GETMULTIPASTE)
+	multi_paste = sci_prop_0(QsciScintilla.SCI_GETMULTIPASTE)
 
 	"""Return True if pasting operates on all selections.
 
@@ -737,7 +741,7 @@ class BaseEditor(QsciScintilla):
 
 	"""Virtual space after a line's end is accessible by user with cursor"""
 
-	setVirtualSpaceOptions = sciPropSet(QsciScintilla.SCI_SETVIRTUALSPACEOPTIONS)
+	set_virtual_space_options = sci_prop_set(QsciScintilla.SCI_SETVIRTUALSPACEOPTIONS)
 
 	"""Set options for virtual space after a line's end
 
@@ -745,7 +749,7 @@ class BaseEditor(QsciScintilla):
 	:any:`VsUser`.
 	"""
 
-	virtualSpaceOptions = sciPropGet(QsciScintilla.SCI_GETVIRTUALSPACEOPTIONS)
+	virtual_space_options = sci_prop_get(QsciScintilla.SCI_GETVIRTUALSPACEOPTIONS)
 
 	"""Get virtual space options
 
@@ -753,9 +757,9 @@ class BaseEditor(QsciScintilla):
 	"""
 
 	# character representation
-	setRepresentation = sciProp2(QsciScintilla.SCI_SETREPRESENTATION)
+	set_representation = sci_prop_2(QsciScintilla.SCI_SETREPRESENTATION)
 
-	def getRepresentation(self, s):
+	def get_representation(self, s):
 		bufsize = self.SendScintilla(self.SCI_GETREPRESENTATION, s, b'') + 1
 		if not bufsize:
 			return []
@@ -764,7 +768,7 @@ class BaseEditor(QsciScintilla):
 		self.SendScintilla(self.SCI_GETREPRESENTATION, s, res)
 		return bytes(res[:-1])
 
-	def clearRepresentation(self, s):
+	def clear_representation(self, s):
 		# for unknown reasons, s is passed as lParam instead of wParam, so force it
 		self.SendScintilla(QsciScintilla.SCI_CLEARREPRESENTATION, s, b'')
 
@@ -776,66 +780,66 @@ class BaseEditor(QsciScintilla):
 	FoldFlagLevelNumbers = QsciScintilla.SC_FOLDFLAG_LEVELNUMBERS
 	FoldFlagLineState = QsciScintilla.SC_FOLDFLAG_LINESTATE
 
-	setFoldFlags = sciPropSet(QsciScintilla.SCI_SETFOLDFLAGS)
-	setFoldLevel = sciProp(QsciScintilla.SCI_SETFOLDLEVEL, (int, int))
+	set_fold_flags = sci_prop_set(QsciScintilla.SCI_SETFOLDFLAGS)
+	set_fold_level = sci_prop(QsciScintilla.SCI_SETFOLDLEVEL, (int, int))
 
 	"""Set fold level of a line
 
 	Set fold level `arg2` for line `arg1`.
 	"""
 
-	getFoldLevel = sciProp(QsciScintilla.SCI_GETFOLDLEVEL, (int,))
+	get_fold_level = sci_prop(QsciScintilla.SCI_GETFOLDLEVEL, (int,))
 
 	"""Get fold level of line `value`"""
 
 	# macro
-	_start_macro_record = sciProp0(QsciScintilla.SCI_STARTRECORD)
-	_stop_macro_record = sciProp0(QsciScintilla.SCI_STOPRECORD)
+	_start_macro_record = sci_prop_0(QsciScintilla.SCI_STARTRECORD)
+	_stop_macro_record = sci_prop_0(QsciScintilla.SCI_STOPRECORD)
 
 	# undo
-	def setUndoCollection(self, b):
-		"""setUndoCollection(bool): set whether editing actions are collected in the undo buffer"""
+	def set_undo_collection(self, b):
+		"""set_undo_collection(bool): set whether editing actions are collected in the undo buffer"""
 		self.SendScintilla(QsciScintilla.SCI_SETUNDOCOLLECTION, int(b))
 
-	undoCollection = sciProp0(QsciScintilla.SCI_GETUNDOCOLLECTION)
+	undo_collection = sci_prop_0(QsciScintilla.SCI_GETUNDOCOLLECTION)
 
-	"""undoCollection(): return whether editing actions are collected in the undo buffer"""
+	"""undo_collection(): return whether editing actions are collected in the undo buffer"""
 
-	emptyUndoBuffer = sciProp0(QsciScintilla.SCI_EMPTYUNDOBUFFER)
+	empty_undo_buffer = sci_prop_0(QsciScintilla.SCI_EMPTYUNDOBUFFER)
 
-	"""emptyUndoBuffer(): empty the undo buffer"""
+	"""empty_undo_buffer(): empty the undo buffer"""
 
-	addUndoAction = sciProp2(QsciScintilla.SCI_ADDUNDOACTION)
+	add_undo_action = sci_prop_2(QsciScintilla.SCI_ADDUNDOACTION)
 
-	"""addUndoAction(int, int): add a custom action to the undo buffer"""
+	"""add_undo_action(int, int): add a custom action to the undo buffer"""
 
 	# markers
-	_get_marker_previous = sciProp(QsciScintilla.SCI_MARKERPREVIOUS, (int, int))
-	_get_marker_next = sciProp(QsciScintilla.SCI_MARKERNEXT, (int, int))
+	_get_marker_previous = sci_prop(QsciScintilla.SCI_MARKERPREVIOUS, (int, int))
+	_get_marker_next = sci_prop(QsciScintilla.SCI_MARKERNEXT, (int, int))
 
 	# indicators
-	indicatorValueAt = sciProp(QsciScintilla.SCI_INDICATORVALUEAT, (int, int))
-	indicatorStart = sciProp(QsciScintilla.SCI_INDICATORSTART, (int, int))
-	indicatorEnd = sciProp(QsciScintilla.SCI_INDICATOREND, (int, int))
-	_set_indicator_value = sciProp(QsciScintilla.SCI_SETINDICATORVALUE, (int,))
-	_set_indicator_current = sciProp(QsciScintilla.SCI_SETINDICATORCURRENT, (int,))
-	_fill_indicator_range = sciProp(QsciScintilla.SCI_INDICATORFILLRANGE, (int, int))
-	setIndicatorFlags = sciProp2(QsciScintilla.SCI_INDICSETFLAGS)
-	indicatorFlags = sciProp1(QsciScintilla.SCI_INDICGETFLAGS)
+	indicator_value_at = sci_prop(QsciScintilla.SCI_INDICATORVALUEAT, (int, int))
+	indicator_start = sci_prop(QsciScintilla.SCI_INDICATORSTART, (int, int))
+	indicator_end = sci_prop(QsciScintilla.SCI_INDICATOREND, (int, int))
+	_set_indicator_value = sci_prop(QsciScintilla.SCI_SETINDICATORVALUE, (int,))
+	_set_indicator_current = sci_prop(QsciScintilla.SCI_SETINDICATORCURRENT, (int,))
+	_fill_indicator_range = sci_prop(QsciScintilla.SCI_INDICATORFILLRANGE, (int, int))
+	setIndicatorFlags = sci_prop_2(QsciScintilla.SCI_INDICSETFLAGS)
+	indicatorFlags = sci_prop_1(QsciScintilla.SCI_INDICGETFLAGS)
 
 	IndicatorFlagValueFore = getattr(QsciScintilla, 'SC_INDICFLAG_VALUEFORE', 1)
 
 	# search
-	setTargetStart = sciProp(QsciScintilla.SCI_SETTARGETSTART, (int,))
-	targetStart = sciProp0(QsciScintilla.SCI_GETTARGETSTART)
-	setTargetEnd = sciProp(QsciScintilla.SCI_SETTARGETEND, (int,))
-	targetEnd = sciProp0(QsciScintilla.SCI_GETTARGETEND)
-	setTargetRange = sciProp(QsciScintilla.SCI_SETTARGETRANGE, (int, int))
-	_search_in_target = sciProp(QsciScintilla.SCI_SEARCHINTARGET, (int, bytes))
-	replaceTarget = sciProp2(QsciScintilla.SCI_REPLACETARGET)
+	set_target_start = sci_prop(QsciScintilla.SCI_SETTARGETSTART, (int,))
+	target_start = sci_prop_0(QsciScintilla.SCI_GETTARGETSTART)
+	set_target_end = sci_prop(QsciScintilla.SCI_SETTARGETEND, (int,))
+	target_end = sci_prop_0(QsciScintilla.SCI_GETTARGETEND)
+	set_target_range = sci_prop(QsciScintilla.SCI_SETTARGETRANGE, (int, int))
+	_search_in_target = sci_prop(QsciScintilla.SCI_SEARCHINTARGET, (int, bytes))
+	replace_target = sci_prop_2(QsciScintilla.SCI_REPLACETARGET)
 
-	setSearchFlags = sciPropSet(QsciScintilla.SCI_SETSEARCHFLAGS)
-	searchFlags = sciProp0(QsciScintilla.SCI_GETSEARCHFLAGS)
+	set_search_flags = sci_prop_set(QsciScintilla.SCI_SETSEARCHFLAGS)
+	search_flags = sci_prop_0(QsciScintilla.SCI_GETSEARCHFLAGS)
 
 	# caret
 	CaretStyleInvisible = QsciScintilla.CARETSTYLE_INVISIBLE
@@ -850,34 +854,34 @@ class BaseEditor(QsciScintilla):
 
 	"""Caret is a block enclosing the next character"""
 
-	setCaretStyle = sciPropSet(QsciScintilla.SCI_SETCARETSTYLE)
+	set_caret_style = sci_prop_set(QsciScintilla.SCI_SETCARETSTYLE)
 
 	"""Set caret display style
 
 	Should be one of :any:`CaretStyleInvisible`, :any:`CaretStyleLine`, :any:`CaretStyleBlock`.
 	"""
 
-	caretStyle = sciPropGet(QsciScintilla.SCI_GETCARETSTYLE)
+	caret_style = sci_prop_get(QsciScintilla.SCI_GETCARETSTYLE)
 
 	"""Get caret display style
 
-	See :any:`setCaretStyle`.
+	See :any:`set_caret_style`.
 	"""
 
-	setCaretPeriod = sciPropSet(QsciScintilla.SCI_SETCARETPERIOD)
+	set_caret_period = sci_prop_set(QsciScintilla.SCI_SETCARETPERIOD)
 
 	"""Set caret blinking period in milliseconds"""
 
-	caretPeriod = sciPropGet(QsciScintilla.SCI_GETCARETPERIOD)
+	caret_period = sci_prop_get(QsciScintilla.SCI_GETCARETPERIOD)
 
 	"""Get caret blinking period in milliseconds"""
 
 	# lexer
-	setLexerProperty = sciProp(QsciScintilla.SCI_SETPROPERTY, (bytes, bytes))
+	set_lexer_property = sci_prop(QsciScintilla.SCI_SETPROPERTY, (bytes, bytes))
 
-	"""setLexerProperty(bytes, bytes): set a lexer property (key/value)"""
+	"""set_lexer_property(bytes, bytes): set a lexer property (key/value)"""
 
-	def lexerProperty(self, prop):
+	def lexer_property(self, prop):
 		bufsize = self.SendScintilla(QsciScintilla.SCI_GETPROPERTY, prop, None) + 1
 		if not bufsize:
 			return []
@@ -887,31 +891,31 @@ class BaseEditor(QsciScintilla):
 		return bytes(res[:-1])
 
 	# text
-	deleteRange = sciProp2(QsciScintilla.SCI_DELETERANGE)
+	delete_range = sci_prop_2(QsciScintilla.SCI_DELETERANGE)
 
 	"""Delete characters in byte offset range"""
 
-	insertBytes = sciProp(QsciScintilla.SCI_INSERTTEXT, (int, bytes))
+	insert_bytes = sci_prop(QsciScintilla.SCI_INSERTTEXT, (int, bytes))
 
 	"""Insert byte characters at byte offset"""
 
-	positionRelative = sciProp(QsciScintilla.SCI_POSITIONRELATIVE, (int, int))
+	position_relative = sci_prop(QsciScintilla.SCI_POSITIONRELATIVE, (int, int))
 
 	"""Get byte-offset from byte-offset + number of characters"""
 
 	# style
 
-	def setStyleHotspot(self, styleId, b):
+	def set_style_hotspot(self, style_id, b):
 		"""setStyleHotspot(int, bool): set whether a style is a hotspot (like a link)"""
-		self.SendScintilla(QsciScintilla.SCI_STYLESETHOTSPOT, styleId, int(b))
+		self.SendScintilla(QsciScintilla.SCI_STYLESETHOTSPOT, style_id, int(b))
 
-	getStyleHotspot = sciProp(QsciScintilla.SCI_STYLEGETHOTSPOT, (int,))
+	get_style_hotspot = sci_prop(QsciScintilla.SCI_STYLEGETHOTSPOT, (int,))
 
-	"""getStyleHotspot(int): get whether a style is a hotspot"""
+	"""get_style_hotspot(int): get whether a style is a hotspot"""
 
-	getStyleAt = sciProp1(QsciScintilla.SCI_GETSTYLEAT)
+	get_style_at = sci_prop_1(QsciScintilla.SCI_GETSTYLEAT)
 
-	"""getStyleAt(int): get style number at given byte position"""
+	"""get_style_at(int): get style number at given byte position"""
 
 	def __init__(self, **kwargs):
 		super(BaseEditor, self).__init__(**kwargs)
@@ -919,52 +923,52 @@ class BaseEditor(QsciScintilla):
 		self.SCN_MACRORECORD.connect(self.scn_macro)
 		self.SCN_AUTOCCANCELLED.connect(self.scn_autoccancelled)
 
-		self.freeMarkers = []
+		self.free_markers = []
 		self.markers = {}
-		self.freeIndicators = []
+		self.free_indicators = []
 		self.indicators = {}
 		self.margins = {}
-		self.autoCompListId = 0
+		self.auto_comp_list_id = 0
 		self._counter_sci_modified = 0
 
-		self.createMargin('lines', Margin.NumbersMargin())
-		self.createMargin('folding', Margin.FoldMargin())
-		self.createMargin('symbols', Margin.SymbolMargin())
+		self.create_margin('lines', Margin.NumbersMargin())
+		self.create_margin('folding', Margin.FoldMargin())
+		self.create_margin('symbols', Margin.SymbolMargin())
 
 	## markers, indicators, margins
-	def _createMI(self, d, name, obj):
+	def _create_mi(self, d, name, obj):
 		if name in d:
 			return d[name]
 		d[name] = obj
 		obj._create(editor=self)
 		return obj
 
-	def createMarker(self, name, marker=QsciScintilla.Circle):
+	def create_marker(self, name, marker=QsciScintilla.Circle):
 		"""Create and return a Marker with name `name` and symbol `marker`"""
 		if not isinstance(marker, Marker):
 			marker = Marker(marker)
-		return self._createMI(self.markers, name, marker)
+		return self._create_mi(self.markers, name, marker)
 
-	def createIndicator(self, name, indicator=QsciScintilla.PlainIndicator):
+	def create_indicator(self, name, indicator=QsciScintilla.PlainIndicator):
 		"""Create and return an Indicator with name `name` and style `indicator`"""
 		if not isinstance(indicator, Indicator):
 			indicator = Indicator(indicator)
-		return self._createMI(self.indicators, name, indicator)
+		return self._create_mi(self.indicators, name, indicator)
 
-	def createMargin(self, name, margin):
-		return self._createMI(self.margins, name, margin)
+	def create_margin(self, name, margin):
+		return self._create_mi(self.margins, name, margin)
 
-	def _disposeMI(self, d, dfree, name):
+	def _dispose_mi(self, d, dfree, name):
 		if name not in d:
 			return
 		dfree.append(d[name].id)
 		del d[name]
 
-	def disposeMarker(self, name):
-		self._disposeMI(self.markers, self.freeMarkers, name)
+	def dispose_marker(self, name):
+		self._dispose_mi(self.markers, self.free_markers, name)
 
-	def disposeIndicator(self, name):
-		self._disposeMI(self.indicators, self.freeIndicators, name)
+	def dispose_indicator(self, name):
+		self._dispose_mi(self.indicators, self.free_indicators, name)
 
 	## indicators
 	def _indicator_to_id(self, indicator):
@@ -974,21 +978,21 @@ class BaseEditor(QsciScintilla):
 			return self.indicators[indicator].id
 		return indicator
 
-	def fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic, value=1):
+	def fillIndicatorRange(self, line_from, index_from, line_to, index_to, indic, value=1):
 		indic = self._indicator_to_id(indic)
 		if indic < 0:
-			return QsciScintilla.fillIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic)
+			return QsciScintilla.fillIndicatorRange(self, line_from, index_from, line_to, index_to, indic)
 
-		offset_start = self.positionFromLineIndex(lineFrom, indexFrom)
-		offset_end = self.positionFromLineIndex(lineTo, indexTo)
+		offset_start = self.positionFromLineIndex(line_from, index_from)
+		offset_end = self.positionFromLineIndex(line_to, index_to)
 
 		self._set_indicator_current(indic)
 		self._set_indicator_value(value)
 		self._fill_indicator_range(offset_start, offset_end - offset_start)
 
-	def clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic):
+	def clearIndicatorRange(self, line_from, index_from, line_to, index_to, indic):
 		indic = self._indicator_to_id(indic)
-		return QsciScintilla.clearIndicatorRange(self, lineFrom, indexFrom, lineTo, indexTo, indic)
+		return QsciScintilla.clearIndicatorRange(self, line_from, index_from, line_to, index_to, indic)
 
 	## markers
 	def _marker_to_id(self, marker):
@@ -1017,11 +1021,11 @@ class BaseEditor(QsciScintilla):
 		marker = self._marker_to_id(marker)
 		return QsciScintilla.setMarkerForegroundColor(self, color, marker)
 
-	def getMarkerPrevious(self, line, marker):
+	def get_marker_previous(self, line, marker):
 		marker = self._marker_to_id(marker)
 		return self._get_marker_previous(line, marker)
 
-	def getMarkerNext(self, line, marker):
+	def get_marker_next(self, line, marker):
 		marker = self._marker_to_id(marker)
 		return self._get_marker_next(line, marker)
 
@@ -1029,40 +1033,40 @@ class BaseEditor(QsciScintilla):
 	#~ @Slot('uint', 'unsigned long', object)
 	def scn_macro(self, msg, lp, wp):
 		if isinstance(wp, sip.voidptr):
-			self.actionRecorded.emit([msg, lp, sipvoid_as_str(wp)])
+			self.action_recorded.emit([msg, lp, sipvoid_as_str(wp)])
 		else:
-			self.actionRecorded.emit([msg, lp, wp])
+			self.action_recorded.emit([msg, lp, wp])
 
-	def startMacroRecord(self):
+	def start_macro_record(self):
 		"""Start recording macro
 
-		Also emits `macroRecordStarted()`
+		Also emits `macro_record_started()`
 		"""
 		self._start_macro_record()
-		self.macroRecordStarted.emit()
+		self.macro_record_started.emit()
 
-	def stopMacroRecord(self):
+	def stop_macro_record(self):
 		"""Stop recording macro
 
-		Also emits `macroRecordStopped()`
+		Also emits `macro_record_stopped()`
 		"""
 		self._stop_macro_record()
-		self.macroRecordStopped.emit()
+		self.macro_record_stopped.emit()
 
-	def replayMacroAction(self, action):
+	def replay_macro_action(self, action):
 		"""Replay a macro action
 
 		"""
 		msg, lp, wp = action
 		return self.SendScintilla(msg, lp, wp)
 
-	def searchInTarget(self, s):
+	def search_in_target(self, s):
 		if isinstance(s, str):
 			s = s.encode('utf-8')
 		return self._search_in_target(len(s), s)
 
 	## annotations
-	def annotationStyledText(self, line):
+	def annotation_styled_text(self, line):
 		"""Return styled text annotations of a line
 
 		Each line can have annotations compound of multiple pieces of text styled differently.
@@ -1099,7 +1103,7 @@ class BaseEditor(QsciScintilla):
 
 	@Slot(int, int, 'const char*', int, int, int, int, int, int, int)
 	def scn_modified(self, *args):
-		self.sciModified.emit(SciModification(*args))
+		self.sci_modified.emit(SciModification(*args))
 
 	def connectNotify(self, sig):
 		super(BaseEditor, self).connectNotify(sig)
@@ -1128,34 +1132,34 @@ class BaseEditor(QsciScintilla):
 		self.autoCompListId = id
 		super(BaseEditor, self).showUserList(id, items)
 
-	macroRecordStarted = Signal()
+	macro_record_started = Signal()
 
-	"""Signal macroRecordStarted()
+	"""Signal macro_record_started()
 
-	After this signal is emitted, and until `macroRecordStopped()` is emitted, actions performed by
-	user will be recorded and `actionRecorded(object)` will be emitted for each action.
+	After this signal is emitted, and until `macro_record_stopped()` is emitted, actions performed by
+	user will be recorded and `action_recorded(object)` will be emitted for each action.
 	"""
 
-	macroRecordStopped = Signal()
+	macro_record_stopped = Signal()
 
-	"""Signal macroRecordStopped()
+	"""Signal macro_record_stopped()
 
-	This signal is emitted when macro recording stops. `actionRecorded()` will not be emitted any
+	This signal is emitted when macro recording stops. `action_recorded()` will not be emitted any
 	more after.
 	"""
 
-	actionRecorded = Signal(object)
+	action_recorded = Signal(object)
 
-	"""Signal actionRecorded(object): an action was recorded in macro
+	"""Signal action_recorded(object): an action was recorded in macro
 
-	The signal argument is the action recorded, and can be passed to `replayMacroAction` to replay
+	The signal argument is the action recorded, and can be passed to `replay_macro_action` to replay
 	this action.
 	Internally, the action argument is a tuple suitable for Scintilla to process it.
 	"""
 
-	sciModified = Signal(object)
+	sci_modified = Signal(object)
 
-	"""Signal sciModified(object): a modification was done
+	"""Signal sci_modified(object): a modification was done
 
 	The signal argument is a 10-tuple describing the modification. The modifications signalled can
 	be of various types.
@@ -1195,8 +1199,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.search = structs.PropDict()
 		self.search.incremental = True
 		self.search.highlight = False
-		self.search.isRe = False
-		self.search.caseSensitive = False
+		self.search.is_re = False
+		self.search.case_sensitive = False
 		self.search.wrap = True
 		self.search.whole = False
 
@@ -1204,7 +1208,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		self.setWindowIcon(QIcon())
 
-		self.addCategory('editor')
+		self.add_category('editor')
 
 	def __repr__(self):
 		return '<Editor path=%r>' % self.path
@@ -1224,38 +1228,38 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		return os.path.basename(self.path)
 
 	@Slot()
-	def saveFile(self):
+	def save_file(self):
 		"""Save edited file
 
 		If no file path is set, a file dialog is shown to ask the user where to save content.
 		"""
 		path = self.path
 
-		newFile = not path
-		if newFile:
+		new_file = not path
+		if new_file:
 			path, qfilter = QFileDialog.getSaveFileName(self, self.tr('Save file'), os.path.expanduser('~'))
 			if not path:
 				return False
 			path = path
 
 		data = self._write_text(self.text())
-		self.fileAboutToBeSaved.emit(path)
+		self.file_about_to_be_saved.emit(path)
 		try:
-			io.writeBytesToFile(path, data)
+			io.write_bytes_to_file(path, data)
 		except IOError:
 			LOGGER.error('cannot write file %r', path, exc_info=True)
 			return False
 
 		self.path = path
 		self.setModified(False)
-		if newFile:
-			self.fileSavedAs.emit(path)
+		if new_file:
+			self.file_saved_as.emit(path)
 		else:
-			self.fileSaved.emit(path)
+			self.file_saved.emit(path)
 
 		return True
 
-	def closeFile(self):
+	def close_file(self):
 		"""Prepare for closing file and return `True` if modification state is clean
 
 		If editor has no unsaved modifications, returns `True`. Else, ask user if modifications should be
@@ -1272,7 +1276,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			elif answer == QMessageBox.Cancel:
 				ret = False
 			elif answer == QMessageBox.Save:
-				ret = self.saveFile()
+				ret = self.save_file()
 		return ret
 
 	def _newline_string(self):
@@ -1300,28 +1304,28 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			text += self._newline_string()
 		return text.encode(self.saving.encoding)
 
-	def openFile(self, path):
-		if not self.closeFile():
+	def open_file(self, path):
+		if not self.close_file():
 			return False
 
 		path = os.path.abspath(path)
 		self.path = path
 
 		try:
-			data = io.readBytesFromFile(path)
+			data = io.read_bytes_from_file(path)
 		except IOError:
 			LOGGER.error('cannot read file %r', path, exc_info=True)
 			return False
-		self.fileAboutToBeOpened.emit(path)
+		self.file_about_to_be_opened.emit(path)
 
 		text = self._read_text(data)
 		self.setText(text)
 		self.setModified(False)
-		self.fileOpened.emit(path)
+		self.file_opened.emit(path)
 		return True
 
-	def openDocument(self, other):
-		if not self.closeFile():
+	def open_document(self, other):
+		if not self.close_file():
 			return False
 
 		self.path = other.path
@@ -1330,32 +1334,32 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		return True
 
 	@Slot()
-	def reloadFile(self):
+	def reload_file(self):
 		"""Reload file contents (losing unsaved modifications)
 
 		Reload file from disk and replace editor contents with updated text.
 		If the user made modifications to the editor contents without saving them, calling this
 		method will will lose them. However, the replacement can be undone by the user.
 		"""
-		oldPos = self.getCursorPosition()
+		old_pos = self.get_cursor_position()
 
 		try:
-			data = io.readBytesFromFile(self.path)
+			data = io.read_bytes_from_file(self.path)
 		except IOError:
 			LOGGER.error('cannot reload file %r', self.path, exc_info=True)
 			return False
 		text = self._read_text(data)
 
-		with self.undoGroup():
+		with self.undo_group():
 			# XXX setText would clear the history
 			self.clear()
 			self.insert(text)
 		self.setModified(False)
-		self.setCursorPosition(*oldPos)
+		self.set_cursor_position(*old_pos)
 		return True
 
 	## various props
-	def setUseFinalNewline(self, b):
+	def set_use_final_newline(self, b):
 		"""Set whether a final newline should always be added when saving to disk
 
 		If `b` is False, the contents of the editor won't be changed when saving file to disk: the
@@ -1369,14 +1373,14 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""
 		self.saving.final_newline = b
 
-	def useFinalNewline(self):
+	def use_final_newline(self):
 		"""Return True if always adding a final newline when saving.
 
-		See :any:`setUseFinalNewline`.
+		See :any:`set_use_final_newline`.
 		"""
 		return self.saving.final_newline
 
-	def setRemoveTrailingWhitespace(self, b):
+	def set_remove_trailing_whitespace(self, b):
 		"""Set whether trailing whitespace should be trimmed when saving to disk
 
 		If `b` is True, trailing whitespace will be removed from each line on the the file saved to
@@ -1386,18 +1390,18 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""
 		self.saving.trim_whitespace = b
 
-	def doesRemoveTrailingWhitespace(self):
+	def does_remove_trailing_whitespace(self):
 		"""Return True if always trimming trailing whitespace when saving.
 
-		See :any:`setRemoveTrailingWhitespace`.
+		See :any:`set_remove_trailing_whitespace`.
 		"""
 		return self.saving.trim_whitespace
 
-	def setEncoding(self, s):
+	def set_encoding(self, s):
 		"""Set the file data encoding for loading/saving
 
 		When loading file contents from disk or saving file to disk, this encoding will be used.
-		This does not change the internal encoding used by the editor widget, which is UTF-8.
+		This does not change the internal encoding used by the editor widget, which is utf-8.
 
 		This does not cause the file to be re-saved.
 		"""
@@ -1410,7 +1414,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 	## misc
 	@contextlib.contextmanager
-	def undoGroup(self, undoOnError=False):
+	def undo_group(self, undo_on_error=False):
 		"""Context-manager to run actions in an undo-group.
 
 		Operations done in this context manager are put in an undo-group: :any:`undo` and :any:`redo`
@@ -1419,19 +1423,19 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		For example, removing a whole word will appear the same, undo-wise, as removing the word
 		character-by-character, if all characters are removed while an undo-group was open.
 
-		:param undoOnError: if an exception is raised inside the context, operations done in the group
+		:param undo_on_error: if an exception is raised inside the context, operations done in the group
 		                    are undone
-		:type undoOnError: bool
+		:type undo_on_error: bool
 		"""
-		self.beginUndoAction()
+		self.begin_undo_action()
 		try:
 			yield
 		except Exception:
-			self.endUndoAction()
-			if undoOnError:
+			self.end_undo_action()
+			if undo_on_error:
 				self.undo()
 			raise
-		self.endUndoAction()
+		self.end_undo_action()
 
 	@Slot()
 	def goto1(self, line, col=None):
@@ -1440,19 +1444,19 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.ensureLineVisible(line)
 		self.setCursorPosition(line, col)
 
-	def cursorLine(self):
+	def cursor_line(self):
 		"""Return the line number of the cursor position (starting from 0)"""
-		return self.getCursorPosition()[0]
+		return self.get_cursor_position()[0]
 
-	def cursorColumn(self):
+	def cursor_column(self):
 		"""Return the column number of the cursor position (starting from 0)
 
 		Note the column number is the number of Unicode codepoints since the start of the line.
-		For example, a tab character will count for 1 column only, see :any:`cursorVisualColumn`.
+		For example, a tab character will count for 1 column only, see :any:`cursor_visual_column`.
 		"""
 		return self.getCursorPosition()[1]
 
-	def cursorVisualColumn(self):
+	def cursor_visual_column(self):
 		lineno, colno = self.getCursorPosition()
 		line = self.text(lineno)[:colno]
 		line = line.expandtabs(self.tabWidth())
@@ -1462,7 +1466,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	def setLexer(self, lexer):
 		QsciScintilla.setLexer(self, lexer)
 		self._lexer = lexer
-		self.lexerChanged.emit(lexer)
+		self.lexer_changed.emit(lexer)
 
 	def lexer(self):
 		lexer = QsciScintilla.lexer(self)
@@ -1470,7 +1474,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			lexer = self._lexer
 		return lexer
 
-	def cursorPosition(self):
+	def cursor_position(self):
 		"""Return the cursor line-index starting from 0
 
 		.. note:: This function is misnamed in QsciScintilla and the naming is kept here to avoid more
@@ -1480,14 +1484,14 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""
 		return self.getCursorPosition()
 
-	def cursorLineIndex(self):
+	def cursor_line_index(self):
 		"""Return the cursor line-index starting from 0
 
 		See :ref:`positions`.
 		"""
 		return self.getCursorPosition()
 
-	def cursorOffset(self):
+	def cursor_offset(self):
 		"""Return the cursor position in byte offset
 
 		As this function returns a byte-offset, it should not be used unless necessary.
@@ -1495,11 +1499,11 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""
 		return self.positionFromLineIndex(*self.getCursorPosition())
 
-	def bytesLength(self):
+	def bytes_length(self):
 		"""Return the length of the text in bytes"""
 		return self.length()
 
-	def textLength(self):
+	def text_length(self):
 		"""Return the length of the text in Unicode codepoints"""
 		return len(self.text())
 
@@ -1512,38 +1516,38 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			return cs
 
 	def _search_options_to_re(self):
-		expr = self.search.expr if self.search.isRe else re.escape(self.search.expr)
+		expr = self.search.expr if self.search.is_re else re.escape(self.search.expr)
 		if self.search.whole:
 			expr = '\b%s\b' % expr
-		caseSensitive = self._smart_case(expr, self.search.caseSensitive)
-		flags = 0 if caseSensitive else re.I
+		case_sensitive = self._smart_case(expr, self.search.case_sensitive)
+		flags = 0 if case_sensitive else re.I
 		return re.compile(expr, flags)
 
 	def _highlight_search(self):
 		txt = self.text()
 		reobj = self._search_options_to_re()
 		for mtc in reobj.finditer(txt):
-			self.indicators['searchHighlight'].putAtOffset(mtc.start(), mtc.end())
+			self.indicators['search_highlight'].put_at_offset(mtc.start(), mtc.end())
 
-	def clearSearchHighlight(self):
-		self.indicators['searchHighlight'].removeAtOffset(0, self.bytesLength())
+	def clear_search_highlight(self):
+		self.indicators['search_highlight'].remove_at_offset(0, self.bytes_length())
 
-	def find(self, expr, caseSensitive=None, isRe=None, whole=None, wrap=None):
+	def find(self, expr, case_sensitive=None, is_re=None, whole=None, wrap=None):
 		if self.search.highlight:
-			self.clearSearchHighlight()
+			self.clear_search_highlight()
 
 		self.search.expr = expr
-		if caseSensitive is not None:
-			self.search.caseSensitive = caseSensitive
-		if isRe is not None:
-			self.search.isRe = isRe
+		if case_sensitive is not None:
+			self.search.case_sensitive = case_sensitive
+		if is_re is not None:
+			self.search.is_re = is_re
 		if whole is not None:
 			self.search.whole = whole
 		if wrap is not None:
 			self.search.wrap = wrap
 		self.search.forward = True
 
-		caseSensitive = self._smart_case(expr, self.search.caseSensitive)
+		case_sensitive = self._smart_case(expr, self.search.case_sensitive)
 
 		if self.search.highlight:
 			self._highlight_search()
@@ -1551,34 +1555,34 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		lfrom, ifrom, lto, ito = self.getSelection()
 		self.setCursorPosition(*min([(lfrom, ifrom), (lto, ito)]))
 
-		return self.findFirst(self.search.expr, self.search.isRe, caseSensitive, self.search.whole, self.search.wrap, True)
+		return self.findFirst(self.search.expr, self.search.is_re, case_sensitive, self.search.whole, self.search.wrap, True)
 
 	def _find_in_direction(self, forward):
 		if self.search.get('forward') == forward:
 			return self.findNext()
 		else:
 			self.search.forward = forward
-			caseSensitive = self._smart_case(self.search.expr, self.search.caseSensitive)
-			b = self.findFirst(self.search.expr, self.search.isRe, caseSensitive, self.search.whole, self.search.wrap, self.search.forward)
+			case_sensitive = self._smart_case(self.search.expr, self.search.case_sensitive)
+			b = self.findFirst(self.search.expr, self.search.is_re, case_sensitive, self.search.whole, self.search.wrap, self.search.forward)
 			if b and not forward:
 				# weird behavior when switching from forward to backward
 				return self.findNext()
 			return b
 
-	def findForward(self):
+	def find_forward(self):
 		return self._find_in_direction(True)
 
-	def findBackward(self):
+	def find_backward(self):
 		return self._find_in_direction(False)
 
-	def wordAtCursor(self):
+	def word_at_cursor(self):
 		return self.wordAtLineIndex(*self.getCursorPosition())
 
-	def wordAtPos(self, pos):
-		return self.wordAtLineIndex(*self.lineIndexFromPosition(pos))
+	def word_at_pos(self, pos):
+		return self.word_at_line_index(*self.line_index_from_position(pos))
 
 	## annotations
-	def annotateAppend(self, line, item, style=None):
+	def annotate_append(self, line, item, style=None):
 		"""Append a new annotation
 
 		Add an annotation for `line`. If there was an existing annotation at this line, unlike
@@ -1593,7 +1597,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		:param line: the line of the editor where to add the annotation
 		:type line: int
 		"""
-		annotations = self.annotationStyledText(line)
+		annotations = self.annotation_styled_text(line)
 
 		if isinstance(item, bytes):
 			item = [QsciStyledText(item.decode('utf-8'), style)]
@@ -1605,61 +1609,61 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		self.annotate(line, annotations + item)
 
-	def annotateAppendLine(self, line, item, style=None):
+	def annotate_append_line(self, line, item, style=None):
 		"""Append a new annotation on a line
 
 		"""
 		current = self.annotation(line)
 		if len(current) and not current.endswith('\n'):
-			self.annotateAppend(line, '\n', 0)
-		return self.annotateAppend(line, item, style)
+			self.annotate_append(line, '\n', 0)
+		return self.annotate_append(line, item, style)
 
 	## signals
-	fileAboutToBeSaved = Signal(str)
+	file_about_to_be_saved = Signal(str)
 
-	"""Signal fileAboutToBeSaved(str)"""
+	"""Signal file_about_to_be_saved(str)"""
 
-	fileSaved = Signal(str)
+	file_saved = Signal(str)
 
-	"""Signal fileSaved(str)"""
+	"""Signal file_saved(str)"""
 
-	fileSavedAs = Signal(str)
+	file_saved_as = Signal(str)
 
-	"""Signal fileSavedAs(str)"""
+	"""Signal file_saved_as(str)"""
 
-	fileAboutToBeOpened = Signal(str)
+	file_about_to_be_opened = Signal(str)
 
-	"""Signal fileAboutToBeOpened(str)"""
+	"""Signal file_about_to_be_opened(str)"""
 
-	fileOpened = Signal(str)
+	file_opened = Signal(str)
 
-	"""Signal fileOpened(str)"""
+	"""Signal file_opened(str)"""
 
-	lexerChanged = Signal(object)
+	lexer_changed = Signal(object)
 
-	"""Signal lexerChanged(object)"""
+	"""Signal lexer_changed(object)"""
 
-	fileModifiedExternally = Signal()
+	file_modified_externally = Signal()
 
-	"""Signal fileModifiedExternally()"""
+	"""Signal file_modified_externally()"""
 
-	positionJumped = Signal(int, int)
+	position_jumped = Signal(int, int)
 
-	"""Signal positionJumped(int, int)"""
+	"""Signal position_jumped(int, int)"""
 
 	## events
 	@override
 	def closeEvent(self, ev):
-		acceptIf(ev, self.closeFile())
+		accept_if(ev, self.close_file())
 
 
 def iterlen(iterable):
 	return sum(1 for _ in iterable)
 
 
-@registerEventFilter('editor', [QEvent.Wheel])
+@register_event_filter('editor', [QEvent.Wheel])
 @disabled
-def zoomOnWheel(ed, ev):
+def zoom_on_wheel(ed, ev):
 	if ev.modifiers() == Qt.ControlModifier:
 		delta = ev.angleDelta()
 		if delta.y() > 0:

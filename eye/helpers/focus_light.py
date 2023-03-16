@@ -14,10 +14,10 @@ from PyQt5.QtWidgets import QRubberBand
 
 from eye.app import qApp
 from eye.colorutils import QColorAlpha
-from eye.connector import registerSetup, registerEventFilter, CategoryMixin, disabled
-from eye.widgets.helpers import parentTabWidget
+from eye.connector import register_setup, register_event_filter, CategoryMixin, disabled
+from eye.widgets.helpers import parent_tab_widget
 
-__all__ = ('setEnabled', 'DimBand')
+__all__ = ('set_enabled', 'DimBand')
 
 
 class DimBand(QRubberBand, CategoryMixin):
@@ -29,67 +29,67 @@ class DimBand(QRubberBand, CategoryMixin):
 
 	def __init__(self, parent):
 		super(DimBand, self).__init__(self.Rectangle, parent)
-		self.dimBrush = QColorAlpha('#80808030')
-		self.addCategory('dimband')
+		self.dim_brush = QColorAlpha('#80808030')
+		self.add_category('dimband')
 		self.setStyle(None)
 
 	def paintEvent(self, _):
 		self.clearMask() # TODO is it safe to call that here?
 
 		painter = QPainter(self)
-		painter.fillRect(self.rect(), self.dimBrush)
+		painter.fillRect(self.rect(), self.dim_brush)
 
 
-def showBand(tw):
-	if not hasattr(tw, 'dimBand'):
-		tw.dimBand = DimBand(tw)
-	tw.dimBand.setGeometry(tw.rect())
-	tw.dimBand.show()
+def show_band(tw):
+	if not hasattr(tw, 'dim_band'):
+		tw.dim_band = DimBand(tw)
+	tw.dim_band.setGeometry(tw.rect())
+	tw.dim_band.show()
 
 
-def hideBand(tw):
-	if hasattr(tw, 'dimBand'):
-		tw.dimBand.setParent(None)
-		tw.dimBand.hide()
-		del tw.dimBand
+def hide_band(tw):
+	if hasattr(tw, 'dim_band'):
+		tw.dim_band.setParent(None)
+		tw.dim_band.hide()
+		del tw.dim_band
 
 
 @disabled
-def focusChanged(old, new):
-	if not getattr(focusChanged, 'enabled', True):
+def focus_changed(old, new):
+	if not getattr(focus_changed, 'enabled', True):
 		return
 
-	oldtw = parentTabWidget(old)
-	newtw = parentTabWidget(new)
+	oldtw = parent_tab_widget(old)
+	newtw = parent_tab_widget(new)
 
 	if oldtw and oldtw != newtw:
-		showBand(oldtw)
+		show_band(oldtw)
 	if newtw:
-		hideBand(newtw)
+		hide_band(newtw)
 
 
-qApp().focusChanged.connect(focusChanged)
+qApp().focusChanged.connect(focus_changed)
 
 
-@registerSetup('tabwidget')
+@register_setup('tabwidget')
 @disabled
-def onCreate(tw):
+def on_create(tw):
 	if not tw.isAncestorOf(qApp().focusWidget()):
-		showBand(tw)
+		show_band(tw)
 
 
-@registerEventFilter('tabwidget', [QEvent.Resize])
+@register_event_filter('tabwidget', [QEvent.Resize])
 @disabled
-def onResize(tw, ev):
-	band = getattr(tw, 'dimBand', None)
+def on_resize(tw, ev):
+	band = getattr(tw, 'dim_band', None)
 	if band:
 		band.setGeometry(tw.rect())
 
 
-def setEnabled(enabled=True):
+def set_enabled(enabled=True):
 	"""Enable or disable the plugin"""
-	onCreate.enabled = enabled
-	onResize.enabled = enabled
-	focusChanged.enabled = enabled
+	on_create.enabled = enabled
+	on_resize.enabled = enabled
+	focus_changed.enabled = enabled
 
 # TODO do not dim when a minibuffer is opened

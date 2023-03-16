@@ -30,7 +30,7 @@ class Dialog(QDialog, CategoryMixin):
 		self.buttonBox.accepted.connect(self.accept)
 		self.buttonBox.rejected.connect(self.reject)
 
-		self.addCategory('dialog')
+		self.add_category('dialog')
 
 	def setWidget(self, w):
 		"""Set/replace the central widget shown in this dialog"""

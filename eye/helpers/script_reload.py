@@ -4,7 +4,7 @@
 
 If the plugin is enabled, when a startup script file is modified, it will be re-run.
 
-It relies on :any:`eye.connector.deleteCreatedBy`:
+It relies on :any:`eye.connector.delete_created_by`:
 
 * if the startup script had registered anything to the connector, they will be unregistered before
   the script is re-run.
@@ -18,11 +18,11 @@ import logging
 import os
 
 from eye.app import qApp
-from eye.connector import deleteCreatedBy
+from eye.connector import delete_created_by
 from eye.helpers.file_monitor import MonitorWithRename
 from eye.qt import Slot
 
-__all__ = ('setEnabled', 'registerStartupFiles')
+__all__ = ('set_enabled', 'register_startup_files')
 
 
 LOGGER = logging.getLogger(__name__)
@@ -38,22 +38,22 @@ class ScriptMonitor(MonitorWithRename):
 	@Slot(str)
 	def _on_file_changed(self, path):
 		LOGGER.info('%r has been modified, reloading', path)
-		deleteCreatedBy(path)
+		delete_created_by(path)
 		if os.path.exists(path):
-			qApp().runScript(path)
+			qApp().run_script(path)
 
 
-def addScript(path):
+def add_script(path):
 	MONITOR.addPath(path)
 
 
-def registerStartupFiles():
+def register_startup_files():
 	"""Start monitoring startup scripts from user configuration."""
-	for path in qApp().startupScripts():
-		addScript(path)
+	for path in qApp().startup_scripts():
+		add_script(path)
 
 
-def setEnabled(enabled):
+def set_enabled(enabled):
 	"""Enable/disable auto-reloading of startup scripts."""
 
 	global MONITOR
@@ -61,7 +61,7 @@ def setEnabled(enabled):
 	if enabled:
 		if not MONITOR:
 			MONITOR = ScriptMonitor()
-		registerStartupFiles()
+		register_startup_files()
 	else:
 		MONITOR.deleteLater()
 		MONITOR = None

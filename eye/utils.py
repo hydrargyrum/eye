@@ -6,10 +6,10 @@ import logging
 
 from PyQt5.QtWidgets import QApplication
 
-__all__ = ('exceptionLogging', 'ignoreExceptions')
+__all__ = ('exception_logging', 'ignore_exceptions')
 
 @contextmanager
-def exceptionLogging(reraise=True, logger=None, level=logging.ERROR):
+def exception_logging(reraise=True, logger=None, level=logging.ERROR):
 	"""Context manager to log exceptions
 
 	.. py:function:: exceptionLogging(reraise=True, logger=None, level=logging.ERROR)
@@ -25,7 +25,7 @@ def exceptionLogging(reraise=True, logger=None, level=logging.ERROR):
 	Example of exception interception::
 
 		try:
-			with exceptionLogging():
+			with exception_logging():
 				raise RuntimeError('Unexpected error')
 		except Exception as e:
 			pass
@@ -46,7 +46,7 @@ def exceptionLogging(reraise=True, logger=None, level=logging.ERROR):
 			raise
 
 
-def ignoreExceptions(return_value, logger=None, level=logging.ERROR):
+def ignore_exceptions(return_value, logger=None, level=logging.ERROR):
 	def caller(f):
 		@wraps(f)
 		def decorator(*a, **kw):

@@ -3,13 +3,15 @@
 from PyQt5.QtCore import Qt, QEvent
 
 from eye.connector import CategoryMixin
-from eye.qt import Signal
+from eye.qt import Signal, override
 
-__all__ = ('acceptIf', 'CategoryMixin', 'WidgetMixin', 'CentralWidgetMixin',
-           'parentTabWidget')
+__all__ = (
+	'accept_if', 'CategoryMixin', 'WidgetMixin', 'CentralWidgetMixin',
+	'parent_tab_widget',
+)
 
 
-def acceptIf(ev, cond):
+def accept_if(ev, cond):
 	"""Accept an event if a condition is True, else ignore it.
 
 	:param ev: the event to accept or ignore
@@ -28,7 +30,7 @@ class WidgetMixin(CategoryMixin):
 	def __init__(self, **kwargs):
 		super(WidgetMixin, self).__init__(**kwargs)
 
-	def giveFocus(self, reason=Qt.OtherFocusReason):
+	def give_focus(self, reason=Qt.OtherFocusReason):
 		if not self.isActiveWindow():
 			self.activateWindow()
 
@@ -41,16 +43,17 @@ class CentralWidgetMixin(WidgetMixin):
 	def __init__(self, **kwargs):
 		super(CentralWidgetMixin, self).__init__(**kwargs)
 
-	def giveFocus(self, reason=Qt.OtherFocusReason):
+	def give_focus(self, reason=Qt.OtherFocusReason):
 		if not self.isActiveWindow():
 			self.activateWindow()
 
-		tabBar = parentTabWidget(self)
-		if tabBar:
-			tabBar.setCurrentWidget(self)
+		tab_bar = parent_tab_widget(self)
+		if tab_bar:
+			tab_bar.setCurrentWidget(self)
 
 		return self.setFocus(reason)
 
+	@override
 	def changeEvent(self, ev):
 		try:
 			super_method = super(CentralWidgetMixin, self).changeEvent
@@ -63,7 +66,7 @@ class CentralWidgetMixin(WidgetMixin):
 			self.windowModifiedChanged.emit(self.isWindowModified())
 
 
-def parentTabWidget(widget):
+def parent_tab_widget(widget):
 	while widget:
 		if hasattr(widget, 'categories') and 'tabwidget' in widget.categories():
 			break

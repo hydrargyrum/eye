@@ -4,9 +4,9 @@ from __future__ import print_function
 
 from PyQt5.QtCore import QObject
 
-from ...connector import registerSignal, disabled
+from ...connector import register_signal, disabled
 from ...qt import Signal, Slot
-from .daemon import getDaemon, isDaemonAvailable, ServerError
+from .daemon import get_daemon, is_daemon_available, ServerError
 
 
 def _query(cb, editor, *args, **kwargs):
@@ -16,23 +16,23 @@ def _query(cb, editor, *args, **kwargs):
 	return cb(editor.path, editor.ycm.filetype, editor.text(), line, col, *args, **kwargs)
 
 
-def showCompletionList(editor, offset, items, replace=True):
+def show_completion_list(editor, offset, items, replace=True):
 	editor.compListItems = {
 		item['display']: item for item in items
 	}
 
 	if replace:
-		editor.compStartOffset = offset
+		editor.comp_start_offset = offset
 	editor.showUserList(1, [item['display'] for item in items])
 
 
-def doCompletion(editor, replace=True):
-	if not isDaemonAvailable():
+def do_completion(editor, replace=True):
+	if not is_daemon_available():
 		return
 
-	def handleReply():
-		getDaemon().checkReply(reply)
-		res = getDaemon()._json_reply(reply)
+	def handle_reply():
+		get_daemon().check_reply(reply)
+		res = get_daemon()._json_reply(reply)
 
 		if res['completions']:
 			col = res['completion_start_column'] - 1
@@ -42,89 +42,89 @@ def doCompletion(editor, replace=True):
 				'display': item.get('menu') or item['insertion_text'],
 			} for item in res['completions']]
 
-			showCompletionList(editor, offset, items, replace)
+			show_completion_list(editor, offset, items, replace)
 
-	reply = _query(getDaemon().queryCompletions, editor)
-	reply.finished.connect(handleReply)
+	reply = _query(get_daemon().query_completions, editor)
+	reply.finished.connect(handle_reply)
 	reply.finished.connect(reply.deleteLater)
 
 
-def doGoTo(editor, go_type):
-	if not isDaemonAvailable():
+def do_go_to(editor, go_type):
+	if not is_daemon_available():
 		return
 
-	def handleReply():
-		getDaemon().checkReply(reply)
-		res = getDaemon()._json_reply(reply)
-		from ..buffers import openEditor
-		openEditor(res['filepath'], (res['line_num'], res['column_num']))
+	def handle_reply():
+		get_daemon().check_reply(reply)
+		res = get_daemon()._json_reply(reply)
+		from ..buffers import open_editor
+		open_editor(res['filepath'], (res['line_num'], res['column_num']))
 
-	reply = _query(getDaemon().querySubcommand, editor, go_type)
-	reply.finished.connect(handleReply)
+	reply = _query(get_daemon().query_subcommand, editor, go_type)
+	reply.finished.connect(handle_reply)
 	reply.finished.connect(reply.deleteLater)
 
 
-@registerSignal('editor', 'SCN_CHARADDED')
-@registerSignal('editor', 'SCN_AUTOCCHARDELETED')
+@register_signal('editor', 'SCN_CHARADDED')
+@register_signal('editor', 'SCN_AUTOCCHARDELETED')
 @disabled
-def completeOnCharAdded(editor, *args):
-	if not isDaemonAvailable():
+def complete_on_char_added(editor, *args):
+	if not is_daemon_available():
 		return
 
 	if not editor.isListActive() or editor.autoCompListId != 1:
 		return
-	doCompletion(editor)
+	do_completion(editor)
 
 
-@registerSignal('editor', 'userListActivated')
-def onActivate(ed, listid, display):
+@register_signal('editor', 'userListActivated')
+def on_activate(ed, listid, display):
 	if listid != 1:
 		return
 
-	start = ed.compStartOffset
-	end = ed.cursorOffset()
+	start = ed.comp_start_offset
+	end = ed.cursor_offset()
 
-	item = ed.compListItems[display]
+	item = ed.comp_list_items[display]
 
 	text = item['insert']
 
 	startl, startc = ed.lineIndexFromPosition(start)
-	with ed.undoGroup():
-		ed.deleteRange(start, end - start)
+	with ed.undo_group():
+		ed.delete_range(start, end - start)
 		ed.insertAt(text, startl, startc)
-	ed.setCursorPosition(startl, startc + len(text))
+	ed.set_cursor_position(startl, startc + len(text))
 
 
-def querySubCommandsList(editor):
-	def handleReply():
-		getDaemon().checkReply(reply)
-		res = getDaemon()._json_reply(reply)
+def query_sub_commands_list(editor):
+	def handle_reply():
+		get_daemon().check_reply(reply)
+		res = get_daemon()._json_reply(reply)
 		print(res)
 
-	reply = _query(getDaemon().querySubcommandsList, editor)
-	reply.finished.connect(handleReply)
+	reply = _query(get_daemon().query_subcommands_list, editor)
+	reply.finished.connect(handle_reply)
 	reply.finished.connect(reply.deleteLater)
 
 
 if 1:
-	def queryDiag(editor):
-		res = _query(getDaemon().queryDiagnostic, editor)
+	def query_diag(editor):
+		res = _query(get_daemon().query_diagnostic, editor)
 		print(res)
 
 
-	def queryDebug(editor):
-		res = _query(getDaemon().queryDebug, editor)
+	def query_debug(editor):
+		res = _query(get_daemon().query_debug, editor)
 		print(res)
 
 
-	def querySubCommand(editor, *args, **kwargs):
-		def handleReply():
-			getDaemon().checkReply(reply)
-			res = getDaemon()._json_reply(reply)
+	def query_sub_command(editor, *args, **kwargs):
+		def handle_reply():
+			get_daemon().check_reply(reply)
+			res = get_daemon()._json_reply(reply)
 			print(res)
 
-		reply = _query(getDaemon().querySubcommand, editor, *args, **kwargs)
-		reply.finished.connect(handleReply)
+		reply = _query(get_daemon().query_subcommand, editor, *args, **kwargs)
+		reply.finished.connect(handle_reply)
 		reply.finished.connect(reply.deleteLater)
 
 
@@ -141,15 +141,15 @@ class YcmSearch(QObject):
 	found = Signal(dict)
 	finished = Signal(int)
 
-	searchType = None
+	search_type = None
 
 	def __init__(self, *args, **kwargs):
 		super(YcmSearch, self).__init__(*args, **kwargs)
 		self.reply = None
 
-	def findUnderCursor(self, editor):
+	def find_under_cursor(self, editor):
 		self.started.emit()
-		self.reply = _query(getDaemon().querySubcommand, editor, self.searchType)
+		self.reply = _query(get_daemon().query_subcommand, editor, self.search_type)
 		self.reply.finished.connect(self._on_reply)
 		self.reply.finished.connect(self.reply.deleteLater)
 
@@ -163,18 +163,18 @@ class YcmSearch(QObject):
 
 	@Slot()
 	def _on_reply(self):
-		resultCode = 1
+		result_code = 1
 
 		try:
-			getDaemon().checkReply(self.reply)
+			get_daemon().check_reply(self.reply)
 		except ServerError:
 			pass
 		else:
-			self._handle_reply(getDaemon()._json_reply(self.reply))
-			resultCode = 0
+			self._handle_reply(get_daemon()._json_reply(self.reply))
+			result_code = 0
 		finally:
 			self.reply = None
-			self.finished.emit(resultCode)
+			self.finished.emit(result_code)
 
 	def _handle_reply(self, obj):
 		if isinstance(obj, dict):
@@ -198,17 +198,17 @@ class YcmSearch(QObject):
 class YcmGoToDeclaration(YcmSearch):
 	"""Plugin to find the declaration of a symbol"""
 
-	searchType = 'GoToDeclaration'
+	search_type = 'GoToDeclaration'
 
 
 class YcmGoToDefinition(YcmSearch):
 	"""Plugin to find the definition of a symbol"""
 
-	searchType = 'GoToDefinition'
+	search_type = 'GoToDefinition'
 
 
 class YcmGoToReferences(YcmSearch):
 	"""Plugin to find usage of a symbol"""
 
-	searchType = 'GoToReferences'
+	search_type = 'GoToReferences'
 

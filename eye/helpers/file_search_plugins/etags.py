@@ -9,7 +9,7 @@ from PyQt5.QtCore import QTimer, QElapsedTimer
 
 from eye.helpers.confcache import ConfCache
 from eye.helpers.file_search_plugins.base import registerPlugin, SearchPlugin
-from eye.pathutils import findAncestorContaining, findInAncestors
+from eye.pathutils import find_ancestor_containing, find_in_ancestors
 from eye.qt import Slot
 
 __all__ = ('ETagsSearch',)
@@ -105,12 +105,12 @@ class TagDb(object):
 				yield tag
 
 
-def findTagDir(path):
-	return findAncestorContaining(path, ['TAGS'])
+def find_tag_dir(path):
+	return find_ancestor_containing(path, ['TAGS'])
 
 
-def findTagFile(path):
-	return findInAncestors(path, ['TAGS'])
+def find_tag_file(path):
+	return find_in_ancestors(path, ['TAGS'])
 
 
 class DbCache(ConfCache):
@@ -135,15 +135,15 @@ class ETagsSearch(SearchPlugin):
 		self.timer.timeout.connect(self._batch_load)
 
 	@classmethod
-	def isAvailable(cls, path):
-		return bool(findTagDir(path))
+	def is_available(cls, path):
+		return bool(find_tag_dir(path))
 
 	@classmethod
-	def searchRootPath(cls, path):
-		return findTagDir(path)
+	def search_root_path(cls, path):
+		return find_tag_dir(path)
 
 	@contextmanager
-	def safeBatch(self):
+	def safe_batch(self):
 		try:
 			yield
 		except:
@@ -151,10 +151,10 @@ class ETagsSearch(SearchPlugin):
 			self.finished.emit(0)
 			raise
 
-	def loadDb(self, dbpath):
+	def _load_db(self, dbpath):
 		self.db = CACHE.get(dbpath)
 		if self.db:
-			self.searchInDb(self.request)
+			self._search_in_db(self.request)
 			return
 
 		LOGGER.debug('loading db %r because it is not in cache', dbpath)
@@ -165,7 +165,7 @@ class ETagsSearch(SearchPlugin):
 
 	@Slot()
 	def _batch_load(self):
-		with self.safeBatch():
+		with self.safe_batch():
 			duration = QElapsedTimer()
 			duration.start()
 
@@ -179,9 +179,9 @@ class ETagsSearch(SearchPlugin):
 			self.timer.stop()
 
 			LOGGER.debug('db %r has finished loading', self.parser.path)
-			self.searchInDb(self.request)
+			self._search_in_db(self.request)
 
-	def searchInDb(self, pattern):
+	def _search_in_db(self, pattern):
 		for match in self.db.find_tag(pattern):
 			self.found.emit(match)
 		self.finished.emit(0)
@@ -190,10 +190,10 @@ class ETagsSearch(SearchPlugin):
 		self.request = pattern
 		self.started.emit()
 
-		with self.safeBatch():
-			dbpath = findTagFile(root)
+		with self.safe_batch():
+			dbpath = find_tag_file(root)
 			if not dbpath:
 				self.finished.emit(0)
 				return
 
-			self.loadDb(dbpath)
+			self._load_db(dbpath)

@@ -4,48 +4,48 @@ from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QBrush, QPen, QPainter, QPolygon, QIcon
 from PyQt5.QtWidgets import QFrame, QSizePolicy, QWidget, QHBoxLayout
 
-from eye.connector import CategoryMixin, registerSignal, disabled
+from eye.connector import CategoryMixin, register_signal, disabled
 from eye.qt import Signal, Slot
 from eye.widgets.editor import Editor, SciModification, HasWeakEditorMixin
-from eye.widgets.helpers import acceptIf
+from eye.widgets.helpers import accept_if
 from eye.widgets.window import Window
 
-__all__ = ('MiniMap', 'EditorReplacement', 'scrollOnClick', 'install')
+__all__ = ('MiniMap', 'EditorReplacement', 'scroll_on_click', 'install')
 
 
 class MiniMap(QFrame, CategoryMixin, HasWeakEditorMixin):
-	lineClicked = Signal(int)
+	line_clicked = Signal(int)
 
 	def __init__(self, editor=None, **kwargs):
 		super(MiniMap, self).__init__(**kwargs)
 
 		self.editor = editor
 		if self.editor:
-			self.editor.sciModified.connect(self.editorModification)
+			self.editor.sci_modified.connect(self.editor_modification)
 
-		self.markerStyles = {}
-		self.indicatorStyles = {}
+		self.marker_styles = {}
+		self.indicator_styles = {}
 
 		self.setFixedWidth(10)
 		self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
 		self.setCursor(Qt.OpenHandCursor)
 
-		self.addCategory('minimap')
+		self.add_category('minimap')
 
 	@Slot(SciModification)
-	def editorModification(self, mod):
+	def editor_modification(self, mod):
 		update_mask = self.editor.SC_MOD_CHANGEINDICATOR | self.editor.SC_MOD_CHANGEMARKER
 
 		if mod.modificationType & update_mask:
 			self.update()
 
-	def setLines(self, lines):
+	def set_lines(self, lines):
 		self.lines = lines
 
 	def _do_move(self, ev):
 		line = ev.pos().y() * self.editor.lines() / self.height()
 		line = max(0, min(self.editor.lines(), line))
-		self.lineClicked.emit(line)
+		self.line_clicked.emit(line)
 
 	def mousePressEvent(self, ev):
 		self.setCursor(Qt.ClosedHandCursor)
@@ -67,21 +67,21 @@ class MiniMap(QFrame, CategoryMixin, HasWeakEditorMixin):
 		total = self.editor.lines()
 
 		for name in self.editor.markers:
-			mpainter = self.markerStyles.get(name)
+			mpainter = self.marker_styles.get(name)
 			if mpainter is None:
 				continue
 
 			marker = self.editor.markers[name]
-			for line in marker.listAll():
+			for line in marker.list_all():
 				mpainter.draw(painter, line, total, self)
 
 		for name in self.editor.indicators:
-			mpainter = self.indicatorStyles.get(name)
+			mpainter = self.indicator_styles.get(name)
 			if mpainter is None:
 				continue
 
 			indicator = self.editor.indicators[name]
-			for line in indicator.iterLines():
+			for line in indicator.iter_lines():
 				mpainter.draw(painter, line, total, self)
 
 	# TODO mouse cursor changes over highlight zone
@@ -114,7 +114,7 @@ class EditorReplacement(QWidget, HasWeakEditorMixin):
 		self.setWindowModified(self.editor.isWindowModified())
 
 	def closeEvent(self, ev):
-		acceptIf(ev, self.editor.close())
+		accept_if(ev, self.editor.close())
 
 	def __getattr__(self, attr):
 		return getattr(self.editor, attr)
@@ -125,9 +125,9 @@ class EditorReplacement(QWidget, HasWeakEditorMixin):
 		super(EditorReplacement, self).setWindowIcon(icon)
 
 
-@registerSignal('minimap', 'lineClicked')
+@register_signal('minimap', 'line_clicked')
 @disabled
-def scrollOnClick(minimap, line):
+def scroll_on_click(minimap, line):
 	minimap.editor.ensureLineVisible(line)
 
 

@@ -9,14 +9,14 @@ from binascii import hexlify, unhexlify
 import json
 import os
 
-from eye.connector import categoryObjects
-from eye.pathutils import getConfigFilePath
+from eye.connector import category_objects
+from eye.pathutils import get_config_file_path
 from eye.widgets.editor import Editor
 from eye.widgets.splitter import Splitter
 from eye.widgets.tabs import TabWidget
 from eye.widgets.window import Window
 
-__all__ = ('saveSession', 'restoreSession')
+__all__ = ('save_session', 'restore_session')
 
 
 SESSION_FILE = 'last.session'
@@ -30,25 +30,25 @@ def json_to_bin(j):
 	return unhexlify(j)
 
 
-def serializeSession():
+def serialize_session():
 	return {
-		'windows': [serializeWindow(win) for win in categoryObjects('window')]
+		'windows': [serialize_window(win) for win in category_objects('window')]
 	}
 
 
-def serializeWindow(win):
+def serialize_window(win):
 	return {
 		'type': 'window',
 		'qgeometry': bin_to_json(bytes(win.saveGeometry())),
 		'qstate': bin_to_json(bytes(win.saveState())),
-		'splitter': serializeSplitter(win.splitter.root),
+		'splitter': serialize_splitter(win.splitter.root),
 	}
 
 
-def serializeSplitter(splitter):
+def serialize_splitter(splitter):
 	assert isinstance(splitter, Splitter)
 
-	items = [serializeSplitterEntry(splitter.widget(i)) for i in range(splitter.count())]
+	items = [serialize_splitter_entry(splitter.widget(i)) for i in range(splitter.count())]
 	return {
 		'type': 'splitter',
 		'orientation': splitter.orientation(),
@@ -57,24 +57,24 @@ def serializeSplitter(splitter):
 	}
 
 
-def serializeSplitterEntry(widget):
+def serialize_splitter_entry(widget):
 	if isinstance(widget, Splitter):
-		return serializeSplitter(widget)
+		return serialize_splitter(widget)
 	elif isinstance(widget, TabWidget):
-		return serializeTabs(widget)
+		return serialize_tabs(widget)
 
 
-def serializeTabs(tabwidget):
+def serialize_tabs(tabwidget):
 	assert isinstance(tabwidget, TabWidget)
 
 	return {
 		'type': 'tabwidget',
-		'items': [serializeTab(tabwidget.widget(i)) for i in range(tabwidget.count())],
+		'items': [serialize_tab(tabwidget.widget(i)) for i in range(tabwidget.count())],
 		'current': tabwidget.currentIndex(),
 	}
 
 
-def serializeTab(widget):
+def serialize_tab(widget):
 	if isinstance(widget, Editor):
 		return {
 			'type': 'editor',
@@ -84,15 +84,15 @@ def serializeTab(widget):
 		}
 
 
-def saveSession():
-	obj = serializeSession()
+def save_session():
+	obj = serialize_session()
 	buf = json.dumps(obj)
 
-	with open(getConfigFilePath(SESSION_FILE), 'w') as fd:
+	with open(get_config_file_path(SESSION_FILE), 'w') as fd:
 		fd.write(buf)
 
 
-def respawnSessionObject(session):
+def respawn_session_object(session):
 	for dwin in session['windows']:
 		win = Window()
 
@@ -104,67 +104,68 @@ def respawnSessionObject(session):
 		if 'qstate' in dwin:
 			win.restoreState(json_to_bin(dwin['qstate']))
 
-		respawnSplitter(dwin.get('splitter'), win.splitter.root)
+		respawn_splitter(dwin.get('splitter'), win.splitter.root)
 		win.splitter.root.widget(0).setParent(None)
-		resizeSplitter(dwin.get('splitter'), win.splitter.root)
+		resize_splitter(dwin.get('splitter'), win.splitter.root)
 
 
-def resizeSplitter(dsplitter, splitter):
+def resize_splitter(dsplitter, splitter):
 	assert dsplitter['type'] == 'splitter'
 
 	#splitter.setSizes(list(ditem['size'] for ditem in dsplitter['items']))
 	if 'qstate' in dsplitter:
-		splitter.restoreState(json_to_bin(dsplitter['qstate']))
+		splitter.restore_state(json_to_bin(dsplitter['qstate']))
 
 	for i, ditem in enumerate(dsplitter['items']):
 		if ditem['type'] == 'splitter':
-			resizeSplitter(ditem, splitter.widget(i))
+			resize_splitter(ditem, splitter.widget(i))
 
 
-def respawnSplitter(dsplitter, splitter):
+def respawn_splitter(dsplitter, splitter):
 	assert dsplitter['type'] == 'splitter'
 	assert isinstance(splitter, Splitter)
 
 	splitter.setOrientation(dsplitter['orientation'])
 	for ditem in dsplitter['items']:
-		respawnSplitterItem(ditem, splitter)
+		respawn_splitter_item(ditem, splitter)
 
 
-def respawnSplitterItem(ditem, parent):
+def respawn_splitter_item(ditem, parent):
 	if ditem['type'] == 'splitter':
 		new = Splitter()
 		parent.addWidget(new)
-		respawnSplitter(ditem, new)
+		respawn_splitter(ditem, new)
 	elif ditem['type'] == 'tabwidget':
 		new = TabWidget()
-		parent.addWidget(new)
-		respawnTabs(ditem, new)
+		parent.add_widget(new)
+		respawn_tabs(ditem, new)
 
 
-def respawnTabs(dtabs, tabwidget):
+def respawn_tabs(dtabs, tabwidget):
 	assert dtabs['type'] == 'tabwidget'
 
 	for ditem in dtabs['items']:
-		respawnTab(ditem, tabwidget)
+		respawn_tab(ditem, tabwidget)
 	tabwidget.setCurrentIndex(dtabs.get('current', 0))
 
 
-def respawnTab(dtab, tabwidget):
+def respawn_tab(dtab, tabwidget):
 	if dtab['type'] == 'editor':
 		new = Editor()
-		tabwidget.addWidget(new)
+		tabwidget.add_widget(new)
 		if dtab.get('path'):
-			new.openFile(dtab['path'])
+			new.open_file(dtab['path'])
 		if 'contractedFolds' in dtab:
 			new.setContractedFolds(dtab['contractedFolds'])
 		if 'cursor' in dtab:
 			new.setCursorPosition(*dtab['cursor'])
 
-def restoreSession():
-	path = getConfigFilePath(SESSION_FILE)
+
+def restore_session():
+	path = get_config_file_path(SESSION_FILE)
 	if not os.path.isfile(path):
 		return
 
 	with open(path) as fd:
 		obj = json.load(fd)
-	respawnSessionObject(obj)
+	respawn_session_object(obj)

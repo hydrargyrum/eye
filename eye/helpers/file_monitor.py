@@ -9,10 +9,14 @@ from weakref import WeakValueDictionary
 
 from PyQt5.QtCore import QFileSystemWatcher, QSignalMapper, QObject
 
-from eye.connector import registerSignal, disabled
+from eye.connector import register_signal, disabled
 from eye.qt import Signal, Slot
 
-__all__ = ('Monitor', 'MonitorWithRename', 'SingleFileWatcher', 'onOpen', 'onBeforeSave', 'MONITOR')
+__all__ = (
+	'Monitor', 'MonitorWithRename', 'SingleFileWatcher',
+	'on_open', 'on_before_save',
+	'MONITOR',
+)
 
 
 LOGGER = getLogger(__name__)
@@ -94,13 +98,13 @@ class Monitor(QObject):
 		super(Monitor, self).__init__(**kwargs)
 
 		self.watched = WeakValueDictionary()
-		self.delMapper = QSignalMapper(self)
-		self.delMapper.mapped[str].connect(self.unmonitorFile)
+		self.del_mapper = QSignalMapper(self)
+		self.del_mapper.mapped[str].connect(self.unmonitor_file)
 
 		self.watcher = MonitorWithRename(parent=self)
 		self.watcher.fileChanged.connect(self._on_file_changed)
 
-	def monitorFile(self, path):
+	def monitor_file(self, path):
 		"""Monitor a file and return an object that tracks only `path`
 
 		:rtype: SingleFileWatcher
@@ -114,20 +118,20 @@ class Monitor(QObject):
 		proxy = self.watched.get(path)
 		if not proxy:
 			proxy = SingleFileWatcher(path)
-			proxy.destroyed.connect(self.delMapper.map)
-			self.delMapper.setMapping(proxy, path)
+			proxy.destroyed.connect(self.del_mapper.map)
+			self.del_mapper.setMapping(proxy, path)
 			self.watched[path] = proxy
 
 		return proxy
 
 	@Slot(str)
-	def unmonitorFile(self, path):
+	def unmonitor_file(self, path):
 		"""Stop monitoring a file
 
 		Since there is only one :any:`SingleFileWatcher` object per path, all objects monitoring
 		`path` will not receive notifications anymore.
 		To let only one object stop monitoring the file, simply disconnect its `modified` signal.
-		When the :any:`SingleFileWatcher` object returned by method :any:`monitorFile` is
+		When the :any:`SingleFileWatcher` object returned by method :any:`monitor_file` is
 		destroyed, the file is automatically un-monitored.
 		"""
 		path = os.path.abspath(path)
@@ -142,37 +146,37 @@ class Monitor(QObject):
 			proxy.modified.emit()
 
 
-@registerSignal('editor', 'fileOpened')
-@registerSignal('editor', 'fileSavedAs')
-@registerSignal('editor', 'fileSaved')
+@register_signal('editor', 'file_opened')
+@register_signal('editor', 'file_saved_as')
+@register_signal('editor', 'file_saved')
 @disabled
-def onOpen(editor, path):
+def on_open(editor, path):
 	"""Handler to start monitoring the file edited
 
 	When the file is modified (not by `saveFile`), the
 	:any:`eye.widgets.editor.Editor.fileModifiedExterally` signal will be emitted.
 	"""
-	if getattr(editor, 'fileMonitor', None) is not None:
+	if getattr(editor, 'file_monitor', None) is not None:
 		return
 
-	editor.fileMonitor = MONITOR.monitorFile(path)
-	editor.fileMonitor.modified.connect(editor.fileModifiedExternally)
+	editor.file_monitor = MONITOR.monitor_file(path)
+	editor.file_monitor.modified.connect(editor.file_modified_externally)
 
 
-@registerSignal('editor', 'fileAboutToBeSaved')
+@register_signal('editor', 'file_about_to_be_saved')
 @disabled
-def onBeforeSave(editor, path):
+def on_before_save(editor, path):
 	"""Handler to (temporarily) pause file monitor associated to `editor`.
 
-	The file monitor created by :any:`onOpen` has to be disabled to avoid the editor detecting its
+	The file monitor created by :any:`on_open` has to be disabled to avoid the editor detecting its
 	own saving.
 	"""
 
-	if getattr(editor, 'fileMonitor', None) is None:
+	if getattr(editor, 'file_monitor', None) is None:
 		return
 
-	editor.fileMonitor.modified.disconnect(editor.fileModifiedExternally)
-	editor.fileMonitor = None
+	editor.file_monitor.modified.disconnect(editor.file_modified_externally)
+	editor.file_monitor = None
 
 
 MONITOR = Monitor()

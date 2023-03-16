@@ -7,7 +7,7 @@ from PyQt5.Qsci import QsciLexerPython, QsciLexerCPP, QsciLexerBash, QsciLexerCS
 # Keyword, Identifier, Number, Comment, String, Operator, Error
 # IdentifierDefinition
 
-__all__ = ('getIdAndAliases',)
+__all__ = ('get_id_and_aliases',)
 
 ALIASES = {
 	QsciLexerPython: {
@@ -81,7 +81,7 @@ ALIASES = {
 }
 
 
-def lexerDescriptionIds(lexer):
+def lexer_description_ids(lexer):
 	ret = {}
 	for i in range(1 << lexer.styleBitsNeeded()):
 		description = lexer.description(i)
@@ -91,7 +91,7 @@ def lexerDescriptionIds(lexer):
 	return ret
 
 
-def getIdAndAliases(lexer, keyword):
+def get_id_and_aliases(lexer, keyword):
 	ret = []
 
 	cls = type(lexer)
@@ -102,7 +102,7 @@ def getIdAndAliases(lexer, keyword):
 		ret.extend(getattr(cls, alias) for alias in aliases if hasattr(cls, alias))
 
 	if not ret:
-		descs = lexerDescriptionIds(lexer)
+		descs = lexer_description_ids(lexer)
 		if keyword in descs:
 			ret.append(descs[keyword])
 

@@ -19,11 +19,11 @@ from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QPlainTextEdit, QWidget, QAc
 
 from eye.app import qApp
 from eye.qt import Signal, Slot
-from eye.utils import exceptionLogging
+from eye.utils import exception_logging
 from eye.widgets.helpers import WidgetMixin
 
 __all__ = (
-	'EvalConsole', 'NAMESPACE', 'registerConsoleSymbol',
+	'EvalConsole', 'NAMESPACE', 'register_console_symbol',
 )
 
 
@@ -98,11 +98,11 @@ class HistoryLine(QLineEdit):
 		self.history.append(text)
 
 		if self.history_path:
-			with exceptionLogging(reraise=False, logger=LOGGER):
+			with exception_logging(reraise=False, logger=LOGGER):
 				with codecs.open(self.history_path, 'a', 'utf-8') as fd:
 					print(text, file=fd)
 
-	def setHistoryFile(self, path):
+	def set_history_file(self, path):
 		if path is not None:
 			self.history = []
 			if os.path.exists(path):
@@ -177,7 +177,7 @@ class EvalConsole(QWidget, WidgetMixin):
 		self.display.addAction(clearAction)
 
 		self.line = HistoryLine()
-		self.line.submitted.connect(self.execCode)
+		self.line.submitted.connect(self.exec_code)
 		self.line.installEventFilter(self)
 		self.line.completer().popup().installEventFilter(self)
 		self.setFocusProxy(self.line)
@@ -187,33 +187,33 @@ class EvalConsole(QWidget, WidgetMixin):
 
 		self.setWindowTitle(self.tr('Eval console'))
 
-		self.addCategory('eval_console')
+		self.add_category('eval_console')
 
 	def import_all_qt(self):
 		self.interpreter.runsource('from eye.helpers.qt_all import *')
 
 	@Slot(str)
-	def execCode(self, code):
+	def exec_code(self, code):
 		# TODO be able to define functions, do ifs, fors
 
-		self.setNamespace()
+		self.set_namespace()
 		try:
 			output = u'>>> %s\n' % code
 			output += capture_output(self.interpreter.runsource, code)
 			self.display.appendPlainText(output)
 		finally:
-			self.protectNamespace()
+			self.protect_namespace()
 
-	def setNamespace(self):
+	def set_namespace(self):
 		import eye
 		self.namespace['eye'] = eye
 		self.namespace['app'] = qApp()
-		self.namespace['window'] = qApp().lastWindow
-		self.namespace['editor'] = self.namespace['window'].currentBuffer()
+		self.namespace['window'] = qApp().last_window
+		self.namespace['editor'] = self.namespace['window'].current_buffer()
 		self.namespace['import_all_qt'] = self.import_all_qt
 		self.namespace.update(NAMESPACE)
 
-	def protectNamespace(self):
+	def protect_namespace(self):
 		# avoid retaining references to widgets
 		self.namespace.pop('window', None)
 		self.namespace.pop('editor', None)
@@ -221,9 +221,9 @@ class EvalConsole(QWidget, WidgetMixin):
 	def eventFilter(self, obj, event):
 		if event.type() in (event.FocusIn, event.FocusOut):
 			if self.line.hasFocus():
-				self.setNamespace()
+				self.set_namespace()
 			else:
-				self.protectNamespace()
+				self.protect_namespace()
 		return False
 
 
@@ -242,12 +242,12 @@ def capture_output(cb, *args, **kwargs):
 	return res
 
 
-def registerConsoleSymbol(name):
+def register_console_symbol(name):
 	"""Decorator to register a function on the eval console
 
 	Example::
 
-		@registerConsoleSymbol('foo')
+		@register_console_symbol('foo')
 		def foo():
 			pass
 

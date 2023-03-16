@@ -13,12 +13,13 @@ from weakref import ref
 from PyQt5.QtCore import QEvent, Qt, QObject
 
 from eye.app import qApp
-from eye.connector import registerSignal, disabled, registerSetup
+from eye.connector import register_signal, disabled, register_setup
 
-__all__ = ('pushHistory', 'goBack', 'goForward', 'peekHistory',
-           'pushHistoryOnEditorChange', 'pushHistoryOnJump',
-           'navigateWithMouseBack', 'setEnabled',
-          )
+__all__ = (
+	'push_history', 'go_back', 'go_forward', 'peek_history',
+	'push_history_on_editor_change', 'push_history_on_jump',
+	'navigate_with_mouse_back', 'set_enabled',
+)
 
 
 LOGGER = getLogger(__name__)
@@ -27,7 +28,7 @@ FORWARD = []
 POPPING = ()
 
 
-def pushHistory(editor, line, col):
+def push_history(editor, line, col):
 	"""Add an entry in history
 
 	Calling this function pushes an entry on top of the backward history (which is a stack) and
@@ -40,12 +41,12 @@ def pushHistory(editor, line, col):
 	del FORWARD[:]
 
 
-def goBack():
+def go_back():
 	"""Go back in editor position history"""
 
 	global POPPING
 
-	current = qApp().lastWindow.currentBuffer()
+	current = qApp().last_window.current_buffer()
 
 	try:
 		rneweditor, newline, newcol = BACKWARD.pop()
@@ -56,18 +57,18 @@ def goBack():
 	editor = rneweditor()
 	if not editor:
 		LOGGER.debug('skipping entry, editor was closed')
-		return goBack()
+		return go_back()
 
 	POPPING = (rneweditor, newline, newcol)
-	FORWARD.append(makeEntry(current))
+	FORWARD.append(make_entry(current))
 
 	LOGGER.debug('going back')
-	editor.setCursorPosition(newline, newcol)
-	editor.giveFocus()
+	editor.set_cursor_position(newline, newcol)
+	editor.give_focus()
 	return True
 
 
-def goForward():
+def go_forward():
 	"""Go forward in editor position history"""
 
 	global POPPING
@@ -81,18 +82,18 @@ def goForward():
 	editor = rneweditor()
 	if not editor:
 		LOGGER.debug('skipping entry, editor was closed')
-		return goForward()
+		return go_forward()
 
 	POPPING = (rneweditor, newline, newcol)
-	BACKWARD.append(makeEntry(qApp().lastWindow.currentBuffer()))
+	BACKWARD.append(make_entry(qApp().last_window.current_buffer()))
 
 	LOGGER.debug('going forward')
-	editor.setCursorPosition(newline, newcol)
-	editor.giveFocus()
+	editor.set_cursor_position(newline, newcol)
+	editor.give_focus()
 	return True
 
 
-def peekHistory():
+def peek_history():
 	"""Get the backward history entry that could be navigated
 
 	Does not perform any navigation, it just returns a 3-tuple containing the
@@ -108,12 +109,12 @@ def peekHistory():
 			return editor, line, col
 		else:
 			BACKWARD.pop()
-			return peekHistory()
+			return peek_history()
 
 
-@registerSignal('editor', 'cursorPositionChanged')
+@register_signal('editor', 'cursorPositionChanged')
 @disabled
-def pushHistoryOnEditorChange(editor, line, col):
+def push_history_on_editor_change(editor, line, col):
 	"""Push a history entry when moving cursor to another editor and position.
 	"""
 
@@ -141,19 +142,19 @@ def pushHistoryOnEditorChange(editor, line, col):
 		if editor is heditor() and line == hline and col == hcol:
 			return
 
-	pushHistory(editor, line, col)
+	push_history(editor, line, col)
 
 
-@registerSignal('editor', 'positionJumped')
+@register_signal('editor', 'position_jumped')
 @disabled
-def pushHistoryOnJump(editor, line, col):
-	pushHistory(editor, line, col)
+def push_history_on_jump(editor, line, col):
+	push_history(editor, line, col)
 
 
-def makeEntry(editor):
+def make_entry(editor):
 	"""Returns a tuple suitable for putting in the history stack"""
 
-	line, col = editor.getCursorPosition()
+	line, col = editor.get_cursor_position()
 	return (ref(editor), line, col)
 
 
@@ -161,20 +162,20 @@ class MouseNavFilter(QObject):
 	def eventFilter(self, ed, ev):
 		if ev.type() == QEvent.MouseButtonPress:
 			if ev.buttons() == Qt.BackButton:
-				goBack()
+				go_back()
 			elif ev.buttons() == Qt.ForwardButton:
-				goForward()
+				go_forward()
 		return False
 
 
-@registerSetup('editor')
+@register_setup('editor')
 @disabled
-def navigateWithMouseBack(editor):
+def navigate_with_mouse_back(editor):
 	"""Use navigation with Back/Forward mouse buttons
 
 	Certain mice have dedicated back and forward buttons.
-	When this callback is enabled, back and forward mouse buttons will call :any:`goBack` and
-	:any:`goForward`.
+	When this callback is enabled, back and forward mouse buttons will call :any:`go_back` and
+	:any:`go_forward`.
 	"""
 
 	# event filter on editor widget will not catch mouse events, use viewport instead
@@ -183,12 +184,11 @@ def navigateWithMouseBack(editor):
 	view.installEventFilter(filter)
 
 
-def setEnabled(enabled):
+def set_enabled(enabled):
 	"""
-	Toggles :any:`pushHistoryOnEditorChange`, :any:`pushHistoryOnJump` and :any:`navigateWithMouseBack`.
+	Toggles :any:`push_history_on_editor_change`, :any:`push_history_on_jump` and :any:`navigate_with_mouse_back`.
 	"""
 
-	pushHistoryOnEditorChange.enabled = enabled
-	pushHistoryOnJump.enabled = enabled
-	navigateWithMouseBack.enabled = enabled
-
+	push_history_on_editor_change.enabled = enabled
+	push_history_on_jump.enabled = enabled
+	navigate_with_mouse_back.enabled = enabled

@@ -8,22 +8,23 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QDockWidget, QWidget
 
 from eye import consts
-from eye.connector import registerSignal, disabled
-from eye.qt import Signal, Slot
+from eye.connector import register_signal, disabled
+from eye.qt import Signal, Slot, override
 from eye.widgets.droparea import DropAreaMixin
 from eye.widgets.editor import Editor
-from eye.widgets.helpers import CategoryMixin, acceptIf, parentTabWidget
+from eye.widgets.helpers import CategoryMixin, accept_if, parent_tab_widget
 from eye.widgets.splitter import SplitManager
 from eye.widgets.tabs import TabWidget
 
-__all__ = ('Window', 'titleOnFocus')
+__all__ = ('Window', 'title_on_focus')
 
 
 class DockWidget(QDockWidget, CategoryMixin):
 	def __init__(self, **kwargs):
 		super(DockWidget, self).__init__(**kwargs)
-		self.addCategory('dock_container')
+		self.add_category('dock_container')
 
+	@override
 	def childEvent(self, ev):
 		super(DockWidget, self).childEvent(ev)
 
@@ -31,14 +32,14 @@ class DockWidget(QDockWidget, CategoryMixin):
 		w = self.widget()
 		if ev.type() == QEvent.ChildAdded and w:
 			try:
-				w.windowTitleChanged.connect(self.childTitleChanged, Qt.UniqueConnection)
+				w.windowTitleChanged.connect(self.child_title_changed, Qt.UniqueConnection)
 			except TypeError:  # already connected
 				pass
 			else:
 				self.setWindowTitle(w.windowTitle())
 
 	@Slot(str)
-	def childTitleChanged(self, title):
+	def child_title_changed(self, title):
 		if self.sender() is self.widget():
 			self.setWindowTitle(title)
 
@@ -52,16 +53,16 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 	dock widgets. Dock widgets are widgets which can be placed on the 4 sides of the central widget.
 
 	Access to menu bar, status bar and toolbars is the same as with a :any:`QMainWindow`. Dock widgets access can
-	be done with the :any:`addDockable` helper.
+	be done with the :any:`add_dockable` helper.
 	"""
 
 	EditorClass = Editor
 
 	"""Class of the widget to create when a new tab is opened."""
 
-	fileDropped = Signal(str)
+	file_dropped = Signal(str)
 
-	focusedBuffer = Signal(QWidget)
+	focused_buffer = Signal(QWidget)
 
 	def __init__(self, *args):
 		super(Window, self).__init__(*args)
@@ -72,38 +73,38 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 
 		ed = self.EditorClass()
 		tabs = TabWidget()
-		tabs.addWidget(ed)
+		tabs.add_widget(ed)
 
-		self.splitter.splitAt(None, consts.RIGHT, tabs)
+		self.splitter.split_at(None, consts.RIGHT, tabs)
 
 		self.setCentralWidget(self.splitter)
 
-		self.lastFocus = ref(ed)
+		self.last_focus = ref(ed)
 		from eye.app import qApp
 		qApp().focusChanged.connect(self._app_focus_changed)
 
 		REGISTRY.append(self)
-		self.addCategory('window')
+		self.add_category('window')
 
-	def createDefaultMenuBar(self):
+	def create_default_menu_bar(self):
 		menu = self.menubar.addMenu('File')
 		action = menu.addAction(QIcon.fromTheme('document-new'), 'New')
-		action.triggered.connect(self.bufferNew)
+		action.triggered.connect(self.buffer_new)
 
 		action = menu.addAction(QIcon.fromTheme('document-open'), 'Open...')
-		action.triggered.connect(self.bufferOpenDialog)
+		action.triggered.connect(self.buffer_open_dialog)
 
 		action = menu.addAction(QIcon.fromTheme('document-save'), 'Save')
-		action.triggered.connect(self.bufferSave)
+		action.triggered.connect(self.buffer_save)
 
 		action = menu.addAction(QIcon.fromTheme('application-exit'), 'Quit')
-		action.triggered.connect(self.quitRequested)
+		action.triggered.connect(self.quit_requested)
 
 	@Slot()
-	def toggleFullScreen(self):
+	def toggle_full_screen(self):
 		self.setWindowState(self.windowState() ^ Qt.WindowFullScreen)
 
-	def addDockable(self, area, widget, title=''):
+	def add_dockable(self, area, widget, title=''):
 		"""Add a widget to a dock of this window
 
 		:param area: the area where to dock the widget
@@ -121,73 +122,73 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		return dw
 
 	## buffers
-	def currentBuffer(self):
+	def current_buffer(self):
 		"""Return the current buffer in this window, which has had focus last."""
-		return self.lastFocus()
+		return self.last_focus()
 
 	@Slot()
-	def bufferNew(self):
+	def buffer_new(self):
 		"""Open a new, empty editor in current tab container."""
 		ed = self.EditorClass()
-		cur = self.currentBuffer()
+		cur = self.current_buffer()
 		if cur:
-			parent = parentTabWidget(cur)
-			parent.addWidget(ed)
-			ed.giveFocus()
+			parent = parent_tab_widget(cur)
+			parent.add_widget(ed)
+			ed.give_focus()
 		return ed
 
 	@Slot()
-	def bufferNewAtTabs(self, tabbar):
+	def buffer_new_at_tabs(self, tabbar):
 		"""Open a new, empty editor in specified tab container."""
 		ed = self.EditorClass()
-		tabbar.addWidget(ed)
+		tabbar.add_widget(ed)
 		return ed
 
 	@Slot()
-	def bufferOpenDialog(self):
+	def buffer_open_dialog(self):
 		path, _ = QFileDialog.getOpenFileName(self, self.tr('Open file'), os.path.expanduser('~'))
 		if path:
-			ed = self.bufferNew()
-			ed.openFile(path)
+			ed = self.buffer_new()
+			ed.open_file(path)
 
 	@Slot()
-	def bufferOpen(self, path):
+	def buffer_open(self, path):
 		"""Open a new buffer in current tab container and load specified path."""
-		ed = self.bufferNew()
-		if ed.openFile(path):
+		ed = self.buffer_new()
+		if ed.open_file(path):
 			return ed
 		else:
-			parentTabWidget(ed).closeTab(ed)
+			parent_tab_widget(ed).close_tab(ed)
 
 	@Slot()
-	def bufferClose(self):
+	def buffer_close(self):
 		"""Close current buffer."""
-		ed = self.currentBuffer()
-		parent = parentTabWidget(ed)
-		parent.closeTab(ed)
+		ed = self.current_buffer()
+		parent = parent_tab_widget(ed)
+		parent.close_tab(ed)
 
 	@Slot()
-	def bufferSave(self):
+	def buffer_save(self):
 		"""Save current buffer."""
-		self.currentBuffer().saveFile()
+		self.current_buffer().save_file()
 
 	def _buffer_new_split(self, orientation, widget=None):
 		if widget is None:
-			widget = self.currentBuffer()
-		parent = parentTabWidget(widget)
+			widget = self.current_buffer()
+		parent = parent_tab_widget(widget)
 
 		ed = self.EditorClass()
 		tabs = TabWidget()
-		tabs.addWidget(ed)
+		tabs.add_widget(ed)
 
 		DIRS = {
 			Qt.Vertical: consts.DOWN,
 			Qt.Horizontal: consts.RIGHT
 		}
-		self.splitter.splitAt(parent, DIRS[orientation], tabs)
+		self.splitter.split_at(parent, DIRS[orientation], tabs)
 
 	@Slot()
-	def bufferSplitHorizontal(self, widget=None):
+	def buffer_split_horizontal(self, widget=None):
 		"""Split window horizontally at current buffer.
 
 		A new empty editor is created.
@@ -195,7 +196,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		self._buffer_new_split(Qt.Horizontal, widget)
 
 	@Slot()
-	def bufferSplitVertical(self, widget=None):
+	def buffer_split_vertical(self, widget=None):
 		"""Split window vertically at current buffer.
 
 		A new empty editor is created.
@@ -203,41 +204,42 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		self._buffer_new_split(Qt.Vertical, widget)
 
 	## signals
-	quitRequested = Signal()
+	quit_requested = Signal()
 
 	"""Signal quitRequested()"""
 
 	closing = Signal()
 
 	## events
+	@override
 	def closeEvent(self, ev):
-		if acceptIf(ev, self.splitter.close()):
+		if accept_if(ev, self.splitter.close()):
 			super(Window, self).closeEvent(ev)
 			self.closing.emit()
 			REGISTRY.remove(self)
 
-	def canClose(self):
-		return self.splitter.canClose()
+	def can_close(self):
+		return self.splitter.can_close()
 
-	def onTabbarLastClosed(self, tw):
-		self.splitter.removeWidget(tw)
+	def on_tabbar_last_closed(self, tw):
+		self.splitter.remove_widget(tw)
 
 	@Slot('QWidget*', 'QWidget*')
 	def _app_focus_changed(self, _, new):
 		if self.centralWidget().isAncestorOf(new):
-			self.lastFocus = ref(new)
-			self.focusedBuffer.emit(new)
+			self.last_focus = ref(new)
+			self.focused_buffer.emit(new)
 
 
-@registerSignal('tabwidget', 'lastTabClosed')
-def onLastTabClosed(tw):
+@register_signal('tabwidget', 'last_tab_closed')
+def on_last_tab_closed(tw):
 	win = tw.window()
-	win.onTabbarLastClosed(tw)
+	win.on_tabbar_last_closed(tw)
 
 
-@registerSignal('window', 'focusedBuffer')
+@register_signal('window', 'focused_buffer')
 @disabled
-def titleOnFocus(window, buffer):
+def title_on_focus(window, buffer):
 	"""Handler to let the window title reflect the focused buffer title"""
 	window.setWindowTitle(buffer.windowTitle())
 

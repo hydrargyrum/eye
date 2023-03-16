@@ -7,11 +7,11 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QLineEdit, QShortcut
 
 from eye.app import qApp
-from eye.connector import categoryObjects
+from eye.connector import category_objects
 from eye.qt import Signal, Slot
 from eye.widgets.helpers import WidgetMixin
 
-__all__ = ('Minibuffer', 'openMiniBuffer', 'getMiniBuffer')
+__all__ = ('Minibuffer', 'open_mini_buffer', 'get_mini_buffer')
 
 
 class CloseFlag(IntFlag):
@@ -25,35 +25,35 @@ class Minibuffer(QLineEdit, WidgetMixin):
 	def __init__(self, parent=None):
 		super(Minibuffer, self).__init__(parent=parent)
 
-		self.statusBar = None
-		self.closeFlags = 0
+		self.status_bar = None
+		self.close_flags = 0
 
 		sh = QShortcut(QKeySequence(Qt.Key_Escape), self)
-		sh.activated.connect(self.onEscape)
+		sh.activated.connect(self.on_escape)
 
-		self.returnPressed.connect(self.onReturnPressed)
+		self.returnPressed.connect(self.on_return_pressed)
 
-		self.addCategory('minibuffer')
+		self.add_category('minibuffer')
 
 	def __del__(self):
 		self.cancelled.emit()
 
-	def addToWindow(self, window):
-		if self.statusBar:
+	def add_to_window(self, window):
+		if self.status_bar:
 			self.remove()
-		self.statusBar = window.statusBar()
-		self.statusBar.insertWidget(0, self)
+		self.status_bar = window.statusBar()
+		self.status_bar.insertWidget(0, self)
 
 	def remove(self):
 		# warning: this triggers the focus-out
-		if self.statusBar:
-			self.statusBar.removeWidget(self)
-			self.statusBar = None
+		if self.status_bar:
+			self.status_bar.removeWidget(self)
+			self.status_bar = None
 
-	def setCloseFlags(self, f):
-		self.closeFlags = f
+	def set_close_flags(self, f):
+		self.close_flags = f
 
-	textEntered = Signal(str)
+	text_entered = Signal(str)
 	cancelled = Signal()
 
 	@Slot()
@@ -62,50 +62,50 @@ class Minibuffer(QLineEdit, WidgetMixin):
 		self.remove()
 
 	@Slot()
-	def onReturnPressed(self):
-		self.textEntered.emit(self.text())
-		if self.closeFlags & CloseFlag.ON_ENTER:
+	def on_return_pressed(self):
+		self.text_entered.emit(self.text())
+		if self.close_flags & CloseFlag.ON_ENTER:
 			self.remove()
 
 	@Slot()
-	def onEscape(self):
-		if self.closeFlags & CloseFlag.ON_ESCAPE:
+	def on_escape(self):
+		if self.close_flags & CloseFlag.ON_ESCAPE:
 			self.cancel()
 
 	def focusOutEvent(self, ev):
 		QLineEdit.focusOutEvent(self, ev)
-		if self.closeFlags & CloseFlag.ON_FOCUS_OUT:
+		if self.close_flags & CloseFlag.ON_FOCUS_OUT:
 			self.cancel()
 
 
-def _make_mini_buffer(text='', placeholder='', window=None, category=None, closeFlags=CloseFlag.ALL):
+def _make_mini_buffer(text='', placeholder='', window=None, category=None, close_flags=CloseFlag.ALL):
 	if window is None:
-		window = qApp().lastWindow
+		window = qApp().last_window
 
 	m = Minibuffer()
-	m.setCloseFlags(closeFlags)
+	m.set_close_flags(close_flags)
 	m.setPlaceholderText(placeholder)
 	m.setText(text)
-	m.addToWindow(window)
-	m.giveFocus()
+	m.add_to_window(window)
+	m.give_focus()
 	if category:
-		m.addCategory(category)
+		m.add_category(category)
 	return m
 
 
-def openMiniBuffer(text='', placeholder='', window=None, category=None, closeFlags=CloseFlag.ALL):
-	old = getMiniBuffer(window)
+def open_mini_buffer(text='', placeholder='', window=None, category=None, close_flags=CloseFlag.ALL):
+	old = get_mini_buffer(window)
 	if old:
 		old.cancel()
 		old = None
-	return _make_mini_buffer(text, placeholder, window, category, closeFlags)
+	return _make_mini_buffer(text, placeholder, window, category, close_flags)
 
 
-def getMiniBuffer(window=None, category=None):
+def get_mini_buffer(window=None, category=None):
 	if window is None:
-		window = qApp().lastWindow
+		window = qApp().last_window
 
-	for mb in categoryObjects('minibuffer'):
+	for mb in category_objects('minibuffer'):
 		if mb.window() == window:
 			if category and category not in mb.categories():
 				return None

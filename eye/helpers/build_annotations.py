@@ -11,51 +11,51 @@ The global styles `"builder/warning"` and `"builder/error"` are used for annotat
 
 import os
 
-from eye.connector import registerSignal, categoryObjects, disabled
-from eye.helpers.buffers import findEditor
+from eye.connector import register_signal, category_objects, disabled
+from eye.helpers.buffers import find_editor
 from eye.helpers.styles import STYLES
-from eye.pathutils import isIn
+from eye.pathutils import is_in
 
-__all__ = ('setEnabled',)
+__all__ = ('set_enabled',)
 
 
-def editorsForProject(path):
+def editors_for_project(path):
 	path = os.path.dirname(path)
-	for ed in categoryObjects('editor'):
-		if isIn(ed.path, path):
+	for ed in category_objects('editor'):
+		if is_in(ed.path, path):
 			yield ed
 
 
-@registerSignal('builder', 'started')
+@register_signal('builder', 'started')
 @disabled
-def onBuildStart(builder):
-	for ed in editorsForProject(builder.workingDirectory()):
+def on_build_start(builder):
+	for ed in editors_for_project(builder.working_directory()):
 		ed.clearAnnotations()
 
 
-@registerSignal('builder', 'warningPrinted')
+@register_signal('builder', 'warning_printed')
 @disabled
-def onBuildWarning(builder, info):
+def on_build_warning(builder, info):
 	annotate(builder, info, 'warning')
 
 
-@registerSignal('builder', 'errorPrinted')
+@register_signal('builder', 'error_printed')
 @disabled
-def onBuildError(builder, info):
+def on_build_error(builder, info):
 	annotate(builder, info, 'error')
 
 
 def annotate(builder, info, msg_type):
-	ed = findEditor(info['path'])
+	ed = find_editor(info['path'])
 	if ed is None:
 		return
 
 	style = STYLES['builder/%s' % msg_type]
-	ed.annotateAppendLine(info['line'] - 1, info['message'], style)
+	ed.annotate_append_line(info['line'] - 1, info['message'], style)
 
 
-def setEnabled(enabled=True):
+def set_enabled(enabled=True):
 	"""Enable or disable the plugin"""
-	onBuildStart.enabled = enabled
-	onBuildError.enabled = enabled
-	onBuildWarning.enabled = enabled
+	on_build_start.enabled = enabled
+	on_build_error.enabled = enabled
+	on_build_warning.enabled = enabled

@@ -4,7 +4,7 @@ from PyQt5.QtCore import QObject
 
 from eye.qt import Signal, Slot
 
-__all__ = ('registerPlugin', 'SearchPlugin', 'enabledPlugins', 'getPlugin')
+__all__ = ('registerPlugin', 'SearchPlugin', 'enabled_plugins', 'get_plugin')
 
 
 PLUGINS = {}
@@ -14,7 +14,7 @@ def registerPlugin(cls):
 	"""Decorator to register a file_search plugin class
 
 	The plugin class should inherit :any:`SearchPlugin`.
-	The plugin class can then be retrieved with :any:`getPlugin`.
+	The plugin class can then be retrieved with :any:`get_plugin`.
 	"""
 	PLUGINS[cls.id] = cls
 	return cls
@@ -65,7 +65,7 @@ class SearchPlugin(QObject):
 
 	"""Class attribute, identifier of the plugin
 
-	The identifier should be unique across plugin classes since this identifier is used for :any:`getPlugin`.
+	The identifier should be unique across plugin classes since this identifier is used for :any:`get_plugin`.
 	"""
 
 	enabled = True
@@ -78,7 +78,7 @@ class SearchPlugin(QObject):
 		return cls.id
 
 	@classmethod
-	def isAvailable(cls, path):
+	def is_available(cls, path):
 		"""Return whether the plugin can search inside a particular path
 
 		Some plugins use an index (like git or etags) and can only search in certain paths.
@@ -86,7 +86,7 @@ class SearchPlugin(QObject):
 		raise NotImplementedError()
 
 	@classmethod
-	def searchRootPath(cls, path):
+	def search_root_path(cls, path):
 		raise NotImplementedError()
 
 	@Slot()
@@ -99,7 +99,7 @@ class SearchPlugin(QObject):
 		raise NotImplementedError()
 
 
-def getPlugin(plugin_id):
+def get_plugin(plugin_id):
 	"""Get a registered plugin by its identifier
 
 	:rtype: SearchPlugin
@@ -109,7 +109,7 @@ def getPlugin(plugin_id):
 	return PLUGINS.get(plugin_id)
 
 
-def enabledPlugins():
+def enabled_plugins():
 	"""Iterate on registered and enabled plugins
 
 	:rtype: iter[SearchPlugin]

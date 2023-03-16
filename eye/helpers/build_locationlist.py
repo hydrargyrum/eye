@@ -3,17 +3,17 @@
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 
 from eye.app import qApp
-from eye.connector import registerSignal, disabled
+from eye.connector import register_signal, disabled
 from eye.consts import AbsolutePathRole
 from eye.widgets.locationlist import LocationList
 
-__all__ = ('setEnabled',)
+__all__ = ('set_enabled',)
 
 
-@registerSignal('builder', 'started')
+@register_signal('builder', 'started')
 @disabled
-def onBuildStart(builder):
-	loclist = addLocationList(qApp().lastWindow, show=False)
+def on_build_start(builder):
+	loclist = add_location_list(qApp().last_window, show=False)
 
 	if loclist is None:
 		return
@@ -22,24 +22,24 @@ def onBuildStart(builder):
 	loclist.setColumns(builder.columns())
 
 
-@registerSignal('builder', 'warningPrinted')
+@register_signal('builder', 'warning_printed')
 @disabled
-def onBuildWarning(builder, info):
-	addItem(builder, info, 'warning')
+def on_build_warning(builder, info):
+	add_item(builder, info, 'warning')
 
 
-@registerSignal('builder', 'errorPrinted')
+@register_signal('builder', 'error_printed')
 @disabled
-def onBuildError(builder, info):
-	addItem(builder, info, 'error')
+def on_build_error(builder, info):
+	add_item(builder, info, 'error')
 
 
-def addLocationList(win, show=True):
+def add_location_list(win, show=True):
 	if getattr(win, 'build_loclist', None) is None:
 		win.build_loclist = LocationList()
 		win.build_loclist.setWindowTitle(win.build_loclist.tr('Build results'))
-		win.build_loclist.addCategory('build_location_list')
-		win.addDockable(Qt.BottomDockWidgetArea, win.build_loclist)
+		win.build_loclist.add_category('build_location_list')
+		win.add_dockable(Qt.BottomDockWidgetArea, win.build_loclist)
 
 	if show:
 		win.build_loclist.show()
@@ -47,24 +47,24 @@ def addLocationList(win, show=True):
 	return win.build_loclist
 
 
-def addItem(builder, info, msg_type):
-	loclist = addLocationList(qApp().lastWindow)
+def add_item(builder, info, msg_type):
+	loclist = add_location_list(qApp().last_window)
 	loclist.addItem(info)
 
 
-@registerSignal('window', 'focusedBuffer')
+@register_signal('window', 'focused_buffer')
 @disabled
-def filterOnFocus(window, focused):
+def filter_on_focus(window, focused):
 	loclist = getattr(window, 'build_loclist', None)
 	if not loclist:
 		return
 
 	model = loclist.model()
-	if not getattr(model, 'isFilterOnFocus', False):
+	if not getattr(model, 'is_filter_on_focus', False):
 		orig = model
 
 		model = QSortFilterProxyModel()
-		model.isFilterOnFocus = True
+		model.is_filter_on_focus = True
 		loclist.setModel(model)
 		model.setSourceModel(orig)
 		model.setFilterRole(AbsolutePathRole)
@@ -72,9 +72,9 @@ def filterOnFocus(window, focused):
 	model.setFilterRegExp(QRegExp.escape(focused.path or ''))
 
 
-def setEnabled(enabled=True):
+def set_enabled(enabled=True):
 	"""Enable or disable the plugin"""
 
-	onBuildStart.enabled = enabled
-	onBuildWarning.enabled = enabled
-	onBuildError.enabled = enabled
+	on_build_start.enabled = enabled
+	on_build_warning.enabled = enabled
+	on_build_error.enabled = enabled

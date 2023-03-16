@@ -7,13 +7,13 @@ from PyQt5.QtCore import QProcess
 
 from eye.qt import Signal, Slot
 
-__all__ = ('findCommand', 'LineProcess', 'runBlocking')
+__all__ = ('find_command', 'LineProcess', 'run_blocking')
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-def findCommand(cmd):
+def find_command(cmd):
 	"""Find `cmd` in `$PATH`"""
 	for elem in os.getenv('PATH').split(os.pathsep):
 		path = os.path.join(elem, cmd)
@@ -27,13 +27,13 @@ class LineProcess(QProcess):
 	The process is run in background. Signals are emitted when full lines are read from stdout or stderr.
 	"""
 
-	stdoutLineRead = Signal(str)
+	stdout_line_read = Signal(str)
 
-	"""Signal stdoutLineRead(str)"""
+	"""Signal stdout_line_read(str)"""
 
-	stderrLineRead = Signal(str)
+	stderr_line_read = Signal(str)
 
-	"""Signal stderrLineRead(str)"""
+	"""Signal stderr_line_read(str)"""
 
 	def __init__(self, **kwargs):
 		super(LineProcess, self).__init__(**kwargs)
@@ -41,14 +41,11 @@ class LineProcess(QProcess):
 		self.encoding = 'utf-8'
 		self.linesep = b'\n'
 
-		self.readyReadStandardError.connect(self.onStderr)
-		self.readyReadStandardOutput.connect(self.onStdout)
-		self.stateChanged.connect(self.onStateChanged)
-		self.finished.connect(self.onFinish)
-		if hasattr(self, 'errorOccurred'): # qt >=5.6
-			self.errorOccurred.connect(self.onError)
-		elif hasattr(self, 'error'):
-			self.error.connect(self.onError)
+		self.readyReadStandardError.connect(self.on_stderr)
+		self.readyReadStandardOutput.connect(self.on_stdout)
+		self.stateChanged.connect(self.on_state_changed)
+		self.finished.connect(self.on_finish)
+		self.errorOccurred.connect(self.on_error)
 
 	def stop(self, wait=0):
 		"""Terminate process"""
@@ -59,12 +56,12 @@ class LineProcess(QProcess):
 			self.kill()
 
 	@Slot(QProcess.ProcessState)
-	def onStateChanged(self, state):
+	def on_state_changed(self, state):
 		if state == self.Starting:
 			cmd = [self.program()] + self.arguments()
 			LOGGER.debug('starting process %r', cmd)
 
-	def setEncoding(self, encoding):
+	def set_encoding(self, encoding):
 		"""Set encoding for reading stdout/stderr"""
 		self.encoding = encoding
 
@@ -76,20 +73,20 @@ class LineProcess(QProcess):
 			sig.emit(line.decode(self.encoding))
 
 	@Slot()
-	def onStdout(self):
-		self._perform(0, self.readAllStandardOutput(), self.stdoutLineRead)
+	def on_stdout(self):
+		self._perform(0, self.readAllStandardOutput(), self.stdout_line_read)
 
 	@Slot()
-	def onStderr(self):
-		self._perform(1, self.readAllStandardError(), self.stderrLineRead)
+	def on_stderr(self):
+		self._perform(1, self.readAllStandardError(), self.stderr_line_read)
 
 	@Slot()
-	def onError(self):
+	def on_error(self):
 		cmd = [self.program()] + self.arguments()
 		LOGGER.warning('error when running %r: %s', cmd, self.errorString())
 
 	@Slot(int)
-	def onFinish(self, ret):
+	def on_finish(self, ret):
 		if ret != 0:
 			cmd = [self.program()] + self.arguments()
 			LOGGER.info('command %r exited with code %r', cmd, ret)
@@ -101,12 +98,12 @@ class ReadingProcess(QProcess):
 		self.stdin = b''
 		self.buf = []
 
-		self.started.connect(self.onStarted)
-		self.bytesWritten.connect(self.onStarted)
-		self.readyReadStandardOutput.connect(self.onStdout)
+		self.started.connect(self.on_started)
+		self.bytesWritten.connect(self.on_started)
+		self.readyReadStandardOutput.connect(self.on_stdout)
 
 	@Slot()
-	def onStarted(self, _=None):
+	def on_started(self, _=None):
 		while True:
 			written = self.write(self.stdin)
 			if written < 0:
@@ -119,25 +116,25 @@ class ReadingProcess(QProcess):
 			self.closeWriteChannel()
 
 	@Slot()
-	def onStdout(self):
+	def on_stdout(self):
 		while self.bytesAvailable() > 0:
 			self.buf.append(self.read(self.bytesAvailable()))
 
-	def setStandardInput(self, data):
+	def set_standard_input(self, data):
 		self.stdin = data
 
-	def getBuffer(self):
+	def get_buffer(self):
 		return b''.join(self.buf)
 
 
-def runBlocking(cmd, stdin=b'', cwd=''):
+def run_blocking(cmd, stdin=b'', cwd=''):
 	proc = ReadingProcess()
 	if stdin:
-		proc.setStandardInput(stdin)
+		proc.set_standard_input(stdin)
 	if cwd:
 		proc.setWorkingDirectory(cwd)
 
 	proc.start(cmd[0], cmd[1:])
 	proc.waitForFinished(-1)
-	return proc.exitCode(), proc.getBuffer()
+	return proc.exitCode(), proc.get_buffer()
 

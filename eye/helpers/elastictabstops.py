@@ -1,6 +1,6 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from eye.connector import registerSignal, disabled
+from eye.connector import register_signal, disabled
 
 # http://nickgravgaard.com/elastic-tabstops/
 
@@ -227,9 +227,9 @@ def updateElasticTabs(edit, start, end):
 
 
 # eye glue
-@registerSignal('editor', 'sciModified')
+@register_signal('editor', 'sciModified')
 @disabled
-def onModified(editor, mod):
+def on_modified(editor, mod):
 	# warning: changing tabstops does not trigger a redisplay in QScintilla
 	# and calling update() doesn't refresh tabstops either
 
@@ -239,11 +239,11 @@ def onModified(editor, mod):
 		updateElasticTabs(editor, mod.position, mod.position)
 
 
-@registerSignal('editor', 'SCN_ZOOM')
+@register_signal('editor', 'SCN_ZOOM')
 @disabled
-def onZoom(editor):
+def on_zoom(editor):
 	updateElasticTabs(editor, 0, editor.bytesLength())
 
 
-def setEnabled(b):
-	onModified.disabled = onZoom.disabled = not b
+def set_enabled(b):
+	on_modified.disabled = on_zoom.disabled = not b

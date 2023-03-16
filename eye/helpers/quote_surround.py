@@ -12,11 +12,11 @@ possible to implement different surrounding mappings depending on the edited fil
 
 from PyQt5.QtCore import QEvent, Qt
 
-from eye.connector import registerEventFilter, disabled
+from eye.connector import register_event_filter, disabled
 
 __all__ = (
-	'setEnabled', 'autoSurroundSelection',
-	'trySurroundSelection', 'trySurroundSelectionEvent',
+	'set_enabled', 'auto_surround_selection',
+	'try_surround_selection', 'try_surround_selection_event',
 	'BASE_SURROUND_MAPPING',
 )
 
@@ -39,7 +39,7 @@ and it will simply replace the selected text.
 """
 
 
-def trySurroundSelectionEvent(editor, event, map_table):
+def try_surround_selection_event(editor, event, map_table):
 	"""Try to do char-surrounding using a mapping table.
 
 	Will not do any surrounding if a keyboard modifier key (e.g. Ctrl) is in pressed state.
@@ -59,16 +59,16 @@ def trySurroundSelectionEvent(editor, event, map_table):
 	:rtype: bool
 	"""
 
-	if editor.selectionsEmpty():
+	if editor.selections_empty():
 		return False
 	elif event.modifiers() == Qt.KeyboardModifiers:
 		return False
 
 	char = event.text()
-	return trySurroundSelection(editor, char, map_table)
+	return try_surround_selection(editor, char, map_table)
 
 
-def trySurroundSelection(editor, char, map_table):
+def try_surround_selection(editor, char, map_table):
 	"""Try to do char-surrounding using a mapping table.
 
 	Will not do any surrounding if a keyboard modifier key (e.g. Ctrl) is in pressed state.
@@ -91,7 +91,7 @@ def trySurroundSelection(editor, char, map_table):
 	# when a surrounding is done, it will shift (invalidate) all line-indexes after it
 	# doing in reverse order avoids having to compute shifting
 	sels = reversed([editor.getSelectionN(n) for n in range(editor.selectionsCount())])
-	with editor.undoGroup(True):
+	with editor.undo_group(True):
 		for sel in sels:
 			editor.setSelection(*sel)
 			s = editor.selectedText()
@@ -100,19 +100,19 @@ def trySurroundSelection(editor, char, map_table):
 	return True
 
 
-@registerEventFilter('editor', [QEvent.KeyPress])
+@register_event_filter('editor', [QEvent.KeyPress])
 @disabled
-def autoSurroundSelection(editor, event):
+def auto_surround_selection(editor, event):
 	"""Event-filter performing default char surrounding.
 
-	Calls :any:`trySurroundSelectionEvent` and uses :any:`BASE_SURROUND_MAPPING` as mapping table.
+	Calls :any:`try_surround_selection_event` and uses :any:`BASE_SURROUND_MAPPING` as mapping table.
 	If surrounding was performed, the event is filtered so it's not caught by the editor widget.
 	"""
 
-	return trySurroundSelectionEvent(editor, event, BASE_SURROUND_MAPPING)
+	return try_surround_selection_event(editor, event, BASE_SURROUND_MAPPING)
 
 
-def setEnabled(b):
-	"""Enables :any:`autoSurroundSelection`."""
+def set_enabled(b):
+	"""Enables :any:`auto_surround_selection`."""
 
-	autoSurroundSelection.enabled = b
+	auto_surround_selection.enabled = b

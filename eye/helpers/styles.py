@@ -14,7 +14,7 @@ For example, a helper module could run::
 
 And a user configuration file could contain::
 
-	eye.helpers.style.STYLES['hello'].setPaper(QColor('#ff0000'))
+	eye.helpers.style.STYLES['hello'].set_paper(QColor('#ff0000'))
 """
 
 from PyQt5.Qsci import QsciStyle

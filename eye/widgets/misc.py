@@ -53,12 +53,12 @@ class PositionIndicator(QLabel, WidgetMixin):
 		if format is not None:
 			self.format = format
 
-		self.lastFocus = lambda: None
+		self.last_focus = lambda: None
 
-		qApp().focusChanged.connect(self.focusChanged)
+		qApp().focusChanged.connect(self.focus_changed)
 
 	@Slot('QWidget*', 'QWidget*')
-	def focusChanged(self, _, new):
+	def focus_changed(self, _, new):
 		if not hasattr(new, 'categories'):
 			return
 		if 'editor' not in new.categories():
@@ -66,29 +66,29 @@ class PositionIndicator(QLabel, WidgetMixin):
 		if new.window() != self.window():
 			return
 
-		lastFocus = self.lastFocus()
-		if lastFocus:
-			lastFocus.cursorPositionChanged.disconnect(self.updateLabel)
-			lastFocus.linesChanged.disconnect(self.updateLabel)
+		last_focus = self.last_focus()
+		if last_focus:
+			last_focus.cursorPositionChanged.disconnect(self.update_label)
+			last_focus.linesChanged.disconnect(self.update_label)
 
-		self.lastFocus = ref(new)
-		new.cursorPositionChanged.connect(self.updateLabel)
-		new.linesChanged.connect(self.updateLabel)
-		self.updateLabel()
+		self.last_focus = ref(new)
+		new.cursorPositionChanged.connect(self.update_label)
+		new.linesChanged.connect(self.update_label)
+		self.update_label()
 
 	@Slot()
-	def updateLabel(self):
-		ed = self.lastFocus()
+	def update_label(self):
+		ed = self.last_focus()
 
-		line, col = ed.getCursorPosition()
-		offset = ed.cursorOffset()
+		line, col = ed.cursor_position()
+		offset = ed.cursor_offset()
 		line, col = line + 1, col + 1
 		lines = ed.lines()
 
 		d = {
 			'line': line,
 			'col': col,
-			'vcol': ed.cursorVisualColumn() + 1,
+			'vcol': ed.cursor_visual_column() + 1,
 			'percent': line * 100. / lines,
 			'offset': offset,
 			'path': ed.path,

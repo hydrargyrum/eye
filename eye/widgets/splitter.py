@@ -42,9 +42,9 @@ class Splitter(QSplitter, WidgetMixin):
 	def __init__(self, **kwargs):
 		super(Splitter, self).__init__(**kwargs)
 
-		self.addCategory('splitter')
+		self.add_category('splitter')
 
-	def childAt(self, pos):
+	def child_at(self, pos):
 		"""Return direct child widget at the given position
 
 		The returned child will be a direct child of `self`. If the real widget at `pos` is in a
@@ -52,7 +52,7 @@ class Splitter(QSplitter, WidgetMixin):
 
 		:type pos: QPoint
 		:param pos: relative to the top-left corner of this `Splitter` (which is at `(0, 0)`).
-		:return: the direct child at `pos`, a :any:`PyQt5.QtWidgets.QSplitterHandle` if `pos` is
+		:return: the direct child at `pos`, a :any:`Py_qt5.Qt_widgets.QSplitter_handle` if `pos` is
 		         on a handle, or None if `pos` is outside `self`'s geometry
 		:rtype: QWidget
 		"""
@@ -63,8 +63,8 @@ class Splitter(QSplitter, WidgetMixin):
 				if w.geometry().contains(pos):
 					return w
 
-	def parentManager(self):
-		"""Returns the :any:`SplitManager` managing this splitter
+	def parent_manager(self):
+		"""Returns the :any:`Split_manager` managing this splitter
 
 		:rtype: SplitManager
 		"""
@@ -84,13 +84,13 @@ class Splitter(QSplitter, WidgetMixin):
 
 	children = widgets
 
-	def removeChild(self, widget):
+	def remove_child(self, widget):
 		assert self.isAncestorOf(widget)
 		assert self is not widget
 
 		widget.setParent(None)
 
-	def replaceChild(self, child, new):
+	def replace_child(self, child, new):
 		assert child is not new
 		assert self is not child
 		assert self is not new
@@ -120,12 +120,12 @@ class SplitManager(QWidget, WidgetMixin):
 		self.setLayout(layout)
 		layout.addWidget(self.root)
 
-		self.optimizeTimer = QTimer()
-		self.optimizeTimer.setInterval(0)
-		self.optimizeTimer.setSingleShot(True)
-		self.optimizeTimer.timeout.connect(self._optimize)
+		self.optimize_timer = QTimer()
+		self.optimize_timer.setInterval(0)
+		self.optimize_timer.setSingleShot(True)
+		self.optimize_timer.timeout.connect(self._optimize)
 
-		self.addCategory('splitmanager')
+		self.add_category('splitmanager')
 
 	# TODO check if it can be integrated synchronously in calls
 	@Slot()
@@ -146,37 +146,37 @@ class SplitManager(QWidget, WidgetMixin):
 
 			if spl.count() == 0:
 				LOGGER.debug('optimizer remove empty %s', spl)
-				parent.removeChild(spl)
+				parent.remove_child(spl)
 			elif spl.count() == 1:
 				child = next(iter(spl.children()))
 				LOGGER.debug('replace %s by only child %s', spl, child)
-				parent.replaceChild(spl, child)
+				parent.replace_child(spl, child)
 
 	## split/move/delete
-	def splitAt(self, currentWidget, direction, newWidget):
+	def split_at(self, current_widget, direction, new_widget):
 		"""Insert a widget into the splits
 
-		`newWidget` is inserted next to `currentWidget`, in `direction`. `currentWidget` size is
-		halved, and the newly created space is used for `newWidget`.
+		`new_widget` is inserted next to `current_widget`, in `direction`. `current_widget` size is
+		halved, and the newly created space is used for `new_widget`.
 
-		A new `Splitter` may be created if `currentWidget` is not in a `Splitter` of the proper
-		orientation. For example, if `currentWidget` is in horizontal splitter, but `newWidget`
-		should be inserted below, a new vertical splitter replaces `currentWidget` and both
-		`currentWidget` and `newWidget` are put in it.
+		A new `Splitter` may be created if `current_widget` is not in a `Splitter` of the proper
+		orientation. For example, if `current_widget` is in horizontal splitter, but `new_widget`
+		should be inserted below, a new vertical splitter replaces `current_widget` and both
+		`current_widget` and `new_widget` are put in it.
 
-		:param currentWidget: the widget next to which insert a new widget
-		:param direction: direction relative to `currentWidget` where to insert `newWidget`.
+		:param current_widget: the widget next to which insert a new widget
+		:param direction: direction relative to `current_widget` where to insert `new_widget`.
 		                  Possible values are the 4 directions from :any:`eye.consts`.
-		:param newWidget: the widget to insert
+		:param new_widget: the widget to insert
 		"""
 
-		if currentWidget is None:
+		if current_widget is None:
 			parent = self.root
 			idx = 0
 		else:
-			assert self.isAncestorOf(currentWidget)
-			parent = currentWidget.parent()
-			idx = parent.indexOf(currentWidget)
+			assert self.isAncestorOf(current_widget)
+			parent = current_widget.parent()
+			idx = parent.indexOf(current_widget)
 
 		orientation = consts.ORIENTATIONS[direction]
 		if parent.orientation() == orientation:
@@ -188,71 +188,71 @@ class SplitManager(QWidget, WidgetMixin):
 			if direction in (consts.DOWN, consts.RIGHT):
 				idx += 1
 
-			LOGGER.debug('inserting %r at %r in %r in the same orientation', newWidget, idx, parent)
-			parent.insertWidget(idx, newWidget)
+			LOGGER.debug('inserting %r at %r in %r in the same orientation', new_widget, idx, parent)
+			parent.insertWidget(idx, new_widget)
 
 			if oldsize:
 				parent.setSizes(oldsize)
 		else:
-			# currentWidget is moved, so it may lose focus
-			refocus = currentWidget and currentWidget.hasFocus()
+			# current_widget is moved, so it may lose focus
+			refocus = current_widget and current_widget.hasFocus()
 
-			newSplit = self.SplitterClass(orientation=orientation)
+			new_split = self.SplitterClass(orientation=orientation)
 
-			LOGGER.debug('inserting %r in new splitter %r at %r of %r in different orientation', newWidget, newSplit, idx, parent)
+			LOGGER.debug('inserting %r in new splitter %r at %r of %r in different orientation', new_widget, new_split, idx, parent)
 
-			if currentWidget:
+			if current_widget:
 				# save/restore size because Qt goes crazy when moving splitter widgets around
 				oldsize = parent.sizes()
 				if direction in (consts.DOWN, consts.RIGHT):
-					newSplit.addWidget(currentWidget)
-					parent.insertWidget(idx, newSplit)
-					newSplit.addWidget(newWidget)
+					new_split.addWidget(current_widget)
+					parent.insertWidget(idx, new_split)
+					new_split.addWidget(new_widget)
 				else:
-					newSplit.addWidget(newWidget)
-					parent.insertWidget(idx, newSplit)
-					newSplit.addWidget(currentWidget)
+					new_split.addWidget(new_widget)
+					parent.insertWidget(idx, new_split)
+					new_split.addWidget(current_widget)
 				parent.setSizes(oldsize)
-				newSplit.setSizes([1, 1]) # force Qt to rebalance it
+				new_split.setSizes([1, 1]) # force Qt to rebalance it
 			else:
-				newSplit.addWidget(newWidget)
-				parent.insertWidget(idx, newSplit)
+				new_split.addWidget(new_widget)
+				parent.insertWidget(idx, new_split)
 
 			if refocus:
-				currentWidget.setFocus()
+				current_widget.setFocus()
 
-	def moveWidget(self, currentWidget, direction, newWidget):
+	def move_widget(self, current_widget, direction, new_widget):
 		"""Move a child widget in another part of the splitting
 
-		`currentWidget`, `direction` and `newWidget` have the same meaning as for the `splitAt`
-		method, except that `newWidget` must be already present in the `SplitManager`.
+		`current_widget`, `direction` and `new_widget` have the same meaning as for the `split_at`
+		method, except that `new_widget` must be already present in the `SplitManager`.
 		"""
 
-		if currentWidget is newWidget:
-			LOGGER.info('will not move %r over itself', currentWidget)
+		if current_widget is new_widget:
+			LOGGER.info('will not move %r over itself', current_widget)
 			return
 
-		self.removeWidget(newWidget)
-		self.splitAt(currentWidget, direction, newWidget)
-		self.optimizeTimer.start()
+		self.remove_widget(new_widget)
+		self.split_at(current_widget, direction, new_widget)
+		self.optimize_timer.start()
 
-	def removeWidget(self, widget):
+	def remove_widget(self, widget):
 		if not self.isAncestorOf(widget):
 			LOGGER.info("cannot remove widget %r since it doesn't belong to %r", widget, self)
 			return
 
-		spl, _ = self.childId(widget)
-		spl.removeChild(widget)
-		self.optimizeTimer.start()
+		spl, _ = self.child_id(widget)
+		spl.remove_child(widget)
+		self.optimize_timer.start()
 
 	## balance
 	@Slot()
-	def balanceSplitsRecursive(self, startAt=None):
-		for w in self._iter_recursive(startAt):
+	def balance_splits_recursive(self, start_at=None):
+		for w in self._iter_recursive(start_at):
 			if isinstance(w, self.SplitterClass):
-				self.balanceSplits(w)
+				self.balance_splits(w)
 
-	def balanceSplits(self, spl):
+	def balance_splits(self, spl):
 		spl.setSizes([1] * spl.count())  # qt redistributes space
 
 	## neighbours
@@ -260,7 +260,7 @@ class SplitManager(QWidget, WidgetMixin):
 		if widget is None or widget is self.root:
 			return None
 
-		spl, idx = self.childId(widget)
+		spl, idx = self.child_id(widget)
 
 		orientation = consts.ORIENTATIONS[direction]
 		new_idx = idx + consts.MOVES[direction]
@@ -306,7 +306,7 @@ class SplitManager(QWidget, WidgetMixin):
 		return res
 
 	## getters
-	def allChildren(self):
+	def all_children(self):
 		"""Get all non-splitter children widgets (recursive)
 
 		Takes all children :any:`eye.widgets.splitter.Splitter` widgets (recursively) and return
@@ -316,22 +316,22 @@ class SplitManager(QWidget, WidgetMixin):
 		"""
 		return [w for w in self._iter_recursive() if not isinstance(w, self.SplitterClass)]
 
-	def childRect(self, widget):
+	def child_rect(self, widget):
 		return QRect(widget.mapTo(self, QPoint()), widget.size())
 
-	def childId(self, widget):
+	def child_id(self, widget):
 		spl = widget.parent()
 		while not isinstance(spl, QSplitter):
 			spl = spl.parent()
 		return (spl, spl.indexOf(widget))
 
-	def deepChildAt(self, pos):
+	def deep_child_at(self, pos):
 		"""Get the non-splitter widget at `pos`
 
 		:param pos: the point where to look a widget, in coordinates relative to top-left corner of
 		              this `SplitManager`
 		:type pos: QPoint
-		:return: the first child at position `pos` that is not a splitter, unlike :any:`Splitter.childAt`.
+		:return: the first child at position `pos` that is not a splitter, unlike :any:`Splitter.child_at`.
 		:rtype: QWidget
 		"""
 		widget = self.root
@@ -339,12 +339,12 @@ class SplitManager(QWidget, WidgetMixin):
 			widget = widget.childAt(widget.mapFrom(self, pos))
 		return widget
 
-	def _iter_recursive(self, startAt=None):
-		if startAt is None:
-			startAt = self.root
+	def _iter_recursive(self, start_at=None):
+		if start_at is None:
+			start_at = self.root
 
-		splitters = [startAt]
-		yield startAt
+		splitters = [start_at]
+		yield start_at
 		while splitters:
 			spl = splitters.pop()
 			for i in range(spl.count()):
@@ -356,23 +356,23 @@ class SplitManager(QWidget, WidgetMixin):
 	## close management
 	@override
 	def closeEvent(self, ev):
-		for c in self.allChildren():
+		for c in self.all_children():
 			if not c.close():
 				ev.ignore()
 				return
 		ev.accept()
 
-	def canClose(self):
+	def can_close(self):
 		"""Returns True if all sub-widgets can be closed."""
-		return all(w.canClose() for w in self.allChildren())
+		return all(w.can_close() for w in self.all_children())
 
 
-def dumpSplitter(splitter, indent=''):
+def dump_splitter(splitter, indent=''):
 	print('%s%s %s' % (indent, splitter, splitter.sizes()))
 	indent += '  '
 	for i in range(splitter.count()):
 		child = splitter.widget(i)
 		if isinstance(child, QSplitter):
-			dumpSplitter(child, indent)
+			dump_splitter(child, indent)
 		else:
 			print('%s%s' % (indent, child))

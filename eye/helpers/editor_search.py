@@ -6,29 +6,31 @@ import re
 from PyQt5.QtCore import QObject, QTimer, QElapsedTimer
 
 from eye import structs
-from eye.connector import registerSignal, CategoryMixin
+from eye.connector import register_signal, CategoryMixin
 from eye.helpers import buffers
 from eye.qt import Signal, Slot
 from eye.widgets import minibuffer
 from eye.widgets.editor import HasWeakEditorMixin, SciModification
 
-__all__ = ('openSearchLine', 'searchForward', 'searchBackward',
-           'SearchObject', 'SearchProps', 'performSearch')
+__all__ = (
+	'open_search_line', 'search_forward', 'search_backward',
+	'SearchObject', 'SearchProps', 'perform_search'
+)
 
 
 class SearchProps(structs.PropDict):
-	def __init__(self, *, expr, isRe=False, caseSensitive=False, whole=False):
+	def __init__(self, *, expr, is_re=False, case_sensitive=False, whole=False):
 		super(SearchProps, self).__init__(
-			expr=expr, isRe=isRe, caseSensitive=caseSensitive, whole=whole,
+			expr=expr, is_re=is_re, case_sensitive=case_sensitive, whole=whole,
 		)
 
 
 def props_to_re(props):
 	re_flags = 0
-	if not props.caseSensitive:
+	if not props.case_sensitive:
 		re_flags |= re.I
 
-	if props.isRe:
+	if props.is_re:
 		return re.compile(props.expr, re_flags)
 	else:
 		re_text = re.escape(props.expr)
@@ -42,14 +44,14 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 	found = Signal(int, int)
 	finished = Signal(int)
 
-	def __init__(self, editor=None, indicatorName=None, props=None, **kwargs):
+	def __init__(self, editor=None, indicator_name=None, props=None, **kwargs):
 		super(SearchObject, self).__init__(**kwargs)
 		self.editor = editor
 		self.props = props
 
-		self.indicator = editor.indicators.get(indicatorName)
+		self.indicator = editor.indicators.get(indicator_name)
 		if not self.indicator:
-			self.indicator = editor.createIndicator(indicatorName, 0)
+			self.indicator = editor.create_indicator(indicator_name, 0)
 
 		self.timer = QTimer(self)
 		self.timer.timeout.connect(self._search_batch)
@@ -57,12 +59,12 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 		self.start_line = 0
 		self.reobj = None
 
-		self.editor.sciModified.connect(self.onModify)
+		self.editor.sci_modified.connect(self.on_modify)
 
-		self.addCategory('search_object')
+		self.add_category('search_object')
 
 	@contextmanager
-	def safeBatch(self):
+	def safe_batch(self):
 		try:
 			yield
 		except Exception:
@@ -70,7 +72,7 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 			self.finished.emit(0)
 			raise
 
-	def searchAllPy(self, needOne=False):
+	def search_all_py(self, need_one=False):
 		if not self.props.expr:
 			return
 
@@ -79,47 +81,47 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 
 		self.started.emit()
 
-		with self.safeBatch():
+		with self.safe_batch():
 			self.indicator.clear()
 			self.timer.start()
-			if needOne:
-				self._search_batch(needOne=True)
+			if need_one:
+				self._search_batch(need_one=True)
 
 	@Slot()
-	def _search_batch(self, needOne=False):
-		with self.safeBatch():
+	def _search_batch(self, need_one=False):
+		with self.safe_batch():
 			start_time = QElapsedTimer()
 			start_time.start()
 
 			for self.start_line in range(self.start_line, self.editor.lines()):
-				if not needOne and start_time.hasExpired(10):
+				if not need_one and start_time.hasExpired(10):
 					return
 
-				matched = self.searchInLine(self.start_line)
+				matched = self.search_in_line(self.start_line)
 				if matched:
-					needOne = False
+					need_one = False
 
 			self.timer.stop()
 			self.finished.emit(0)
 
-	def searchInLine(self, lineno, erase_indicator=False):
+	def search_in_line(self, lineno, erase_indicator=False):
 		if erase_indicator:
-			self.indicator.removeAt(lineno, 0, lineno + 1, 0)
+			self.indicator.remove_at(lineno, 0, lineno + 1, 0)
 
 		matched = False
 		linetext = self.editor.text(lineno)
 		for mtc in self.reobj.finditer(linetext):
 			offset_start = self.editor.positionFromLineIndex(lineno, mtc.start())
 			offset_end = self.editor.positionFromLineIndex(lineno, mtc.end())
-			self.indicator.putAtOffset(offset_start, offset_end)
+			self.indicator.put_at_offset(offset_start, offset_end)
 			self.found.emit(offset_start, offset_end)
 			matched = True
 		return matched
 
-	def searchAll(self):
+	def search_all(self):
 		self.indicator.clear()
 
-		end = self.editor.bytesLength()
+		end = self.editor.bytes_length()
 		self.editor.setTargetRange(0, end)
 
 		self.started.emit()
@@ -127,24 +129,24 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 			if self.editor.searchInTarget(self.pops.expr) < 0:
 				break
 
-			self.indicator.putAtOffset(self.editor.targetStart(), self.editor.targetEnd())
+			self.indicator.put_at_offset(self.editor.targetStart(), self.editor.targetEnd())
 			self.found.emit(self.editor.targetStart(), self.editor.targetEnd())
 			self.editor.setTargetRange(self.editor.targetEnd(), end)
 		self.finished.emit()
 
 	@Slot(SciModification)
-	def onModify(self, modif):
+	def on_modify(self, modif):
 		if modif.modificationType & (self.editor.SC_MOD_INSERTTEXT | self.editor.SC_MOD_DELETETEXT):
 			line_start, _ = self.editor.lineIndexFromPosition(modif.position)
 			line_end, _ = self.editor.lineIndexFromPosition(modif.position + modif.length)
 			for line in range(line_start, line_end + 1):
-				self.searchInLine(line, erase_indicator=True)
+				self.search_in_line(line, erase_indicator=True)
 
-	def getRanges(self):
-		return list(self.indicator.iterRanges())
+	def get_ranges(self):
+		return list(self.indicator.iter_ranges())
 
 	def _seek_forward(self, start, wrap):
-		r = self.indicator.getNextRange(start)
+		r = self.indicator.get_next_range(start)
 
 		if r is None:
 			if wrap:
@@ -157,11 +159,11 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 		self.editor.setSelection(startl, startc, endl, endc)
 
 	def _seek_backward(self, end, wrap):
-		r = self.indicator.getPreviousRange(end)
+		r = self.indicator.get_previous_range(end)
 
 		if r is None:
 			if wrap:
-				self._seek_backward(self.editor.bytesLength(), wrap=False)
+				self._seek_backward(self.editor.bytes_length(), wrap=False)
 			return
 
 		start, end, _ = r
@@ -169,83 +171,83 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 		endl, endc = self.editor.lineIndexFromPosition(end)
 		self.editor.setSelection(endl, endc, startl, startc)
 
-	def seekSelect(self, start=0, forward=True, wrap=True):
+	def seek_select(self, start=0, forward=True, wrap=True):
 		if forward:
 			self._seek_forward(start, wrap)
 		else:
 			self._seek_backward(start, wrap)
 
 
-def openSearchLine():
-	ls = minibuffer.openMiniBuffer(category='linesearch')
+def open_search_line():
+	ls = minibuffer.open_mini_buffer(category='linesearch')
 
-	editor = buffers.currentBuffer()
+	editor = buffers.current_buffer()
 	if not editor:
 		return
 
-	editor.incSearchStart = editor.cursorOffset()
+	editor.inc_search_start = editor.cursor_offset()
 
-	prevExpr = None
+	prev_expr = None
 	if editor.hasSelectedText():
-		prevExpr = editor.selectedText()
+		prev_expr = editor.selectedText()
 	else:
-		if getattr(editor, "searchObj", None):
+		if getattr(editor, "search_obj", None):
 			# TODO: even better, keep other options
-			prevExpr = editor.searchObj.props.expr
+			prev_expr = editor.search_obj.props.expr
 
-	if prevExpr:
-		ls.setText(prevExpr)
+	if prev_expr:
+		ls.setText(prev_expr)
 		ls.selectAll()
 
 
-@registerSignal('linesearch', 'textEdited')
-def onSearchTextEdited(ls, text):
-	editor = buffers.currentBuffer()
+@register_signal('linesearch', 'textEdited')
+def on_search_text_edited(ls, text):
+	editor = buffers.current_buffer()
 	if not editor:
 		return
 	if not editor.search.get('incremental', False):
 		return
 
-	performSearch(editor, SearchProps(expr=text), needOne=True)
-	if not hasattr(editor, 'incSearchStart'):
-		editor.incSearchStart = editor.cursorOffset()
-	editor.searchObj.seekSelect(editor.incSearchStart)
+	perform_search(editor, SearchProps(expr=text), need_one=True)
+	if not hasattr(editor, 'inc_search_start'):
+		editor.inc_search_start = editor.cursor_offset()
+	editor.search_obj.seek_select(editor.inc_search_start)
 
 
-def performSearch(editor, props, needOne=False):
-	editor.searchObj = SearchObject(editor=editor, indicatorName='search', props=props)
-	editor.searchObj.searchAllPy(needOne=needOne)
+def perform_search(editor, props, need_one=False):
+	editor.search_obj = SearchObject(editor=editor, indicator_name='search', props=props)
+	editor.search_obj.search_all_py(need_one=need_one)
 
 
-def performSearchSeek(editor, props):
-	performSearch(editor, props, needOne=True)
-	editor.searchObj.seekSelect(editor.cursorOffset())
-	editor.incSearchStart = editor.cursorOffset()
+def perform_search_seek(editor, props):
+	perform_search(editor, props, need_one=True)
+	editor.search_obj.seek_select(editor.cursor_offset())
+	editor.inc_search_start = editor.cursor_offset()
 
 
-@registerSignal('linesearch', 'textEntered')
-def searchText(ls, text):
+@register_signal('linesearch', 'text_entered')
+def search_text(ls, text):
 	if text is None:
 		text = ls.text()
 
-	editor = buffers.currentBuffer()
+	editor = buffers.current_buffer()
 	if not editor:
 		return
 
-	performSearchSeek(editor, SearchProps(expr=text))
+	perform_search_seek(editor, SearchProps(expr=text))
 
 
 def _search_next(editor, forward):
-	if not hasattr(editor, 'searchObj'):
+	if not hasattr(editor, 'search_obj'):
 		return
 
-	editor.searchObj.seekSelect(editor.cursorOffset(), forward=forward)
-	editor.incSearchStart = editor.cursorOffset()
+	editor.search_obj.seek_select(editor.cursor_offset(), forward=forward)
+	editor.inc_search_start = editor.cursor_offset()
 
 
-def searchForward(editor):
+def search_forward(editor):
 	_search_next(editor, True)
 
 
-def searchBackward(editor):
+def search_backward(editor):
 	_search_next(editor, False)

@@ -7,11 +7,11 @@ from PyQt5.QtCore import QTimer
 
 from ...app import qApp
 from ...structs import PropDict
-from ...connector import registerSignal, disabled, categoryObjects
-from .daemon import getDaemon, isDaemonAvailable
+from ...connector import register_signal, disabled, category_objects
+from .daemon import get_daemon, is_daemon_available
 
 
-__all__ = ('ycmFiletype', 'feedOnLoad', 'feedOnSave', 'feedOnDaemonReady', 'feedOnChange')
+__all__ = ('ycm_filetype', 'feed_on_load', 'feed_on_save', 'feed_on_daemon_ready', 'feed_on_change')
 
 
 MIME_YCMFILETYPE = {
@@ -39,7 +39,7 @@ EXT_YCMFILETYPE = {
 FEED_ON_EDIT_PAUSE_MS = 1000
 
 
-def ycmFiletype(path):
+def ycm_filetype(path):
 	mime, _ = mimetypes.guess_type(path)
 	try:
 		return MIME_YCMFILETYPE[mime]
@@ -54,52 +54,52 @@ def ycmFiletype(path):
 		return 'general'
 
 
-@registerSignal('editor', 'fileOpened')
-@registerSignal('editor', 'fileSavedAs')
+@register_signal('editor', 'file_opened')
+@register_signal('editor', 'file_saved_as')
 @disabled
-def feedOnLoad(editor, path):
-	if not isDaemonAvailable():
+def feed_on_load(editor, path):
+	if not is_daemon_available():
 		return
 
 	editor.ycm = PropDict()
-	editor.ycm.filetype = ycmFiletype(path)
-	getDaemon().sendParse(path, editor.ycm.filetype, editor.text())
+	editor.ycm.filetype = ycm_filetype(path)
+	get_daemon().send_parse(path, editor.ycm.filetype, editor.text())
 
 
-@registerSignal('editor', 'fileSaved')
+@register_signal('editor', 'file_saved')
 @disabled
-def feedOnSave(editor, path):
-	if not isDaemonAvailable():
+def feed_on_save(editor, path):
+	if not is_daemon_available():
 		return
 
-	getDaemon().sendParse(path, editor.ycm.filetype, editor.text())
+	get_daemon().send_parse(path, editor.ycm.filetype, editor.text())
 
 
 def _timeout_feed():
-	if not isDaemonAvailable():
+	if not is_daemon_available():
 		return
 
 	editor = qApp().sender().parent()
-	getDaemon().sendParse(editor.path, editor.ycm.filetype, editor.text())
+	get_daemon().send_parse(editor.path, editor.ycm.filetype, editor.text())
 
 
-@registerSignal('editor', 'textChanged')
+@register_signal('editor', 'textChanged')
 @disabled
-def feedOnChange(editor):
-	if not isDaemonAvailable() or not editor.path:
+def feed_on_change(editor):
+	if not is_daemon_available() or not editor.path:
 		return
 
-	if not hasattr(editor, 'ycmFeedTimer'):
-		editor.ycmFeedTimer = QTimer(editor)
-		editor.ycmFeedTimer.setSingleShot(True)
-		editor.ycmFeedTimer.timeout.connect(_timeout_feed)
+	if not hasattr(editor, 'ycm_feed_timer'):
+		editor.ycm_feed_timer = QTimer(editor)
+		editor.ycm_feed_timer.setSingleShot(True)
+		editor.ycm_feed_timer.timeout.connect(_timeout_feed)
 	# reboot timer
-	editor.ycmFeedTimer.start(FEED_ON_EDIT_PAUSE_MS)
+	editor.ycm_feed_timer.start(FEED_ON_EDIT_PAUSE_MS)
 
 
-@registerSignal('ycm_control', 'ready')
+@register_signal('ycm_control', 'ready')
 @disabled
-def feedOnDaemonReady(ycm):
-	for editor in categoryObjects('editor'):
+def feed_on_daemon_ready(ycm):
+	for editor in category_objects('editor'):
 		if editor.path:
-			feedOnLoad(editor, editor.path)
+			feed_on_load(editor, editor.path)

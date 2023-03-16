@@ -8,7 +8,7 @@ from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QTreeView, QWidget, QFileSystemModel, QApplication
 
 from eye.consts import AbsolutePathRole
-from eye.helpers.intent import sendIntent
+from eye.helpers.intent import send_intent
 from eye.qt import Slot
 from eye.structs import PropDict
 from eye.widgets.helpers import WidgetMixin
@@ -70,7 +70,7 @@ class BaseFileChooser(QWidget, WidgetMixin):
 		self.edit.installEventFilter(self)
 
 		self.setWindowTitle(self.tr('File selector'))
-		self.addCategory('filechooser')
+		self.add_category('filechooser')
 
 	def setModel(self, model):
 		self.view.setModel(model)
@@ -80,7 +80,7 @@ class BaseFileChooser(QWidget, WidgetMixin):
 		raise NotImplementedError()
 
 	def openFile(self, path):
-		sendIntent(self, 'openEditor', path=path, reason='filechooser')
+		send_intent(self, 'open_editor', path=path, reason='filechooser')
 
 	def eventFilter(self, obj, ev):
 		if (obj is not self.edit

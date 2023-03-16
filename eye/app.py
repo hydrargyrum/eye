@@ -30,48 +30,48 @@ class App(QApplication):
 
 		self.args = None
 
-		self.lastWindow = None
+		self.last_window = None
 		self.focusChanged.connect(self._app_focus_changed)
 
-		self.setWindowIcon(QIcon(pathutils.dataPath('eye.png')))
+		self.setWindowIcon(QIcon(pathutils.data_path('eye.png')))
 
-	def initUi(self):
+	def init_ui(self):
 		from eye.widgets import window
 
 		win = window.Window()
-		win.createDefaultMenuBar()
-		win.quitRequested.connect(self.quit)
+		win.create_default_menu_bar()
+		win.quit_requested.connect(self.quit)
 		return win
 
-	def startupScripts(self):
+	def startup_scripts(self):
 		"""Get list of startup script files
 
 		These are the script present at the moment, not the scripts that were run when the app started.
 		"""
-		files = glob.glob(os.path.join(pathutils.getConfigPath('startup'), '*.py'))
+		files = glob.glob(os.path.join(pathutils.get_config_path('startup'), '*.py'))
 		files.sort()
 		return files
 
-	def scriptDict(self):
+	def script_dict(self):
 		"""Build a env suitable for running conf scripts.
 
 		The built dict will contain `'qApp'` key pointing to this App instance.
 		"""
 		return {'qApp': QApplication.instance()}
 
-	def runStartScripts(self):
-		for f in self.startupScripts():
-			self.runScript(f)
+	def run_start_scripts(self):
+		for f in self.startup_scripts():
+			self.run_script(f)
 
-	def runScript(self, path):
+	def run_script(self, path):
 		"""Run a config script in this app
 
-		The script will be run with the variables returned by :any:`scriptDict`.
+		The script will be run with the variables returned by :any:`script_dict`.
 		Exceptions thrown  by the script are catched and logged.
 		"""
 		self.logger.debug('execing script %s', path)
 		try:
-			execfile(path, self.scriptDict())
+			execfile(path, self.script_dict())
 		except Exception:
 			self.logger.error('cannot execute startup script %r', path, exc_info=True)
 
@@ -82,31 +82,31 @@ class App(QApplication):
 		Does not return until app is quit.
 		"""
 
-		self.parseArguments()
-		self.initLogging()
+		self.parse_arguments()
+		self.init_logging()
 
-		if self.args.remote and self.processRemote():
+		if self.args.remote and self.process_remote():
 			return 0
 
 		welcome = False
 		if not self.args.no_config:
-			if not self.startupScripts():
+			if not self.startup_scripts():
 				from eye.helpers.welcome import ask_to_copy, open_welcome_text
 
 				welcome = ask_to_copy()
 
-			self.runStartScripts()
+			self.run_start_scripts()
 
-		win = self.initUi()
+		win = self.init_ui()
 		win.show()
-		self.openCommandLineFiles()
+		self.open_command_line_files()
 
 		if welcome:
 			open_welcome_text()
 
 		return self.exec_()
 
-	def parseArguments(self):
+	def parse_arguments(self):
 		parser = argparse.ArgumentParser()
 		parser.add_argument('files', metavar='FILE', nargs='*')
 		parser.add_argument('--debug', action='store_true', default=False)
@@ -117,7 +117,7 @@ class App(QApplication):
 		argv = self.arguments()[1:]
 		self.args = parser.parse_args(argv)
 
-	def initLogging(self):
+	def init_logging(self):
 		if self.args.debug:
 			self.logger.handlers[0].setLevel(logging.DEBUG)
 		for logger_name in self.args.debug_only:
@@ -128,48 +128,48 @@ class App(QApplication):
 			logger = logging.getLogger(logger_name)
 			logger.addHandler(handler)
 
-	def processRemote(self):
+	def process_remote(self):
 		from eye.helpers import remote_control
 
 		try:
-			remote_control.sendRequest('ping')
+			remote_control.send_request('ping')
 		except ValueError:
-			remote_control.createServer()
+			remote_control.create_server()
 			return False
 
 		try:
-			path, row = pathutils.vimFilenameArg(self.args.files)
+			path, row = pathutils.vim_filename_arg(self.args.files)
 		except TypeError:
 			pass
 		else:
 			path = os.path.abspath(path)
-			remote_control.sendRequest('open', "%s:%s" % (path, row))
+			remote_control.send_request('open', "%s:%s" % (path, row))
 			return True
 
 		for path in self.args.files:
 			path = os.path.abspath(path)
-			remote_control.sendRequest('open', path)
+			remote_control.send_request('open', path)
 		return True
 
-	def openCommandLineFiles(self):
+	def open_command_line_files(self):
 		if not self.args.files:
 			return
 
-		win = connector.categoryObjects('window')[0]
+		win = connector.category_objects('window')[0]
 
-		from eye.helpers.intent import sendIntent
+		from eye.helpers.intent import send_intent
 
 		try:
-			path, row = pathutils.vimFilenameArg(self.args.files)
+			path, row = pathutils.vim_filename_arg(self.args.files)
 		except TypeError:
 			pass
 		else:
-			sendIntent(win, 'openEditor', path=path, loc=(row,), reason='commandline')
+			send_intent(win, 'open_editor', path=path, loc=(row,), reason='commandline')
 			# only 1 filename in this case
 			return
 
 		for name in self.args.files:
-			path, row, col = pathutils.parseFilename(name)
+			path, row, col = pathutils.parse_filename(name)
 			path = os.path.abspath(path)
 
 			loc = None
@@ -177,7 +177,7 @@ class App(QApplication):
 				loc = (row, col)
 			elif row:
 				loc = (row,)
-			sendIntent(win, 'openEditor', path=path, loc=loc, reason='commandline')
+			send_intent(win, 'open_editor', path=path, loc=loc, reason='commandline')
 
 	@Slot('QWidget*', 'QWidget*')
 	def _app_focus_changed(self, old, new):
@@ -186,10 +186,10 @@ class App(QApplication):
 		if not new or not isinstance(new, QMainWindow):
 			# exclude dialogs
 			return
-		self.lastWindow = new
+		self.last_window = new
 
 
-def setupLogging():
+def setup_logging():
 	logging.basicConfig()
 	root = logging.getLogger()
 	root.setLevel(logging.DEBUG)
@@ -214,7 +214,7 @@ def main():
 	if sys.excepthook is sys.__excepthook__:
 		sys.excepthook = lambda *args: sys.__excepthook__(*args)
 
-	setupLogging()
+	setup_logging()
 
 	app = App(sys.argv)
 	return app.run()

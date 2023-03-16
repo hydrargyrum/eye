@@ -23,7 +23,7 @@ from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from ...connector import CategoryMixin
 from ...qt import Signal, Slot
 from ...app import qApp
-from ..intent import sendIntent
+from ..intent import send_intent
 
 
 HMAC_SECRET_LENGTH = 16
@@ -35,7 +35,7 @@ LOGGER_REQUESTS = LOGGER.getChild('requests')
 DAEMON = None
 
 
-__all__ = ('getDaemon', 'isDaemonAvailable', 'buildDaemon', 'Ycm', 'ServerError')
+__all__ = ('get_daemon', 'is_daemon_available', 'build_daemon', 'Ycm', 'ServerError')
 
 def generate_port():
 	sock = socket.socket()
@@ -85,20 +85,20 @@ class Ycm(QObject, CategoryMixin):
 		self.config = {}
 
 		self.proc = QProcess()
-		self.proc.started.connect(self.procStarted)
-		self.proc.errorOccurred.connect(self.procError)
-		self.proc.finished.connect(self.procFinished)
+		self.proc.started.connect(self.proc_started)
+		self.proc.errorOccurred.connect(self.proc_error)
+		self.proc.finished.connect(self.proc_finished)
 
-		self.pingTimer = QTimer(self)
-		self.pingTimer.timeout.connect(self.ping)
+		self.ping_timer = QTimer(self)
+		self.ping_timer.timeout.connect(self.ping)
 
 		self.network = QNetworkAccessManager()
 
 		qApp().aboutToQuit.connect(self.stop)
 
-		self.addCategory('ycm_control')
+		self.add_category('ycm_control')
 
-	def makeConfig(self):
+	def make_config(self):
 		self.secret = generate_key()
 		self.config['hmac_secret'] = b64encode(self.secret).decode('ascii')
 
@@ -108,7 +108,7 @@ class Ycm(QObject, CategoryMixin):
 			fd.flush()
 		return path
 
-	def checkReply(self, reply):
+	def check_reply(self, reply):
 		"""Check the ycmd reply is a success.
 
 		Checks the `reply` has a HTTP 200 status code and the signature is valid.
@@ -181,22 +181,22 @@ class Ycm(QObject, CategoryMixin):
 		return reply
 
 	def ping(self):
-		def handleReply():
-			self.checkReply(reply)
+		def handle_reply():
+			self.check_reply(reply)
 			if not self._ready:
 				self._ready = True
-				self.pingTimer.start(60000)
+				self.ping_timer.start(60000)
 				self.ready.emit()
 
 		reply = self._do_get('/healthy')
-		reply.finished.connect(handleReply)
+		reply.finished.connect(handle_reply)
 		reply.finished.connect(reply.deleteLater)
 
 	def start(self):
 		if not self.port:
 			self.port = generate_port()
 		self.addr = 'localhost:%s' % self.port
-		path = self.makeConfig()
+		path = self.make_config()
 
 		_, outlogpath = tempfile.mkstemp(prefix='eye-ycm', suffix='.out.log')
 		_, errlogpath = tempfile.mkstemp(prefix='eye-ycm', suffix='.err.log')
@@ -227,27 +227,27 @@ class Ycm(QObject, CategoryMixin):
 		time.sleep(wait)
 		self.proc.kill()
 
-	def isRunning(self):
+	def is_running(self):
 		return self.proc.state() == QProcess.Running
 
-	def connectTo(self, addr):
+	def connect_to(self, addr):
 		self.addr = addr
 		self._ready = False
-		self.pingTimer.start(1000)
+		self.ping_timer.start(1000)
 
 	@Slot()
-	def procStarted(self):
+	def proc_started(self):
 		LOGGER.debug('daemon has started')
-		self.pingTimer.start(1000)
+		self.ping_timer.start(1000)
 
 	@Slot(int, QProcess.ExitStatus)
-	def procFinished(self, code, status):
+	def proc_finished(self, code, status):
 		LOGGER.info('daemon has exited with status %r and code %r', status, code)
-		self.pingTimer.stop()
+		self.ping_timer.stop()
 		self._ready = False
 
 	@Slot(QProcess.ProcessError)
-	def procError(self, error):
+	def proc_error(self, error):
 		LOGGER.warning('daemon failed to start (%r): %s', error, self.errorString())
 
 	ready = Signal()
@@ -273,24 +273,24 @@ class Ycm(QObject, CategoryMixin):
 
 		return self._do_post(urlpath, **d)
 
-	def acceptExtraConf(self, filepath, filetype, contents):
+	def accept_extra_conf(self, filepath, filetype, contents):
 		reply = self._post_simple_request('/load_extra_conf_file', filepath, filetype, contents)
-		reply.finished.connect(reply.deleteLater)
+		reply.finished.connect(reply.delete_later)
 
-	def rejectExtraConf(self, filepath, filetype, contents):
+	def reject_extra_conf(self, filepath, filetype, contents):
 		reply = self._post_simple_request('/ignore_extra_conf_file', filepath, filetype, contents,
 		                                _ignore_body=True)
 		reply.finished.connect(reply.deleteLater)
 
-	def sendParse(self, filepath, filetype, contents, retry_extra=True):
+	def send_parse(self, filepath, filetype, contents, retry_extra=True):
 		d = {
 			'event_name': 'FileReadyToParse'
 		}
 		reply = self._post_simple_request('/event_notification', filepath, filetype, contents, **d)
 
-		def handleReply():
+		def handle_reply():
 			try:
-				self.checkReply(reply)
+				self.check_reply(reply)
 			except ServerError as exc:
 				excdata = exc.args[1]
 				if (isinstance(excdata, dict) and 'exception' in excdata and
@@ -299,24 +299,24 @@ class Ycm(QObject, CategoryMixin):
 					confpath = excdata['exception']['extra_conf_file']
 					LOGGER.info('ycmd encountered %r and wonders if it should be loaded', confpath)
 
-					accepted = sendIntent(None, 'queryExtraConf', conf=confpath)
+					accepted = send_intent(None, 'queryExtraConf', conf=confpath)
 					if accepted:
 						LOGGER.info('extra conf %r will be loaded', confpath)
-						self.acceptExtraConf(confpath, filetype, contents)
+						self.accept_extra_conf(confpath, filetype, contents)
 					else:
 						LOGGER.info('extra conf %r will be rejected', confpath)
-						self.rejectExtraConf(confpath, filetype, contents)
+						self.reject_extra_conf(confpath, filetype, contents)
 
-					return self.sendParse(filepath, filetype, contents, retry_extra=False)
+					return self.send_parse(filepath, filetype, contents, retry_extra=False)
 				raise
 
-		reply.finished.connect(handleReply)
+		reply.finished.connect(handle_reply)
 		reply.finished.connect(reply.deleteLater)
 
-	def querySubcommandsList(self, filepath, filetype, contents, line, col):
+	def query_subcommands_list(self, filepath, filetype, contents, line, col):
 		return self._post_simple_request('/defined_subcommands', filepath, filetype, contents)
 
-	def querySubcommand(self, filepath, filetype, contents, line, col, *args):
+	def query_subcommand(self, filepath, filetype, contents, line, col, *args):
 		d = {
 			'command_arguments': list(args),
 			'line_num': line,
@@ -324,7 +324,7 @@ class Ycm(QObject, CategoryMixin):
 		}
 		return self._post_simple_request('/run_completer_command', filepath, filetype, contents, **d)
 
-	def queryCompletions(self, filepath, filetype, contents, line, col):
+	def query_completions(self, filepath, filetype, contents, line, col):
 		d = {
 			'line_num': line,
 			'column_num': col,
@@ -332,22 +332,22 @@ class Ycm(QObject, CategoryMixin):
 		return self._post_simple_request('/completions', filepath, filetype, contents, **d)
 
 	if 0:
-		def queryDiagnostic(self, filepath, filetype, contents, line, col):
+		def query_diagnostic(self, filepath, filetype, contents, line, col):
 			return self._post_simple_request('/detailed_diagnostic', filepath, filetype, contents)
 
-		def queryDebug(self, filepath, filetype, contents, line, col):
+		def query_debug(self, filepath, filetype, contents, line, col):
 			return self._post_simple_request('/debug_info', filepath, filetype, contents)
 
 
-def getDaemon():
+def get_daemon():
 	return DAEMON
 
 
-def isDaemonAvailable():
-	return DAEMON and DAEMON.isRunning()
+def is_daemon_available():
+	return DAEMON and DAEMON.is_running()
 
 
-def buildDaemon():
+def build_daemon():
 	global DAEMON
 	DAEMON = Ycm()
 	return DAEMON

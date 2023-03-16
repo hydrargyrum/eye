@@ -4,19 +4,20 @@ import shutil
 
 from PyQt5.QtWidgets import QMessageBox, QApplication
 
-from eye.connector import categoryObjects
-from eye.pathutils import dataPath, getConfigPath
+from eye.connector import category_objects
+from eye.pathutils import data_path, get_config_path
 
 
 def copy_sample_config():
-	shutil.copy(dataPath('sample_conf/keyboard.ini'), getConfigPath())
-	shutil.copy(dataPath('sample_conf/sample.py'), getConfigPath('startup'))
+	shutil.copy(data_path('sample_conf/keyboard.ini'), get_config_path())
+	shutil.copy(data_path('sample_conf/sample.py'), get_config_path('startup'))
 
 
 def ask_to_copy():
 	app = QApplication.instance()
 
-	reply = QMessageBox.question(None,
+	reply = QMessageBox.question(
+		None,
 		app.tr('Welcome to EYE!'),
 		app.tr("You have no EYE configuration, do you want to use with a sample configuration?"),
 		QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes
@@ -40,8 +41,8 @@ Read documentation at <https://eye.readthedocs.io/>.
 
 
 def open_welcome_text():
-	window = categoryObjects('window')[0]
-	editor = window.bufferNew()
+	window = category_objects('window')[0]
+	editor = window.buffer_new()
 
 	editor.setText(editor.tr(SAMPLE_TEXT))
 

@@ -3,38 +3,38 @@
 """Helpers for recording macros
 """
 
-from eye.connector import registerSignal, disabled
+from eye.connector import register_signal, disabled
 
-__all__ = ('setEnabled', 'setupRecording', 'recordAction', 'replayRecordedMacro')
+__all__ = ('set_enabled', 'setup_recording', 'record_action', 'replay_recorded_macro')
 
 
-@registerSignal(['editor'], 'macroRecordStarted')
+@register_signal(['editor'], 'macro_record_started')
 @disabled
-def setupRecording(ed):
+def setup_recording(ed):
 	"""Create an empty array for recorded macro actions"""
-	ed.actionsRecorded = []
+	ed.actions_recorded = []
 
 
-@registerSignal(['editor'], 'actionRecorded')
+@register_signal(['editor'], 'action_recorded')
 @disabled
-def recordAction(ed, action):
-	"""Record a macro action in an `editor.actionsRecorded`"""
-	ed.actionsRecorded.append(action)
+def record_action(ed, action):
+	"""Record a macro action in an `editor.actions_recorded`"""
+	ed.actions_recorded.append(action)
 
 
-def replayRecordedMacro(ed):
+def replay_recorded_macro(ed):
 	"""Replay the last recorded macro.
 
 	Actions are replayed in an undo-group.
 	"""
-	if not getattr(ed, 'actionsRecorded', None):
+	if not getattr(ed, 'actions_recorded', None):
 		return
 
-	with ed.undoGroup():
-		for action in ed.actionsRecorded:
-			ed.replayMacroAction(action)
+	with ed.undo_group():
+		for action in ed.actions_recorded:
+			ed.replay_macro_action(action)
 
 
-def setEnabled(enabled):
-	setupRecording.enabled = enabled
-	recordAction.enabled = enabled
+def set_enabled(enabled):
+	setup_recording.enabled = enabled
+	record_action.enabled = enabled

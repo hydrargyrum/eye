@@ -9,10 +9,10 @@ from PyQt5.QtDBus import QDBusConnection, QDBusVariant, QDBusMessage
 
 from eye import pathutils
 from eye.connector import CategoryMixin
-from eye.helpers.intent import registerIntentListener, sendIntent
+from eye.helpers.intent import register_intent_listener, send_intent
 from eye.qt import Slot
 
-__all__ = ('registerRemoteRequest', 'onRequestOpen', 'SimpleHandler')
+__all__ = ('register_remote_request', 'on_request_open', 'SimpleHandler')
 
 
 LOGGER = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class SimpleHandler(QObject, CategoryMixin):
 
 	def __init__(self, **kwargs):
 		super(SimpleHandler, self).__init__(**kwargs)
-		self.addCategory('remote_control')
+		self.add_category('remote_control')
 
 	@Slot(str, result=QDBusVariant)
 	@Slot(str, QDBusVariant, result=QDBusVariant)
@@ -48,7 +48,7 @@ class SimpleHandler(QObject, CategoryMixin):
 		args = tuple(arg.variant() if isinstance(arg, QDBusVariant) else arg for arg in args)
 
 		LOGGER.debug('received request %r%r', request_type, args)
-		result = sendIntent(self, 'remoteRequest', request_type=request_type, args=args)
+		result = send_intent(self, 'remote_request', request_type=request_type, args=args)
 		if result is None:
 			result = False
 
@@ -56,9 +56,9 @@ class SimpleHandler(QObject, CategoryMixin):
 		return QDBusVariant(result)
 
 
-def registerRemoteRequest(request_type, stackoffset=0):
+def register_remote_request(request_type, stackoffset=0):
 	def decorator(func):
-		@registerIntentListener('remoteRequest', categories='remote_control', stackoffset=(1 + stackoffset))
+		@register_intent_listener('remote_request', categories='remote_control', stackoffset=(1 + stackoffset))
 		@wraps(func)
 		def wrapper(remote, intent):
 			if intent.info.request_type == request_type and getattr(func, 'enabled', True):
@@ -71,7 +71,7 @@ def registerRemoteRequest(request_type, stackoffset=0):
 	return decorator
 
 
-def createServer():
+def create_server():
 	global BUS, ROOT_OBJ
 
 	ROOT_OBJ = SimpleHandler()
@@ -81,7 +81,7 @@ def createServer():
 	BUS.registerObject('/', ROOT_OBJ, QDBusConnection.ExportAllContents)
 
 
-def sendRequest(req, *args):
+def send_request(req, *args):
 	global BUS
 
 	LOGGER.debug('sending request %r%r', req, args)
@@ -100,18 +100,18 @@ def sendRequest(req, *args):
 	return list(reply.arguments())
 
 
-@registerRemoteRequest('ping')
-def onRequestPing(args):
+@register_remote_request('ping')
+def on_request_ping(args):
 	return True
 
 
-@registerRemoteRequest('open')
-def onRequestOpen(args):
-	path, row, col = pathutils.parseFilename(args[0])
+@register_remote_request('open')
+def on_request_open(args):
+	path, row, col = pathutils.parse_filename(args[0])
 	path = os.path.abspath(path)
 	if row is None:
 		loc = None
 	else:
 		loc = (row, col)
 
-	sendIntent(ROOT_OBJ, 'openEditor', path=path, loc=loc, reason='remote')
+	send_intent(ROOT_OBJ, 'open_editor', path=path, loc=loc, reason='remote')

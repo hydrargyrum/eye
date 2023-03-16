@@ -11,7 +11,7 @@ See :doc:`eye.helpers.keys`.
 Custom actions
 --------------
 
-In :doc:`configuration`, it's possible to use the :doc:`eye.connector.registerShortcut` decorator with a function to bind the shortcut to the function.
+In :doc:`configuration`, it's possible to use the :doc:`eye.connector.register_shortcut` decorator with a function to bind the shortcut to the function.
 
 See :doc:`eye.connector`.
 

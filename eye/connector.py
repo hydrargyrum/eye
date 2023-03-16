@@ -30,17 +30,17 @@ Example
 -------
 
 All objects of the class :class:`eye.widgets.Editor` have by default the category ``"editor"`` and that class has the
-``fileSaved = Signal(str)`` signal, where the first argument is the path of the saved file.
+``file_saved = Signal(str)`` signal, where the first argument is the path of the saved file.
 When configuring EYE (see :doc:`configuration`), it's possible to add this code::
 
-	from eye.connector import registerSignal
+	from eye.connector import register_signal
 
-	@registerSignal('editor', 'fileSaved')
+	@register_signal('editor', 'file_saved')
 	def foo(editor_obj, path):
 		print('file %s was saved' % path)
 
-We connect the ``fileSaved`` signal all objects having the category ``"editor"`` to the ``foo`` callback, which will
-receive multiple arguments, first the object which sent the signal, and then the arguments of the ``fileSaved`` signal.
+We connect the ``file_saved`` signal all objects having the category ``"editor"`` to the ``foo`` callback, which will
+receive multiple arguments, first the object which sent the signal, and then the arguments of the ``file_saved`` signal.
 When a new Editor widget will be created, it will automatically be connected to our callback, so when any editor will be
 saved, ``foo`` will be called.
 
@@ -56,14 +56,16 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtWidgets import QWidget
 
 from eye import BUILDING_DOCS, _add_doc
-from eye.qt import Signal, Slot
-from eye.utils import exceptionLogging
+from eye.qt import Signal, Slot, override
+from eye.utils import exception_logging
 
-__all__ = ('registerSignal', 'registerEventFilter', 'disabled',
-           'registerSetup', 'registerTeardown',
-           'deleteCreatedBy',
-           'defaultEditorConfig', 'defaultWindowConfig', 'defaultLexerConfig',
-           'categoryObjects', 'CategoryMixin')
+__all__ = (
+	'register_signal', 'register_event_filter', 'disabled',
+	'register_setup', 'register_teardown',
+	'delete_created_by',
+	'default_editor_config', 'default_window_config', 'default_lexer_config',
+	'category_objects', 'CategoryMixin',
+)
 
 
 LOGGER = getLogger(__name__)
@@ -78,9 +80,9 @@ def to_stringlist(obj):
 
 class ListenerMixin(object):
 	def unregister(self):
-		objects = CONNECTOR.objectsMatching(self.categories)
+		objects = CONNECTOR.objects_matching(self.categories)
 		for obj in objects:
-			self.doDisconnect(obj)
+			self.do_disconnect(obj)
 
 
 class SignalListener(QObject, ListenerMixin):
@@ -108,14 +110,14 @@ class SignalListener(QObject, ListenerMixin):
 		if not getattr(self.cb, 'enabled', True):
 			return
 
-		with exceptionLogging(reraise=False, logger=LOGGER):
+		with exception_logging(reraise=False, logger=LOGGER):
 			sender = kwargs.get('sender', self.sender())
 			self.cb(sender, *args)
 
-	def doConnect(self, obj):
+	def do_connect(self, obj):
 		getattr(obj, self.signal).connect(self.map)
 
-	def doDisconnect(self, obj):
+	def do_disconnect(self, obj):
 		getattr(obj, self.signal).disconnect(self.map)
 
 
@@ -128,116 +130,117 @@ class ConnectListener(ListenerMixin):
 
 	def map(self, obj):
 		if getattr(self.cb, 'enabled', True):
-			with exceptionLogging(reraise=False, logger=LOGGER):
+			with exception_logging(reraise=False, logger=LOGGER):
 				self.cb(obj)
 
 
 class SetupListener(ConnectListener):
-	def doConnect(self, obj):
+	def do_connect(self, obj):
 		self.map(obj)
 
-	def doDisconnect(self, obj):
+	def do_disconnect(self, obj):
 		pass
 
 
 class TearListener(ConnectListener):
-	def doConnect(self, obj):
+	def do_connect(self, obj):
 		pass
 
-	def doDisconnect(self, obj):
+	def do_disconnect(self, obj):
 		self.map(obj)
 
 
 class EventFilter(QObject, ListenerMixin):
-	def __init__(self, cb, categories, eventTypes, parent=None):
+	def __init__(self, cb, categories, event_types, parent=None):
 		super(EventFilter, self).__init__(parent)
 		self.cb = cb
 		self.categories = categories
-		self.eventTypes = eventTypes
+		self.event_types = event_types
 		self.caller = None
 
+	@override
 	def eventFilter(self, obj, ev):
 		ret = False
-		if getattr(self.cb, 'enabled', True) and  ev.type() in self.eventTypes:
-			with exceptionLogging(reraise=False, logger=LOGGER):
+		if getattr(self.cb, 'enabled', True) and ev.type() in self.event_types:
+			with exception_logging(reraise=False, logger=LOGGER):
 				ret = bool(self.cb(obj, ev))
 		return ret
 
-	def doConnect(self, obj):
+	def do_connect(self, obj):
 		obj.installEventFilter(self)
 
-	def doDisconnect(self, obj):
+	def do_disconnect(self, obj):
 		obj.removeEventFilter(self)
 
 
 class EventConnector(QObject):
-	categoryAdded = Signal(object, str)
-	categoryRemoved = Signal(object, str)
+	category_added = Signal(object, str)
+	category_removed = Signal(object, str)
 
 	def __init__(self):
 		super(EventConnector, self).__init__()
-		self.allObjects = weakref.WeakSet()
-		self.allListeners = []
+		self.all_objects = weakref.WeakSet()
+		self.all_listeners = []
 
-	def doConnect(self, obj, lis, cats=None):
+	def do_connect(self, obj, lis, cats=None):
 		LOGGER.debug('connecting %r to %r (from file %r) in %r categories', obj, lis.cb, inspect.getfile(lis.cb), cats)
-		with exceptionLogging(reraise=False, logger=LOGGER):
-			lis.doConnect(obj)
+		with exception_logging(reraise=False, logger=LOGGER):
+			lis.do_connect(obj)
 
-	def doDisconnect(self, obj, lis, cats=None):
+	def do_disconnect(self, obj, lis, cats=None):
 		LOGGER.debug('disconnecting %r to %r (from file %r) in %r categories', obj, lis.cb, inspect.getfile(lis.cb), cats)
-		with exceptionLogging(reraise=False, logger=LOGGER):
-			lis.doDisconnect(obj)
+		with exception_logging(reraise=False, logger=LOGGER):
+			lis.do_disconnect(obj)
 
-	def addListener(self, categories, lis):
-		self.allListeners.append(lis)
+	def add_listener(self, categories, lis):
+		self.all_listeners.append(lis)
 
 		# iterate on list copy to avoid concurrent access
-		for obj in list(self.allObjects):
+		for obj in list(self.all_objects):
 			if categories <= obj.categories():
-				self.doConnect(obj, lis, categories)
+				self.do_connect(obj, lis, categories)
 
-	def addObject(self, obj):
-		self.allObjects.add(obj)
+	def add_object(self, obj):
+		self.all_objects.add(obj)
 
 		oc = obj.categories()
 		if not oc:
 			return
 
-		for lis in self.allListeners:
+		for lis in self.all_listeners:
 			if lis.categories <= oc:
-				self.doConnect(obj, lis, lis.categories)
+				self.do_connect(obj, lis, lis.categories)
 
-	def addCategory(self, obj, cat):
+	def add_category(self, obj, cat):
 		oc = obj.categories()
 
-		for lis in self.allListeners:
+		for lis in self.all_listeners:
 			if lis.categories:
 				if cat in lis.categories and lis.categories <= oc:
-					self.doConnect(obj, lis, cat)
+					self.do_connect(obj, lis, cat)
 			elif len(obj.categories()) == 1:
-				self.doConnect(obj, lis, cat)
-		self.categoryAdded.emit(obj, cat)
+				self.do_connect(obj, lis, cat)
+		self.category_added.emit(obj, cat)
 
-	def removeCategory(self, obj, cat):
-		for lis in self.allListeners:
+	def remove_category(self, obj, cat):
+		for lis in self.all_listeners:
 			if cat in lis.categories:
-				self.doDisconnect(obj, lis, cat)
-		self.categoryRemoved.emit(obj, cat)
+				self.do_disconnect(obj, lis, cat)
+		self.category_removed.emit(obj, cat)
 
-	def objectsMatching(self, categories):
+	def objects_matching(self, categories):
 		categories = frozenset(to_stringlist(categories))
-		return [obj for obj in self.allObjects if categories <= obj.categories()]
+		return [obj for obj in self.all_objects if categories <= obj.categories()]
 
-	def deleteCreatedBy(self, caller):
+	def delete_created_by(self, caller):
 		"""Unregister listeners registered in file `caller`."""
-		newListeners = []
-		for lis in self.allListeners:
+		new_listeners = []
+		for lis in self.all_listeners:
 			if lis.caller == caller:
 				lis.unregister()
 			else:
-				newListeners.append(lis)
-		self.allListeners = newListeners
+				new_listeners.append(lis)
+		self.all_listeners = new_listeners
 
 
 class CategoryMixin(object):
@@ -249,32 +252,32 @@ class CategoryMixin(object):
 	def __init__(self, **kwargs):
 		super(CategoryMixin, self).__init__(**kwargs)
 		self._categories = set()
-		CONNECTOR.addObject(self)
+		CONNECTOR.add_object(self)
 
 	def categories(self):
 		"""Return categories of the object."""
 		return self._categories
 
-	def addCategory(self, c):
+	def add_category(self, c):
 		"""Add a category to the object."""
 		if c in self._categories:
 			return
 		self._categories.add(c)
-		CONNECTOR.addCategory(self, c)
+		CONNECTOR.add_category(self, c)
 
-	def removeCategory(self, c):
+	def remove_category(self, c):
 		"""Remove a category from an object."""
 		if c not in self._categories:
 			return
 		self._categories.remove(c)
-		CONNECTOR.removeCategory(self, c)
+		CONNECTOR.remove_category(self, c)
 
 
-def peekSet(s):
+def peek_set(s):
 	return next(iter(s))
 
 
-def isAncestorOf(ancestor, child):
+def is_ancestor_of(ancestor, child):
 	"""Return True if `ancestor` is an ancestor of `child`, QObject-tree-wise."""
 	while child is not None:
 		if child is ancestor:
@@ -283,7 +286,7 @@ def isAncestorOf(ancestor, child):
 	return False
 
 
-def categoryObjects(categories, ancestor=None):
+def category_objects(categories, ancestor=None):
 	"""Return objects matching all specified categories.
 
 	:param categories: matching object should match _all_ these categories
@@ -291,15 +294,15 @@ def categoryObjects(categories, ancestor=None):
 	:param ancestor: if not None, only objects that are children of `ancestor` are returned
 	"""
 	if ancestor is None:
-		return CONNECTOR.objectsMatching(categories)
+		return CONNECTOR.objects_matching(categories)
 	else:
-		return [obj for obj in CONNECTOR.objectsMatching(categories) if isAncestorOf(ancestor, obj)]
+		return [obj for obj in CONNECTOR.objects_matching(categories) if is_ancestor_of(ancestor, obj)]
 
 
-def deleteCreatedBy(caller):
+def delete_created_by(caller):
 	"""Unregister listeners registered by script `caller`.
 
-	If `caller` script file had registered any listeners (as with :any:`registerSignal`), this method
+	If `caller` script file had registered any listeners (as with :any:`register_signal`), this method
 	unregisters them.
 
 	This can be useful to unregister all listeners from a script to re-run the script afterwards, to
@@ -308,10 +311,10 @@ def deleteCreatedBy(caller):
 	:param caller: path of the script that registered listeners
 	:type caller: str
 	"""
-	CONNECTOR.deleteCreatedBy(caller)
+	CONNECTOR.delete_created_by(caller)
 
 
-def registerSignal(categories, signal, stackoffset=0):
+def register_signal(categories, signal, stackoffset=0):
 	"""Decorate a function that should be run when a signal is emitted.
 
 	When the `signal` of all existing and future objects matching all specified `categories`
@@ -325,7 +328,7 @@ def registerSignal(categories, signal, stackoffset=0):
 
 	Example::
 
-		@registerSignal('editor', 'fileSaved')
+		@register_signal('editor', 'file_saved')
 		def foo(editor_obj, path):
 			print('file %s has been saved', path)
 	"""
@@ -342,7 +345,7 @@ def registerSignal(categories, signal, stackoffset=0):
 
 		lis = SignalListener(func, categories, signal, CONNECTOR)
 		lis.caller = caller
-		CONNECTOR.addListener(categories, lis)
+		CONNECTOR.add_listener(categories, lis)
 
 		_add_doc(func, doctext)
 
@@ -351,7 +354,7 @@ def registerSignal(categories, signal, stackoffset=0):
 	return deco
 
 
-def registerSetup(categories, stackoffset=0):
+def register_setup(categories, stackoffset=0):
 	"""Decorate a function that should be run for all objects matching categories.
 
 	When an object is created that matches `categories` or an object is being added new categories and they match
@@ -365,7 +368,7 @@ def registerSetup(categories, stackoffset=0):
 
 	Example::
 
-		@registerSetup('editor')
+		@register_setup('editor')
 		def foo(editor_obj):
 			print('an editor has been created')
 	"""
@@ -381,7 +384,7 @@ def registerSetup(categories, stackoffset=0):
 
 		lis = SetupListener(func, categories)
 		lis.caller = caller
-		CONNECTOR.addListener(categories, lis)
+		CONNECTOR.add_listener(categories, lis)
 
 		_add_doc(func, doctext)
 
@@ -390,7 +393,7 @@ def registerSetup(categories, stackoffset=0):
 	return deco
 
 
-def registerTeardown(categories, stackoffset=0):
+def register_teardown(categories, stackoffset=0):
 	categories = frozenset(to_stringlist(categories))
 	doctext = 'This handler is registered as teardown for categories ``%s``.' % (list(categories),)
 
@@ -402,7 +405,7 @@ def registerTeardown(categories, stackoffset=0):
 
 		lis = TearListener(func, categories)
 		lis.caller = caller
-		CONNECTOR.addListener(categories, lis)
+		CONNECTOR.add_listener(categories, lis)
 
 		_add_doc(func, doctext)
 
@@ -412,10 +415,10 @@ def registerTeardown(categories, stackoffset=0):
 
 
 
-def registerEventFilter(categories, eventTypes, stackoffset=0):
+def register_event_filter(categories, event_types, stackoffset=0):
 	"""Decorate a function that should be run when an event is sent to an object.
 
-	When a :any:`PyQt5.QtCore.QEvent` object of a type in `eventTypes` is sent to an object
+	When a :any:`PyQt5.QtCore.QEvent` object of a type in `event_types` is sent to an object
 	matching `categories`, the decorated function will be called.
 
 	The decorated function must take 2 parameters: the destination object to which the event
@@ -434,20 +437,20 @@ def registerEventFilter(categories, eventTypes, stackoffset=0):
 
 	Example::
 
-		@registerEventFilter('window', [QEvent.Close])
-		def onWinClose(window, event):
+		@register_event_filter('window', [QEvent.Close])
+		def on_win_close(window, event):
 			print('the %s window was closed' % window)
 
 	:param categories: the categories to match
 	:type categories: list or str
-	:param eventTypes: list of accepted ``QEvent.type()`` the sent event should match
-	:type eventTypes: list of ints
+	:param event_types: list of accepted ``QEvent.type()`` the sent event should match
+	:type event_types: list of ints
 	:rtype: bool
 	"""
 
 	categories = frozenset(to_stringlist(categories))
 	doctext = ('This handler is registered as event filter for categories ``%s`` with '
-			   'event types ``%r``.' % (list(categories), eventTypes))
+			   'event types ``%r``.' % (list(categories), event_types))
 
 	if BUILDING_DOCS:
 		return lambda x: _add_doc(x, doctext)
@@ -455,9 +458,9 @@ def registerEventFilter(categories, eventTypes, stackoffset=0):
 	def deco(func):
 		caller = inspect.stack()[1 + stackoffset][1]
 
-		lis = EventFilter(func, categories, eventTypes, CONNECTOR)
+		lis = EventFilter(func, categories, event_types, CONNECTOR)
 		lis.caller = caller
-		CONNECTOR.addListener(categories, lis)
+		CONNECTOR.add_listener(categories, lis)
 
 		# TODO use textual event type (parse source)
 		_add_doc(func, doctext)
@@ -468,9 +471,9 @@ def registerEventFilter(categories, eventTypes, stackoffset=0):
 
 
 def disabled(func):
-	"""Disable a function previously decorated with a listener like registerSignal.
+	"""Disable a function previously decorated with a listener like register_signal.
 
-	If the decorated function (`func`) has been decorated with :any:`registerSignal`,
+	If the decorated function (`func`) has been decorated with :any:`register_signal`,
 	:any:`registerEventFilter` or some other kind of listener decorator, the decorated function
 	will not be called anymore when a matching signal is emitted or a event has to pass in a
 	filter, until it is enabled again.
@@ -493,23 +496,23 @@ def disabled(func):
 	return func
 
 
-defaultEditorConfig = registerSetup('editor')
+default_editor_config = register_setup('editor')
 
 """Decorate a function that should be called for every editor.
 
 This decorator is intended for functions to configure editor widgets.
-See also :any:`registerSetup`.
+See also :any:`register_setup`.
 """
 
-defaultWindowConfig = registerSetup('window')
+default_window_config = register_setup('window')
 
 """Decorate a function that should be called for every EYE window.
 
 This decorator is intended for functions to configure EYE windows.
-See also :any:`registerSetup`.
+See also :any:`register_setup`.
 """
 
-defaultLexerConfig = registerSignal(['editor'], 'lexerChanged')
+default_lexer_config = register_signal(['editor'], 'lexer_changed')
 
 """Decorate a function that should be called when a lexer is set for an editor.
 

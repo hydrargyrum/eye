@@ -4,7 +4,7 @@
 
 Intents are generic actions triggered by plugins that are delegated to user configuration and other plugins.
 
-An example is the "`openEditor`" intent. It be triggered by an "Open" dialog (:any:`eye.widgets.filechooser`) when a
+An example is the "`open_editor`" intent. It be triggered by an "Open" dialog (:any:`eye.widgets.filechooser`) when a
 file is selected by the user or by a :any:`eye.widgets.locationlist.LocationList` when a location is clicked.
 Configuration scripts can register multiple intent callbacks for this intent type. They will be called in turn, until
 one of the callbacks handles the intent, for example by opening a new tab (see :any:`eye.helpers.buffers`).
@@ -18,11 +18,13 @@ import logging
 
 from PyQt5.QtCore import QCoreApplication, QEvent, QObject
 
-from eye.connector import registerEventFilter, CategoryMixin
+from eye.connector import register_event_filter, CategoryMixin
 from eye.structs import PropDict
 
-__all__ = ('IntentEvent', 'registerIntentListener', 'dummyListener', 'sendIntent',
-           'defaultOpenEditor')
+__all__ = (
+	'IntentEvent', 'register_intent_listener', 'dummy_listener', 'send_intent',
+	'default_open_editor',
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -40,7 +42,7 @@ class IntentEvent(QEvent):
 		self.intent_type = intent_type
 		"""Type of the intent
 
-		An intent has a type, which is a simple string, for example `"openEditor"` for the intent to open an
+		An intent has a type, which is a simple string, for example `"open_editor"` for the intent to open an
 		editor with a particular file displayed.
 
 		:type: str
@@ -55,7 +57,7 @@ class IntentEvent(QEvent):
 		self.info = PropDict(**kwargs)
 		"""Extra info about the intent
 
-		This info is filled when the intent is sent (:any:`sendIntent`).
+		This info is filled when the intent is sent (:any:`send_intent`).
 
 		:type: :any:`eye.structs.PropDict`
 		"""
@@ -90,10 +92,10 @@ class IntentEvent(QEvent):
 		return '<IntentEvent type=%r source=%r info=%r>' % (self.intent_type, self.source, self.info)
 
 
-def registerIntentListener(intent_type, categories=None, stackoffset=0):
+def register_intent_listener(intent_type, categories=None, stackoffset=0):
 	"""Decorate a callback to be registered as an intent listener
 
-	See :any:`dummyListener` for documentation of how the callback should be.
+	See :any:`dummy_listener` for documentation of how the callback should be.
 
 	:param intent_type: the type of the intent to listen to
 	:type intent_type: str
@@ -104,7 +106,7 @@ def registerIntentListener(intent_type, categories=None, stackoffset=0):
 		categories = []
 
 	def decorator(cb):
-		@registerEventFilter(categories, [IntentEvent.Type], stackoffset=(1 + stackoffset))
+		@register_event_filter(categories, [IntentEvent.Type], stackoffset=(1 + stackoffset))
 		@wraps(cb)
 		def wrapper(obj, ev):
 			if getattr(cb, 'enabled', True) and ev.intent_type == intent_type:
@@ -118,7 +120,7 @@ def registerIntentListener(intent_type, categories=None, stackoffset=0):
 	return decorator
 
 
-def sendIntent(source, intent_type, **kwargs):
+def send_intent(source, intent_type, **kwargs):
 	"""Send an intent
 
 	If the intent was handled by a listener, it can have a result, see :any:`IntentEvent.result`.
@@ -140,10 +142,10 @@ def sendIntent(source, intent_type, **kwargs):
 	return event.result
 
 
-def dummyListener(source, intent):
+def dummy_listener(source, intent):
 	"""Sample intent listener
 
-	Intent listeners (see :any:`registerIntentListener`) should follow this function prototype.
+	Intent listeners (see :any:`register_intent_listener`) should follow this function prototype.
 
 	The function can handle `intent` and perform appropriate action if desired.
 
@@ -168,15 +170,15 @@ def dummyListener(source, intent):
 	return False
 
 
-@registerIntentListener('openEditor')
-def defaultOpenEditor(source, ev):
-	from eye.helpers.buffers import openEditor
+@register_intent_listener('open_editor')
+def default_open_editor(source, ev):
+	from eye.helpers.buffers import open_editor
 
-	editor = openEditor(ev.info.path, ev.info.get('loc'))
+	editor = open_editor(ev.info.path, ev.info.get('loc'))
 	return editor
 
 
 class DefaultSender(QObject, CategoryMixin):
 	def __init__(self):
 		super(DefaultSender, self).__init__()
-		self.addCategory('default_sender')
+		self.add_category('default_sender')

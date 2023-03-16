@@ -19,7 +19,7 @@ class GitGrep(GrepLike):
 	cmd_base = ['git', 'grep', '-n', '-I']
 
 	@classmethod
-	def isAvailable(cls, path):
+	def is_available(cls, path):
 		if os.path.isfile(path):
 			path = os.path.dirname(path)
 
@@ -32,7 +32,7 @@ class GitGrep(GrepLike):
 		return not res
 
 	@classmethod
-	def searchRootPath(cls, path):
+	def search_root_path(cls, path):
 		path = path or '.'
 		if os.path.isfile(path):
 			path = os.path.dirname(path)

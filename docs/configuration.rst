@@ -35,10 +35,10 @@ widget. Furthermore, this function is registered to run automatically when a fil
 
 Here's a very brief extract of `eye.helpers.lexer`::
 
-	from ..connector import registerSignal, disabled
+	from ..connector import register_signal, disabled
 
-	@registerSignal(['editor'], 'fileOpened')
-	@registerSignal(['editor'], 'fileSaved')
+	@register_signal(['editor'], 'fileOpened')
+	@register_signal(['editor'], 'fileSaved')
 	@disabled
 	def autoLexer(editor, path=None):
 
@@ -87,8 +87,8 @@ Even though using `import *` is discouraged in released code, personal configura
 using `import *` in this context could simplify writing configuration files::
 
 	# instead of:
-	# from eye.connector import registerSignal, registerShortcut
-	# from eye.helpers.buffers import openEditor
+	# from eye.connector import register_signal, register_shortcut
+	# from eye.helpers.buffers import open_editor
 
 	# just:
 	from eye.connector import *

@@ -41,19 +41,19 @@ Here's an example of a suitable ``keyboard.ini`` (see :any:`DEFAULT_KEYS_FILE`):
 	[editor]
 	# when Ctrl+S is pressed while a widget with "editor" category has focus,
 	# the saveFile slot of the editor is triggered
-	saveFile = Ctrl+S
+	save_file = Ctrl+S
 
 	[location_list]
 	# when Ctrl+P is pressed in the same window as a widget with the "location_list" widget,
 	# the activateNext slot of the location_list is triggered
-	activateNext = window:Ctrl+P
-	activatePrevious = window:Ctrl+Shift+P
+	activate_next = window:Ctrl+P
+	activate_previous = window:Ctrl+Shift+P
 
 	[window]
 	# when Ctrl+N is pressed in any child or grandchild of a widget with "window" category,
 	# the bufferNew slot of the window is triggered
-	bufferNew = children:Ctrl+N
-	bufferClose = children:Ctrl+W
+	buffer_new = children:Ctrl+N
+	buffer_close = children:Ctrl+W
 
 Module contents
 ---------------
@@ -64,10 +64,10 @@ from configparser import ConfigParser
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 
-from eye.helpers.actions import registerActionShortcut
-from eye.pathutils import getConfigFilePath
+from eye.helpers.actions import register_action_shortcut
+from eye.pathutils import get_config_file_path
 
-__all__ = ('loadKeysConfig', 'DEFAULT_KEYS_FILE')
+__all__ = ('load_keys_config', 'DEFAULT_KEYS_FILE')
 
 
 DEFAULT_KEYS_FILE = 'keyboard.ini'
@@ -75,7 +75,7 @@ DEFAULT_KEYS_FILE = 'keyboard.ini'
 """Default filename used by `loadKeysConfig`."""
 
 
-def loadKeysConfig(path=None):
+def load_keys_config(path=None):
 	"""Load keys config file.
 
 	If path is ``None``, a file named :any:`DEFAULT_KEYS_FILE` will be looked for in the config
@@ -85,15 +85,15 @@ def loadKeysConfig(path=None):
 	"""
 
 	if path is None:
-		path = getConfigFilePath(DEFAULT_KEYS_FILE)
+		path = get_config_file_path(DEFAULT_KEYS_FILE)
 
 	cfg = ConfigParser()
 	cfg.optionxform = str
 	cfg.read([path])
 
 	for category in cfg.sections():
-		for actionName in cfg.options(category):
-			keystr = cfg.get(category, actionName)
+		for action_name in cfg.options(category):
+			keystr = cfg.get(category, action_name)
 
 			context = Qt.WidgetShortcut
 			if keystr.startswith('widget:'):
@@ -109,4 +109,4 @@ def loadKeysConfig(path=None):
 				context = Qt.ApplicationShortcut
 			qks = QKeySequence(keystr)
 
-			registerActionShortcut(category, actionName, qks, context)
+			register_action_shortcut(category, action_name, qks, context)

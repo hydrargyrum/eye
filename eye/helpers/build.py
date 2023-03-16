@@ -14,13 +14,14 @@ import shlex
 from PyQt5.QtCore import QObject
 
 from eye.connector import CategoryMixin
-from eye.pathutils import getRelativePathIn
+from eye.pathutils import get_relative_path_in
 from eye.procutils import LineProcess
 from eye.qt import Signal, Slot
 
-__all__ = ('Builder', 'registerPlugin', 'SimpleBuilder',
-           'JobHolder',
-          )
+__all__ = (
+	'Builder', 'register_plugin', 'SimpleBuilder',
+	'JobHolder',
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -34,9 +35,9 @@ class Builder(QObject, CategoryMixin):
 	should emit various signals.
 	"""
 
-	warningPrinted = Signal(dict)
+	warning_printed = Signal(dict)
 
-	"""Signal warningPrinted(info)
+	"""Signal warning_printed(info)
 
 	:param info: warning output by the builder
 	:type info: dict
@@ -47,16 +48,16 @@ class Builder(QObject, CategoryMixin):
 	but the common keys are `"path"`, `"line"`, `"col"`, `"message"`.
 	"""
 
-	errorPrinted = Signal(dict)
+	error_printed = Signal(dict)
 
-	"""Signal errorPrinted(info)
+	"""Signal error_printed(info)
 
 	:param info: error output by the builder
 	:type info: dict
 
 	This signal is emitted when an error occurs.
 
-	See :any:`warningPrinted` about the dict argument.
+	See :any:`warning_printed` about the dict argument.
 	"""
 
 	started = Signal()
@@ -92,8 +93,8 @@ class Builder(QObject, CategoryMixin):
 		"""
 		super(Builder, self).__init__(**kwargs)
 		if 'parent' not in kwargs:
-			DEFAULT_HOLDER.addJob(self)
-		self.addCategory('builder')
+			DEFAULT_HOLDER.add_job(self)
+		self.add_category('builder')
 
 	def columns(self):
 		"""Return the list of columns supported by this builder type
@@ -118,19 +119,19 @@ class Builder(QObject, CategoryMixin):
 		"""
 		raise NotImplementedError()
 
-	def workingDirectory(self):
+	def working_directory(self):
 		pass
 
 
 PLUGINS = {}
 
 
-def registerPlugin(cls):
+def register_plugin(cls):
 	PLUGINS[cls.id] = cls
 	return cls
 
 
-@registerPlugin
+@register_plugin
 class SimpleBuilder(Builder):
 	"""Simple builder suitable for gcc-like programs
 
@@ -140,7 +141,7 @@ class SimpleBuilder(Builder):
 	The default pattern looks like `"<path>:<line>:<col>: <message>"`.
 	"""
 
-	pattern = '^(?P<path>[^:]+):(?P<line>\d+):(?:(?P<col>\d+):)? (?P<message>.*)$'
+	pattern = r'^(?P<path>[^:]+):(?P<line>\d+):(?:(?P<col>\d+):)? (?P<message>.*)$'
 	pattern_flags = 0
 
 	id = 'command'
@@ -169,7 +170,7 @@ class SimpleBuilder(Builder):
 
 		LOGGER.debug('%r received matching line %r', self, line)
 
-		signal = self.warningPrinted
+		signal = self.warning_printed
 
 		obj = mtc.groupdict()
 		obj['line'] = int(obj['line'])
@@ -182,7 +183,7 @@ class SimpleBuilder(Builder):
 			if msg.startswith('warning: '):
 				msg = msg.replace('warning: ', '', 1)
 			elif msg.startswith('error: '):
-				signal = self.errorPrinted
+				signal = self.error_printed
 				msg = msg.replace('error: ', '', 1)
 			elif msg.startswith('note: '):
 				LOGGER.info('%r ignored note line %r', self, line)
@@ -192,17 +193,17 @@ class SimpleBuilder(Builder):
 		rootpath = self.proc.workingDirectory()
 		# make path absolute and shortpath relative
 		obj['path'] = os.path.join(rootpath, obj['path'])
-		obj['shortpath'] = getRelativePathIn(obj['path'], rootpath) or obj['path']
+		obj['shortpath'] = get_relative_path_in(obj['path'], rootpath) or obj['path']
 
 		signal.emit(obj)
 
 	def interrupt(self):
 		self.proc.stop()
 
-	def setWorkingDirectory(self, path):
+	def set_working_directory(self, path):
 		self.proc.setWorkingDirectory(path)
 
-	def workingDirectory(self):
+	def working_directory(self):
 		return self.proc.workingDirectory()
 
 	def run(self, cmd):
@@ -229,7 +230,7 @@ class PyFlakes(SimpleBuilder):
 
 
 class JobHolder(QObject):
-	def addJob(self, job):
+	def add_job(self, job):
 		"""Re-parents the job to self and un-parent when job is finished.
 
 		`addJob` should be called before the job is started, to avoid the possibility of the

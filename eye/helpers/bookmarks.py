@@ -9,28 +9,30 @@ These bookmarks use a :any:`eye.widgets.editor.Marker` called "bookmark", which 
 
 Here's a sample customization::
 
-	@defaultEditorConfig
-	def setupBookmarks(ed):
-        ed.createMarker('bookmark', Marker(ed.Circle))
+	@default_editor_config
+	def setup_bookmarks(ed):
+		ed.create_marker('bookmark', Marker(ed.Circle))
 		ed.setMarkerBackgroundColor(QColor('#0000ff') , 'bookmark')
 		ed.setMarkerForegroundColor(QColor('#cccccc') , 'bookmark')
 
 """
 
 
-from eye.connector import defaultEditorConfig, disabled
-from eye.helpers.actions import registerAction
+from eye.connector import default_editor_config, disabled
+from eye.helpers.actions import register_action
 
-__all__ = ('toggleBookmark', 'nextBookmark', 'previousBookmark', 'listBookmarks',
-           'createMarker', 'setEnabled')
+__all__ = (
+	'toggle_bookmark', 'next_bookmark', 'previous_bookmark', 'list_bookmarks',
+	'create_marker', 'set_enabled',
+)
 
 
-@registerAction('editor', 'toggleBookmark')
-def toggleBookmark(ed):
+@register_action('editor', 'toggle_bookmark')
+def toggle_bookmark(ed):
 	"""Toggle bookmark state of current line of editor."""
 
 	if 'bookmark' not in ed.markers:
-		createMarker(ed)
+		create_marker(ed)
 
 	ln = ed.getCursorPosition()[0]
 
@@ -41,43 +43,43 @@ def toggleBookmark(ed):
 		marker.putAt(ln)
 
 
-def nextBookmark(ed):
+def next_bookmark(ed):
 	"""Jump to next bookmarked line in editor."""
 
 	ln = ed.getCursorPosition()[0]
 
-	ln = ed.markers['bookmark'].getNext(ln)
+	ln = ed.markers['bookmark'].get_next(ln)
 	if ln < 0:
-		ln = ed.markers['bookmark'].getNext(0)
+		ln = ed.markers['bookmark'].get_next(0)
 	ed.setCursorPosition(ln, 0)
 
 
-def previousBookmark(ed):
+def previous_bookmark(ed):
 	"""Jump to previous bookmarked line in editor."""
 
 	ln = ed.getCursorPosition()[0]
 
-	ln = ed.markers['bookmark'].getPrevious(ln)
+	ln = ed.markers['bookmark'].get_previous(ln)
 	if ln < 0:
-		ln = ed.markers['bookmark'].getPrevious(ed.lines())
+		ln = ed.markers['bookmark'].get_previous(ed.lines())
 
 
-def listBookmarks(ed):
+def list_bookmarks(ed):
 	"""Return bookmarked lines numbers in editor."""
 
-	return list(ed.markers['bookmark'].listAll())
+	return list(ed.markers['bookmark'].list_all())
 
 
-@defaultEditorConfig
+@default_editor_config
 @disabled
-def createMarker(ed):
+def create_marker(ed):
 	"""Default handler to create a marker style for bookmarks.
 
 	The default marker style is a circle without colors set.
 	"""
 
-	ed.createMarker('bookmark', ed.Circle)
+	ed.create_marker('bookmark', ed.Circle)
 
 
-def setEnabled(enabled):
-	createMarker.enabled = enabled
+def set_enabled(enabled):
+	create_marker.enabled = enabled

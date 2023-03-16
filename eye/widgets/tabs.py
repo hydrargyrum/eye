@@ -8,32 +8,32 @@ from PyQt5.QtGui import QPolygon, QDrag, QIcon
 from PyQt5.QtWidgets import QTabWidget, QTabBar, QStackedWidget, QToolButton, QMenu
 
 from eye import consts
-from eye.connector import CategoryMixin, disabled, registerSetup
+from eye.connector import CategoryMixin, disabled, register_setup
 from eye.helpers import buffers
 from eye.qt import Signal, Slot, override
 from eye.widgets.droparea import DropAreaMixin, BandMixin
-from eye.widgets.helpers import WidgetMixin, parentTabWidget
+from eye.widgets.helpers import WidgetMixin, parent_tab_widget
 
 __all__ = (
 	'TabWidget', 'TabBar', 'SplitButton',
-	'autoCreateCornerSplitter',
+	'auto_create_corner_splitter',
 )
 
 
 TAB_MIME = 'application/x.eye.tab'
 
 
-def isTabDropEvent(ev):
+def is_tab_drop_event(ev):
 	mdata = ev.mimeData()
 	return mdata.hasFormat(TAB_MIME)
 
 
-def takeWidget(widget):
-	tw = parentTabWidget(widget)
+def take_widget(widget):
+	tw = parent_tab_widget(widget)
 	tw.removeTab(tw.indexOf(widget))
 
 
-def dropGetWidget(ev):
+def drop_get_widget(ev):
 	tb = ev.source()
 	tw = tb.parent()
 	return tw.widget(tb.tabDrag)
@@ -46,15 +46,15 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 		#~ self.setMovable(True)
 		self.setUsesScrollButtons(True)
 
-		self.tabDrag = None
+		self.tab_drag = None
 
-		self.addCategory('tabbar')
+		self.add_category('tabbar')
 
 	## drag and drop events
 	@override
 	def mousePressEvent(self, ev):
 		super(TabBar, self).mousePressEvent(ev)
-		self.tabDrag = self.tabAt(ev.pos())
+		self.tab_drag = self.tabAt(ev.pos())
 
 	@override
 	def mouseMoveEvent(self, ev):
@@ -73,7 +73,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 
 	@override
 	def dragEnterEvent(self, ev):
-		if not isTabDropEvent(ev):
+		if not is_tab_drop_event(ev):
 			return super(TabBar, self).dragEnterEvent(ev)
 
 		ev.acceptProposedAction()
@@ -81,7 +81,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 
 	@override
 	def dragMoveEvent(self, ev):
-		if not isTabDropEvent(ev):
+		if not is_tab_drop_event(ev):
 			return super(TabBar, self).dragMoveEvent(ev)
 
 		ev.acceptProposedAction()
@@ -93,26 +93,26 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 
 	@override
 	def dropEvent(self, ev):
-		if not isTabDropEvent(ev):
+		if not is_tab_drop_event(ev):
 			return super(TabBar, self).dropEvent(ev)
 
-		self.hideBand()
+		self.hide_band()
 
 		idx = self.tabAt(ev.pos())
 		assert isinstance(self.parent(), TabWidget)
-		widget = dropGetWidget(ev)
+		widget = drop_get_widget(ev)
 
 		if ev.proposedAction() == Qt.MoveAction:
 			ev.acceptProposedAction()
 
-			takeWidget(widget)
+			take_widget(widget)
 			self.parent().insertWidget(idx, widget)
 			self.parent().setCurrentWidget(widget)
 		elif ev.proposedAction() == Qt.CopyAction:
 			ev.acceptProposedAction()
-			new = buffers.newEditorShare(widget, parentTabBar=self.parent())
+			new = buffers.new_editor_share(widget, parent_tab_bar=self.parent())
 			# FIXME put at right place
-			new.giveFocus()
+			new.give_focus()
 
 
 class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
@@ -121,19 +121,19 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 	By default, instances of this class have the category `"tabwidget"` (see :doc:`eye.connector`).
 	"""
 
-	lastTabClosed = Signal()
+	last_tab_closed = Signal()
 
-	"""Signal lastTabClosed()
+	"""Signal last_tab_closed()
 
 	This signal is emitted when the last tab of this tab widget has been closed.
 	"""
 
-	fileDropped = Signal(str)
+	file_dropped = Signal(str)
 
 	def __init__(self, **kwargs):
 		super(TabWidget, self).__init__(**kwargs)
 
-		self.hideBarIfSingleTab = False
+		self.hide_bar_if_single_tab = False
 
 		self.tabCloseRequested.connect(self._tab_close_requested)
 		self.currentChanged.connect(self._current_changed)
@@ -141,9 +141,9 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		bar = TabBar()
 		self.setTabBar(bar)
 
-		self.addCategory('tabwidget')
+		self.add_category('tabwidget')
 
-	def currentBuffer(self):
+	def current_buffer(self):
 		"""Return the widget from the current tab"""
 		return self.currentWidget()
 
@@ -156,16 +156,16 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		return -1
 
 	## add/remove tabs
-	def closeTab(self, ed):
+	def close_tab(self, ed):
 		"""Close the tab containing the specified widget and return True if it can be
 
-		The tab can't be closed if the widget has a `closeFile()` method which returns `True` when it is
+		The tab can't be closed if the widget has a `close_file()` method which returns `True` when it is
 		called. This method allows a tab content to reject closing if a file wasn't saved.
 		"""
 		assert self.isAncestorOf(ed)
 
-		if hasattr(ed, 'closeFile'):
-			if not ed.closeFile():
+		if hasattr(ed, 'close_file'):
+			if not ed.close_file():
 				return False
 
 		idx = self._idx_container_of(ed)
@@ -173,7 +173,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		self.removeTab(idx)
 		return True
 
-	def addWidget(self, widget):
+	def add_widget(self, widget):
 		"""Add a new tab with the specified widget"""
 		assert not self.isAncestorOf(widget)
 		idx = self.addTab(widget, widget.windowIcon(), widget.windowTitle())
@@ -181,16 +181,17 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		widget.windowIconChanged.connect(self._sub_icon_changed)
 		self.setTabToolTip(idx, widget.toolTip())
 
-	def insertWidget(self, idx, widget):
+	def insert_widget(self, idx, widget):
 		assert not self.isAncestorOf(widget)
 		self.insertTab(idx, widget, widget.windowIcon(), widget.windowTitle())
 		widget.windowTitleChanged.connect(self._sub_title_changed)
 		widget.windowIconChanged.connect(self._sub_icon_changed)
 		self.setTabToolTip(idx, widget.toolTip())
 
-	removeWidget = closeTab
+	remove_widget = close_tab
 
 	## tab change
+	@override
 	def setCurrentWidget(self, widget):
 		"""Select the tab containing the specified widget"""
 		assert self.isAncestorOf(widget)
@@ -199,7 +200,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 			self.setCurrentIndex(idx)
 
 	@Slot()
-	def selectPrevTab(self, rotate=False):
+	def select_prev_tab(self, rotate=False):
 		"""Select previous tab.
 
 		:param rotate: if `True` and the current tab is the first tab, the last tab is selected.
@@ -209,12 +210,12 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		self._select_tab(-1, cur - 1, -1, rotate, self.count() - 1, cur)
 
 	@Slot()
-	def selectPrevTabRotate(self):
+	def select_prev_tab_rotate(self):
 		"""Select previous tab or last if current is the first tab"""
-		self.selectPrevTab(True)
+		self.select_prev_tab(True)
 
 	@Slot()
-	def selectNextTab(self, rotate=False):
+	def select_next_tab(self, rotate=False):
 		"""Select next tab
 
 		:param rotate: if `True` and the current tab is the last tab, the first tab is selected.
@@ -224,9 +225,9 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		self._select_tab(1, cur + 1, self.count(), rotate, 0, cur)
 
 	@Slot()
-	def selectNextTabRotate(self):
+	def select_next_tab_rotate(self):
 		"""Select next tab or first tab if current is the last tab"""
-		self.selectNextTab(True)
+		self.select_next_tab(True)
 
 	def _select_tab(self, step, s1, e1, rotate, s2, e2):
 		for idx in range(s1, e1, step):
@@ -252,7 +253,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 				return
 		ev.accept()
 
-	def canClose(self):
+	def can_close(self):
 		"""Returns True if all sub-widgets can be closed"""
 		return all(not w.isWindowModified() for w in self.widgets())
 
@@ -260,7 +261,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 	@Slot(int)
 	def _tab_close_requested(self, idx):
 		widget = self.widget(idx)
-		if not widget.closeFile():
+		if not widget.close_file():
 			return
 		self.removeTab(idx)
 
@@ -304,9 +305,9 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		w.setParent(None)
 
 		if self.count() == 0:
-			self.lastTabClosed.emit()
+			self.last_tab_closed.emit()
 		elif self.currentIndex() == idx:
-			self.currentWidget().giveFocus()
+			self.currentWidget().give_focus()
 
 	def _find_removed_widget(self):
 		# implementation detail, but no access to the removed widget
@@ -317,14 +318,14 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 			if self.indexOf(c) < 0:
 				return c
 
-	def setHideBarIfSingleTab(self, b):
+	def set_hide_bar_if_single_tab(self, b):
 		"""Set whether the tab bar should be hidden if there's only one tab.
 		"""
-		self.hideBarIfSingleTab = b
+		self.hide_bar_if_single_tab = b
 		self._change_tab_bar_visibility()
 
 	def _change_tab_bar_visibility(self):
-		if self.hideBarIfSingleTab:
+		if self.hide_bar_if_single_tab:
 			visible = (self.count() > 1)
 		else:
 			visible = True
@@ -342,13 +343,13 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 
 	## drag and drop events
 	def _show_band(self, pos):
-		quad = widgetQuadrant(self.rect(), pos)
-		r = widgetHalf(self.rect(), quad)
-		self.showBand(r)
+		quad = widget_quadrant(self.rect(), pos)
+		r = widget_half(self.rect(), quad)
+		self.show_band(r)
 
 	@override
 	def dragEnterEvent(self, ev):
-		if isTabDropEvent(ev):
+		if is_tab_drop_event(ev):
 			self.tabBar().setVisible(True)
 			ev.acceptProposedAction()
 			self._show_band(ev.pos())
@@ -357,7 +358,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 
 	@override
 	def dragMoveEvent(self, ev):
-		if isTabDropEvent(ev):
+		if is_tab_drop_event(ev):
 			ev.acceptProposedAction()
 			self._show_band(ev.pos())
 		else:
@@ -371,36 +372,36 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 
 	@override
 	def dropEvent(self, ev):
-		if isTabDropEvent(ev):
-			self.hideBand()
+		if is_tab_drop_event(ev):
+			self.hide_band()
 			splitmanager = self.parent().parentManager()
 
-			quad = widgetQuadrant(self.rect(), ev.pos())
+			quad = widget_quadrant(self.rect(), ev.pos())
 
-			widget = dropGetWidget(ev)
-			oldTw = parentTabWidget(widget)
+			widget = drop_get_widget(ev)
+			old_tw = parent_tab_widget(widget)
 
 			if ev.proposedAction() == Qt.MoveAction:
 				ev.acceptProposedAction()
 
-				if oldTw.count() == 1:
-					if oldTw is self:
+				if old_tw.count() == 1:
+					if old_tw is self:
 						return
-					splitmanager.splitAt(self, quad, oldTw)
+					splitmanager.split_at(self, quad, old_tw)
 				else:
-					takeWidget(widget)
+					take_widget(widget)
 					tabs = TabWidget()
-					tabs.addWidget(widget)
-					splitmanager.splitAt(self, quad, tabs)
+					tabs.add_widget(widget)
+					splitmanager.split_at(self, quad, tabs)
 			elif ev.proposedAction() == Qt.CopyAction:
 				ev.acceptProposedAction()
 
-				new = buffers.newEditorShare(widget, parentTabBar=self)
-				takeWidget(new)
+				new = buffers.new_editor_share(widget, parent_tab_bar=self)
+				take_widget(new)
 
 				tabs = TabWidget()
-				tabs.addWidget(new)
-				splitmanager.splitAt(self, quad, tabs)
+				tabs.add_widget(new)
+				splitmanager.split_at(self, quad, tabs)
 
 		else:
 			super(TabWidget, self).dropEvent(ev)
@@ -419,30 +420,30 @@ class SplitButton(QToolButton, WidgetMixin):
 
 		menu = QMenu()
 		action = menu.addAction('Split &horizontally')
-		action.triggered.connect(self.splitHorizontal)
+		action.triggered.connect(self.split_horizontal)
 		action = menu.addAction('Split &vertically')
-		action.triggered.connect(self.splitVertical)
+		action.triggered.connect(self.split_vertical)
 		self.setMenu(menu)
 		self.setPopupMode(self.InstantPopup)
 
 	@Slot()
-	def splitHorizontal(self):
+	def split_horizontal(self):
 		assert isinstance(self.parent(), TabWidget)
 
 		win = self.window()
-		win.bufferSplitHorizontal(self.parent())
+		win.buffer_split_horizontal(self.parent())
 
 	@Slot()
-	def splitVertical(self):
+	def split_vertical(self):
 		assert isinstance(self.parent(), TabWidget)
 
 		win = self.window()
-		win.bufferSplitVertical(self.parent())
+		win.buffer_split_vertical(self.parent())
 
 
-@registerSetup('tabwidget')
+@register_setup('tabwidget')
 @disabled
-def autoCreateCornerSplitter(tw):
+def auto_create_corner_splitter(tw):
 	"""When enabled, will create a corner popup button for splitting.
 
 	.. seealso:: :any:`eye.widgets.splitter`
@@ -452,7 +453,7 @@ def autoCreateCornerSplitter(tw):
 	button.show()
 
 
-def widgetQuadrant(rect, point):
+def widget_quadrant(rect, point):
 	center = rect.center()
 
 	if QPolygon([rect.topLeft(), rect.topRight(), center]).containsPoint(point, 0):
@@ -465,7 +466,7 @@ def widgetQuadrant(rect, point):
 		return consts.RIGHT
 
 
-def widgetHalf(rect, quadrant):
+def widget_half(rect, quadrant):
 	if quadrant in (consts.UP, consts.DOWN):
 		rect.setHeight(rect.height() / 2)
 		if quadrant == consts.DOWN:

@@ -12,9 +12,9 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QTreeView
 
 from eye import consts
-from eye.connector import registerSignal, disabled
+from eye.connector import register_signal, disabled
 from eye.consts import AbsolutePathRole
-from eye.helpers.intent import sendIntent
+from eye.helpers.intent import send_intent
 from eye.qt import Signal, Slot
 from eye.widgets.helpers import WidgetMixin
 
@@ -58,7 +58,7 @@ class LocationList(QTreeView, WidgetMixin):
 
 		self.cols = []
 
-		self.addCategory('location_list')
+		self.add_category('location_list')
 
 	def setColumns(self, cols):
 		names = {
@@ -159,8 +159,8 @@ class LocationList(QTreeView, WidgetMixin):
 		self.activated.emit(current)
 
 
-@registerSignal('location_list', 'locationActivated')
+@register_signal('location_list', 'locationActivated')
 @disabled
 def locationListOpen(widget, path, loc):
-	sendIntent(widget, 'openEditor', path=path, loc=loc, reason='locationlist')
+	send_intent(widget, 'open_editor', path=path, loc=loc, reason='locationlist')
 
