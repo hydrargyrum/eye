@@ -6,9 +6,9 @@ import os
 
 from PyQt5.QtWidgets import QMessageBox
 
-from ...connector import disabled
-from ...pathutils import get_config_file_path
-from ..intent import register_intent_listener
+from eye.connector import disabled
+from eye.pathutils import get_config_file_path
+from eye.helpers.intent import register_intent_listener
 
 
 __all__ = ('query_extra_conf_use_conf', 'query_extra_conf_dialog', 'CONF_ACCEPT', 'CONF_REJECT')

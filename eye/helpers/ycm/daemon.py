@@ -20,10 +20,10 @@ from urllib.parse import urlunsplit
 from PyQt5.QtCore import QObject, QTimer, QProcess, QUrl
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
-from ...connector import CategoryMixin
-from ...qt import Signal, Slot
-from ...app import qApp
-from ..intent import send_intent
+from eye.connector import CategoryMixin
+from eye.qt import Signal, Slot
+from eye.app import qApp
+from eye.helpers.intent import send_intent
 
 
 HMAC_SECRET_LENGTH = 16

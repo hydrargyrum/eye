@@ -4,8 +4,9 @@ from __future__ import print_function
 
 from PyQt5.QtCore import QObject
 
-from ...connector import register_signal, disabled
-from ...qt import Signal, Slot
+from eye.connector import register_signal, disabled
+from eye.qt import Signal, Slot
+
 from .daemon import get_daemon, is_daemon_available, ServerError
 
 
@@ -56,7 +57,7 @@ def do_go_to(editor, go_type):
 	def handle_reply():
 		get_daemon().check_reply(reply)
 		res = get_daemon()._json_reply(reply)
-		from ..buffers import open_editor
+		from eye.helpers.buffers import open_editor
 		open_editor(res['filepath'], (res['line_num'], res['column_num']))
 
 	reply = _query(get_daemon().query_subcommand, editor, go_type)
