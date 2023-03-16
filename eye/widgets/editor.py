@@ -50,9 +50,9 @@ __all__ = (
 LOGGER = getLogger(__name__)
 
 
-class HasWeakEditorMixin(object):
+class HasWeakEditorMixin:
 	def __init__(self, editor=None, **kwargs):
-		super(HasWeakEditorMixin, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.editor = editor
 
 	@property
@@ -95,7 +95,7 @@ class Marker(HasWeakEditorMixin):
 	"""
 
 	def __init__(self, sym, editor=None, id=-1):
-		super(Marker, self).__init__(editor=editor)
+		super().__init__(editor=editor)
 		self.sym = sym
 		self.id = id
 		if editor:
@@ -197,7 +197,7 @@ class Indicator(HasWeakEditorMixin):
 	There can be at most 40 different indicator types per editor widget.
 	"""
 	def __init__(self, style, editor=None, id=-1):
-		super(Indicator, self).__init__(editor=editor)
+		super().__init__(editor=editor)
 		self.style = style
 		self.id = id
 		if editor:
@@ -367,8 +367,7 @@ class Indicator(HasWeakEditorMixin):
 			if value > 0:
 				linestart, _ = self.editor.lineIndexFromPosition(start)
 				lineend, _ = self.editor.lineIndexFromPosition(end)
-				for line in range(linestart, lineend + 1):
-					yield line
+				yield from range(linestart, lineend + 1)
 
 				start = self.editor.positionFromLineIndex(lineend + 1, 0)
 			else:
@@ -456,7 +455,7 @@ class Margin(HasWeakEditorMixin):
 		return Margin(editor, id=2)
 
 	def __init__(self, editor=None, id=3):
-		super(Margin, self).__init__(editor=editor)
+		super().__init__(editor=editor)
 		self.id = id
 		self.width = 0
 		self.visible = True
@@ -918,7 +917,7 @@ class BaseEditor(QsciScintilla):
 	"""get_style_at(int): get style number at given byte position"""
 
 	def __init__(self, **kwargs):
-		super(BaseEditor, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.SCN_MACRORECORD.connect(self.scn_macro)
 		self.SCN_AUTOCCANCELLED.connect(self.scn_autoccancelled)
@@ -1106,7 +1105,7 @@ class BaseEditor(QsciScintilla):
 		self.sci_modified.emit(SciModification(*args))
 
 	def connectNotify(self, sig):
-		super(BaseEditor, self).connectNotify(sig)
+		super().connectNotify(sig)
 		if sig.name() == b'sciModified':
 			self._counter_sci_modified += 1
 			try:
@@ -1115,7 +1114,7 @@ class BaseEditor(QsciScintilla):
 				pass
 
 	def disconnectNotify(self, sig):
-		super(BaseEditor, self).disconnectNotify(sig)
+		super().disconnectNotify(sig)
 		if not sig.isValid():
 			return
 		if sig.name() == b'sciModified':
@@ -1130,7 +1129,7 @@ class BaseEditor(QsciScintilla):
 
 	def showUserList(self, id, items):
 		self.autoCompListId = id
-		super(BaseEditor, self).showUserList(id, items)
+		super().showUserList(id, items)
 
 	macro_record_started = Signal()
 
@@ -1182,7 +1181,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 	SmartCaseSensitive = object()
 
 	def __init__(self, **kwargs):
-		super(Editor, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.path = ''
 		self.modificationChanged.connect(self.setWindowModified)
@@ -1246,7 +1245,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.file_about_to_be_saved.emit(path)
 		try:
 			io.write_bytes_to_file(path, data)
-		except IOError:
+		except OSError:
 			LOGGER.error('cannot write file %r', path, exc_info=True)
 			return False
 
@@ -1313,7 +1312,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		try:
 			data = io.read_bytes_from_file(path)
-		except IOError:
+		except OSError:
 			LOGGER.error('cannot read file %r', path, exc_info=True)
 			return False
 		self.file_about_to_be_opened.emit(path)
@@ -1345,7 +1344,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		try:
 			data = io.read_bytes_from_file(self.path)
-		except IOError:
+		except OSError:
 			LOGGER.error('cannot reload file %r', self.path, exc_info=True)
 			return False
 		text = self._read_text(data)
@@ -1405,7 +1404,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		This does not cause the file to be re-saved.
 		"""
-		u''.encode(s) # ensure it's usable
+		''.encode(s) # ensure it's usable
 		self.saving.encoding = s
 
 	def encoding(self):

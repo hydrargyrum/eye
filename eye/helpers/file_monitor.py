@@ -36,7 +36,7 @@ class MonitorWithRename(QFileSystemWatcher):
 	touched/modified/renamed/removed.
 	"""
 	def __init__(self, **kwargs):
-		super(MonitorWithRename, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.fileChanged.connect(self._check_retrack)
 
 	def addPath(self, path):
@@ -45,7 +45,7 @@ class MonitorWithRename(QFileSystemWatcher):
 		See :any:`QFileSystemWatcher.addPath`
 		"""
 		LOGGER.debug('start monitoring %r', path)
-		if not super(MonitorWithRename, self).addPath(path):
+		if not super().addPath(path):
 			LOGGER.warning('failed to monitor %r', path)
 
 	def removePath(self, path):
@@ -54,7 +54,7 @@ class MonitorWithRename(QFileSystemWatcher):
 		See :any:`QFileSystemWatcher.removePath`
 		"""
 		LOGGER.debug('stop monitoring %r', path)
-		super(MonitorWithRename, self).removePath(path)
+		super().removePath(path)
 
 	@Slot(str)
 	def _check_retrack(self, path):
@@ -81,7 +81,7 @@ class SingleFileWatcher(QObject):
 	"""
 
 	def __init__(self, path, **kwargs):
-		super(SingleFileWatcher, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.path = path
 
@@ -95,7 +95,7 @@ class Monitor(QObject):
 	"""
 
 	def __init__(self, **kwargs):
-		super(Monitor, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.watched = WeakValueDictionary()
 		self.del_mapper = QSignalMapper(self)

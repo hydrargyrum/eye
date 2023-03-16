@@ -32,7 +32,7 @@ MONITOR = None
 
 class ScriptMonitor(MonitorWithRename):
 	def __init__(self, **kwargs):
-		super(ScriptMonitor, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.fileChanged.connect(self._on_file_changed)
 
 	@Slot(str)

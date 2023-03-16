@@ -15,7 +15,7 @@ class Dialog(QDialog, CategoryMixin):
 	"""
 
 	def __init__(self, **kwargs):
-		super(Dialog, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		layout = QVBoxLayout()
 		self.setLayout(layout)

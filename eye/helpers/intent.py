@@ -37,7 +37,7 @@ class IntentEvent(QEvent):
 	Type = QEvent.registerEventType()
 
 	def __init__(self, intent_type, **kwargs):
-		super(IntentEvent, self).__init__(self.Type)
+		super().__init__(self.Type)
 
 		self.intent_type = intent_type
 		"""Type of the intent
@@ -180,5 +180,5 @@ def default_open_editor(source, ev):
 
 class DefaultSender(QObject, CategoryMixin):
 	def __init__(self):
-		super(DefaultSender, self).__init__()
+		super().__init__()
 		self.add_category('default_sender')

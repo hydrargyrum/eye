@@ -10,7 +10,7 @@ from eye.qt import Slot
 
 class ConfCache(QObject):
 	def __init__(self, weak=True):
-		super(ConfCache, self).__init__()
+		super().__init__()
 
 		if weak:
 			self.cache = WeakValueDictionary()

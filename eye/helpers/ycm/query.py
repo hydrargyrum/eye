@@ -145,7 +145,7 @@ class YcmSearch(QObject):
 	search_type = None
 
 	def __init__(self, *args, **kwargs):
-		super(YcmSearch, self).__init__(*args, **kwargs)
+		super().__init__(*args, **kwargs)
 		self.reply = None
 
 	def find_under_cursor(self, editor):

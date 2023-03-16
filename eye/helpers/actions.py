@@ -168,7 +168,7 @@ def to_stringlist(obj):
 
 class CategoryStore(QObject):
 	def __init__(self, **kwargs):
-		super(CategoryStore, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.by_cat = OrderedDict()
 		self.by_key = OrderedDict()
 		CONNECTOR.category_added.connect(self.category_added)
@@ -238,7 +238,7 @@ class CategoryStore(QObject):
 
 class ShortcutStore(CategoryStore):
 	def __init__(self, **kwargs):
-		super(ShortcutStore, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 	def is_editor_command(self, obj, name):
 		return isinstance(obj, QsciScintilla) and hasattr(QsciCommand, name)
@@ -270,7 +270,7 @@ class ShortcutStore(CategoryStore):
 
 class ActionStore(CategoryStore):
 	def __init__(self, **kwargs):
-		super(ActionStore, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.func_counter = 0
 
 	@Slot()

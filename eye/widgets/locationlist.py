@@ -43,7 +43,7 @@ class LocationList(QTreeView, WidgetMixin):
 	"""
 
 	def __init__(self, **kwargs):
-		super(LocationList, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.dataModel = QStandardItemModel()
 		self.setModel(self.dataModel)

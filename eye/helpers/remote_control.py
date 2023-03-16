@@ -26,7 +26,7 @@ class SimpleHandler(QObject, CategoryMixin):
 	Q_CLASSINFO('D-Bus Interface', 're.indigo.eye')
 
 	def __init__(self, **kwargs):
-		super(SimpleHandler, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.add_category('remote_control')
 
 	@Slot(str, result=QDBusVariant)

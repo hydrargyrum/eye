@@ -22,9 +22,9 @@ from PyQt5.Qsci import QsciStyle
 __all__ = ('STYLES',)
 
 
-class Styles(object):
+class Styles:
 	def __init__(self):
-		super(Styles, self).__init__()
+		super().__init__()
 		self.styles = {}
 		self.reuse = set()
 

@@ -17,7 +17,7 @@ class MiniMap(QFrame, CategoryMixin, HasWeakEditorMixin):
 	line_clicked = Signal(int)
 
 	def __init__(self, editor=None, **kwargs):
-		super(MiniMap, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.editor = editor
 		if self.editor:
@@ -92,7 +92,7 @@ class EditorReplacement(QWidget, HasWeakEditorMixin):
 	EditorClass = Editor
 
 	def __init__(self, **kwargs):
-		super(EditorReplacement, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		layout = QHBoxLayout()
 		self.setLayout(layout)
@@ -122,7 +122,7 @@ class EditorReplacement(QWidget, HasWeakEditorMixin):
 	@Slot(QIcon)
 	def setWindowIcon(self, icon):
 		# redefine as a slot to avoid keeping useless refs to self
-		super(EditorReplacement, self).setWindowIcon(icon)
+		super().setWindowIcon(icon)
 
 
 @register_signal('minimap', 'line_clicked')
@@ -136,7 +136,7 @@ def install():
 
 ## styles
 
-class MiniMapStyle(object):
+class MiniMapStyle:
 	pass
 
 

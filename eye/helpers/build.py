@@ -91,7 +91,7 @@ class Builder(QObject, CategoryMixin):
 		"""
 		:param parent: if not given, a default parent is used (a default :any:`JobHolder` instance)
 		"""
-		super(Builder, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		if 'parent' not in kwargs:
 			DEFAULT_HOLDER.add_job(self)
 		self.add_category('builder')
@@ -147,7 +147,7 @@ class SimpleBuilder(Builder):
 	id = 'command'
 
 	def __init__(self, **kwargs):
-		super(SimpleBuilder, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.reobj = re.compile(self.pattern, self.pattern_flags)
 
 		self.proc = LineProcess()
@@ -226,7 +226,7 @@ class SimpleBuilder(Builder):
 
 class PyFlakes(SimpleBuilder):
 	def run(self, path):
-		super(PyFlakes, self).run(['pyflakes', path])
+		super().run(['pyflakes', path])
 
 
 class JobHolder(QObject):

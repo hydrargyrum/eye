@@ -40,7 +40,7 @@ class Splitter(QSplitter, WidgetMixin):
 	"""
 
 	def __init__(self, **kwargs):
-		super(Splitter, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.add_category('splitter')
 
@@ -112,7 +112,7 @@ class SplitManager(QWidget, WidgetMixin):
 	SplitterClass = Splitter
 
 	def __init__(self, **kwargs):
-		super(SplitManager, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.root = self.SplitterClass(orientation=Qt.Horizontal)
 

@@ -49,7 +49,7 @@ PROJECT_FILENAME = '.editorconfig'
 
 class Project(QObject):
 	def __init__(self):
-		super(Project, self).__init__()
+		super().__init__()
 		self.dir = None
 		self.cfgpath = None
 		self.cfg = None
@@ -61,7 +61,7 @@ class Project(QObject):
 		try:
 			with open(cfgpath) as fp:
 				contents = fp.read()
-		except IOError:
+		except OSError:
 			LOGGER.error('cannot read %r', cfgpath, exc_info=True)
 			return None
 		fp = StringIO('[_ROOT_]\n%s' % contents)

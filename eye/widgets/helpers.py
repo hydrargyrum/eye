@@ -28,7 +28,7 @@ def accept_if(ev, cond):
 
 class WidgetMixin(CategoryMixin):
 	def __init__(self, **kwargs):
-		super(WidgetMixin, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 	def give_focus(self, reason=Qt.OtherFocusReason):
 		if not self.isActiveWindow():
@@ -41,7 +41,7 @@ class CentralWidgetMixin(WidgetMixin):
 	windowModifiedChanged = Signal(bool)
 
 	def __init__(self, **kwargs):
-		super(CentralWidgetMixin, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 	def give_focus(self, reason=Qt.OtherFocusReason):
 		if not self.isActiveWindow():
@@ -56,7 +56,7 @@ class CentralWidgetMixin(WidgetMixin):
 	@override
 	def changeEvent(self, ev):
 		try:
-			super_method = super(CentralWidgetMixin, self).changeEvent
+			super_method = super().changeEvent
 		except AttributeError:
 			pass
 		else:

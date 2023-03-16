@@ -28,7 +28,7 @@ class DimBand(QRubberBand, CategoryMixin):
 	"""
 
 	def __init__(self, parent):
-		super(DimBand, self).__init__(self.Rectangle, parent)
+		super().__init__(self.Rectangle, parent)
 		self.dim_brush = QColorAlpha('#80808030')
 		self.add_category('dimband')
 		self.setStyle(None)

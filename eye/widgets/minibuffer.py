@@ -23,7 +23,7 @@ class CloseFlag(IntFlag):
 
 class Minibuffer(QLineEdit, WidgetMixin):
 	def __init__(self, parent=None):
-		super(Minibuffer, self).__init__(parent=parent)
+		super().__init__(parent=parent)
 
 		self.status_bar = None
 		self.close_flags = 0

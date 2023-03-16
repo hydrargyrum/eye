@@ -36,7 +36,7 @@ class MarkerFolder(QObject, HasWeakEditorMixin):
 	interval = 100
 
 	def __init__(self, editor=None, **kwargs):
-		super(MarkerFolder, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.editor = editor
 		editor.sci_modified.connect(self.on_modification)
 		self.timer = QTimer()

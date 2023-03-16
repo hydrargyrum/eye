@@ -21,12 +21,12 @@ __all__ = ('Window', 'title_on_focus')
 
 class DockWidget(QDockWidget, CategoryMixin):
 	def __init__(self, **kwargs):
-		super(DockWidget, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.add_category('dock_container')
 
 	@override
 	def childEvent(self, ev):
-		super(DockWidget, self).childEvent(ev)
+		super().childEvent(ev)
 
 		# cannot catch setWidget() call
 		w = self.widget()
@@ -65,7 +65,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 	focused_buffer = Signal(QWidget)
 
 	def __init__(self, *args):
-		super(Window, self).__init__(*args)
+		super().__init__(*args)
 
 		self.menubar = self.menuBar()
 
@@ -214,7 +214,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 	@override
 	def closeEvent(self, ev):
 		if accept_if(ev, self.splitter.close()):
-			super(Window, self).closeEvent(ev)
+			super().closeEvent(ev)
 			self.closing.emit()
 			REGISTRY.remove(self)
 

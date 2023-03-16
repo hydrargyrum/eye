@@ -7,9 +7,9 @@ from PyQt5.QtWidgets import QRubberBand
 LOGGER = getLogger(__name__)
 
 
-class BandMixin(object):
+class BandMixin:
 	def __init__(self, **kwargs):
-		super(BandMixin, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.__band = None
 
 	def showBand(self, *geom):
@@ -29,7 +29,7 @@ class DropAreaMixin(BandMixin):
 	# fileDropped = Signal(str)
 
 	def __init__(self, **kwargs):
-		super(DropAreaMixin, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.bandDrop = None
 
 	def __hasSignal(self):
@@ -37,20 +37,20 @@ class DropAreaMixin(BandMixin):
 
 	def dragEnterEvent(self, ev):
 		if not ev.mimeData().hasUrls() or not self.__hasSignal():
-			return super(DropAreaMixin, self).dragEnterEvent(ev)
+			return super().dragEnterEvent(ev)
 
 		ev.acceptProposedAction()
 		self.showBand(self.rect())
 
 	def dragLeaveEvent(self, ev):
 		if not self.__hasSignal():
-			return super(DropAreaMixin, self).dragLeaveEvent(ev)
+			return super().dragLeaveEvent(ev)
 
 		self.hideBand()
 
 	def dropEvent(self, ev):
 		if not self.__hasSignal():
-			return super(DropAreaMixin, self).dropEvent(ev)
+			return super().dropEvent(ev)
 
 		self.hideBand()
 

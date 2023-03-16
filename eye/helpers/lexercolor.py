@@ -155,7 +155,7 @@ class UnsupportedModification(Exception):
 	pass
 
 
-class Modificator(object):
+class Modificator:
 	def __init__(self, editor, key, strvalue):
 		self.editor = editor
 		self.key = key
@@ -207,7 +207,7 @@ class LexerModificator(Modificator):
 		if attr == 'eolfill':
 			lexer.setEolFill(parse_bool(self.strvalue))
 		else:
-			super(LexerModificator, self).apply_generic(attr, lexer, style_id)
+			super().apply_generic(attr, lexer, style_id)
 
 	def set_color(self, qc, lexer, style_id):
 		lexer.setColor(QColorAlpha(self.strvalue), style_id)
@@ -290,7 +290,7 @@ class IndicatorModificator(Modificator):
 		if attr == 'style':
 			indicator.set_style(getattr(self.editor, self.strvalue))
 		else:
-			super(IndicatorModificator, self).apply_generic(attr, indicator)
+			super().apply_generic(attr, indicator)
 
 	def set_color(self, qc, indicator):
 		indicator.set_color(qc)
@@ -312,7 +312,7 @@ class StyleModificator(Modificator):
 		if attr == 'eolfill':
 			style.setEolFill(parse_bool(self.strvalue))
 		else:
-			super(StyleModificator, self).apply_generic(attr, style)
+			super().apply_generic(attr, style)
 
 	def set_font(self, font_attr, value, style):
 		font = style.font()

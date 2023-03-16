@@ -24,7 +24,7 @@ class LogWidget(QPlainTextEdit):
 			self.widget.appendPlainText(self.format(record))
 
 	def __init__(self, parent=None):
-		super(LogWidget, self).__init__(parent=parent)
+		super().__init__(parent=parent)
 		self.handler = LogWidget.LogHandler(self)
 		self.setReadOnly(True)
 
@@ -49,7 +49,7 @@ class PositionIndicator(QLabel, WidgetMixin):
 	"""
 
 	def __init__(self, format=None, **kwargs):
-		super(PositionIndicator, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		if format is not None:
 			self.format = format
 
@@ -104,7 +104,7 @@ class WidgetPicker(QWidget):
 	selected = Signal()
 
 	def __init__(self):
-		super(WidgetPicker, self).__init__()
+		super().__init__()
 		self.band = QRubberBand(QRubberBand.Rectangle)
 		self.setMouseTracking(True)
 		self.el = QEventLoop()

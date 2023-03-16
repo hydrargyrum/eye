@@ -72,7 +72,7 @@ class Ycm(QObject, CategoryMixin):
 	TIMEOUT = 10
 
 	def __init__(self, **kwargs):
-		super(Ycm, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.addr = None
 		"""Address of the ycmd server."""

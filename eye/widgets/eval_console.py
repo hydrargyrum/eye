@@ -49,7 +49,7 @@ NAMESPACE["reload"] = reload
 
 class PythonCompleter(QCompleter):
 	def __init__(self, *args, **kwargs):
-		super(PythonCompleter, self).__init__(*args, **kwargs)
+		super().__init__(*args, **kwargs)
 		self.setModel(QStringListModel())
 
 	def splitPath(self, path):
@@ -69,14 +69,14 @@ class PythonCompleter(QCompleter):
 
 		self.model().setStringList(comps)
 
-		return super(PythonCompleter, self).splitPath(path)
+		return super().splitPath(path)
 
 
 class HistoryLine(QLineEdit):
 	submitted = Signal(str)
 
 	def __init__(self, **kwargs):
-		super(HistoryLine, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.history = []
 		self.history_path = None
 		self.idx = None
@@ -134,7 +134,7 @@ class HistoryLine(QLineEdit):
 
 			self.setText(self.history[self.idx])
 		else:
-			super(HistoryLine, self).keyPressEvent(ev)
+			super().keyPressEvent(ev)
 
 
 class PlainTextEdit(QPlainTextEdit):
@@ -163,7 +163,7 @@ class EvalConsole(QWidget, WidgetMixin):
 	"""
 
 	def __init__(self, **kwargs):
-		super(EvalConsole, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.namespace = {}
 		self.interpreter = code.InteractiveInterpreter(self.namespace)
 
@@ -198,7 +198,7 @@ class EvalConsole(QWidget, WidgetMixin):
 
 		self.set_namespace()
 		try:
-			output = u'>>> %s\n' % code
+			output = '>>> %s\n' % code
 			output += capture_output(self.interpreter.runsource, code)
 			self.display.appendPlainText(output)
 		finally:

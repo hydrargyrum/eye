@@ -16,7 +16,7 @@ __all__ = ('SearchWidget',)
 
 class SearchOptionsButton(QPushButton):
 	def __init__(self, **kwargs):
-		super(SearchOptionsButton, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.setText(self.tr('Options'))
 
@@ -59,7 +59,7 @@ class SearchOptionsButton(QPushButton):
 
 class SearchWidget(QWidget, WidgetMixin):
 	def __init__(self, **kwargs):
-		super(SearchWidget, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		layout = QGridLayout()
 		self.setLayout(layout)

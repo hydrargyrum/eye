@@ -20,7 +20,7 @@ __all__ = (
 
 class SearchProps(structs.PropDict):
 	def __init__(self, *, expr, is_re=False, case_sensitive=False, whole=False):
-		super(SearchProps, self).__init__(
+		super().__init__(
 			expr=expr, is_re=is_re, case_sensitive=case_sensitive, whole=whole,
 		)
 
@@ -45,7 +45,7 @@ class SearchObject(QObject, HasWeakEditorMixin, CategoryMixin):
 	finished = Signal(int)
 
 	def __init__(self, editor=None, indicator_name=None, props=None, **kwargs):
-		super(SearchObject, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.editor = editor
 		self.props = props
 

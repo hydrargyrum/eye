@@ -41,7 +41,7 @@ def drop_get_widget(ev):
 
 class TabBar(QTabBar, BandMixin, CategoryMixin):
 	def __init__(self, **kwargs):
-		super(TabBar, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.setTabsClosable(True)
 		#~ self.setMovable(True)
 		self.setUsesScrollButtons(True)
@@ -53,7 +53,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 	## drag and drop events
 	@override
 	def mousePressEvent(self, ev):
-		super(TabBar, self).mousePressEvent(ev)
+		super().mousePressEvent(ev)
 		self.tab_drag = self.tabAt(ev.pos())
 
 	@override
@@ -74,7 +74,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 	@override
 	def dragEnterEvent(self, ev):
 		if not is_tab_drop_event(ev):
-			return super(TabBar, self).dragEnterEvent(ev)
+			return super().dragEnterEvent(ev)
 
 		ev.acceptProposedAction()
 		self._show_band(ev)
@@ -82,7 +82,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 	@override
 	def dragMoveEvent(self, ev):
 		if not is_tab_drop_event(ev):
-			return super(TabBar, self).dragMoveEvent(ev)
+			return super().dragMoveEvent(ev)
 
 		ev.acceptProposedAction()
 		self._show_band(ev)
@@ -94,7 +94,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 	@override
 	def dropEvent(self, ev):
 		if not is_tab_drop_event(ev):
-			return super(TabBar, self).dropEvent(ev)
+			return super().dropEvent(ev)
 
 		self.hide_band()
 
@@ -131,7 +131,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 	file_dropped = Signal(str)
 
 	def __init__(self, **kwargs):
-		super(TabWidget, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 		self.hide_bar_if_single_tab = False
 
@@ -293,12 +293,12 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 	## override
 	@override
 	def tabInserted(self, idx):
-		super(TabWidget, self).tabInserted(idx)
+		super().tabInserted(idx)
 		self._change_tab_bar_visibility()
 
 	@override
 	def tabRemoved(self, idx):
-		super(TabWidget, self).tabRemoved(idx)
+		super().tabRemoved(idx)
 		self._change_tab_bar_visibility()
 
 		w = self._find_removed_widget()
@@ -354,7 +354,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 			ev.acceptProposedAction()
 			self._show_band(ev.pos())
 		else:
-			super(TabWidget, self).dragEnterEvent(ev)
+			super().dragEnterEvent(ev)
 
 	@override
 	def dragMoveEvent(self, ev):
@@ -362,11 +362,11 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 			ev.acceptProposedAction()
 			self._show_band(ev.pos())
 		else:
-			super(TabWidget, self).dragMoveEvent(ev)
+			super().dragMoveEvent(ev)
 
 	@override
 	def dragLeaveEvent(self, ev):
-		super(TabWidget, self).dragLeaveEvent(ev)
+		super().dragLeaveEvent(ev)
 		self.hideBand()
 		self._change_tab_bar_visibility()
 
@@ -404,7 +404,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 				splitmanager.split_at(self, quad, tabs)
 
 		else:
-			super(TabWidget, self).dropEvent(ev)
+			super().dropEvent(ev)
 
 
 class SplitButton(QToolButton, WidgetMixin):
@@ -414,9 +414,9 @@ class SplitButton(QToolButton, WidgetMixin):
 	The button is suitable for using as `cornerWidget` of :any:`TabWidget`.
 	"""
 	def __init__(self, **kwargs):
-		super(SplitButton, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
-		self.setText(u'\u25ea')
+		self.setText('\u25ea')
 
 		menu = QMenu()
 		action = menu.addAction('Split &horizontally')
