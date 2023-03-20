@@ -248,7 +248,7 @@ class Ycm(QObject, CategoryMixin):
 
 	@Slot(QProcess.ProcessError)
 	def proc_error(self, error):
-		LOGGER.warning('daemon failed to start (%r): %s', error, self.errorString())
+		LOGGER.warning('daemon failed to start (%r): %s', error, self.proc.errorString())
 
 	ready = Signal()
 
