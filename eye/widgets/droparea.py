@@ -18,7 +18,7 @@ class BandMixin:
 		self.__band.setGeometry(*geom)
 		self.__band.show()
 
-	def hideBand(self):
+	def hide_band(self):
 		if self.__band:
 			self.__band.hide()
 			self.__band.setParent(None)

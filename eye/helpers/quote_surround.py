@@ -90,7 +90,7 @@ def try_surround_selection(editor, char, map_table):
 
 	# when a surrounding is done, it will shift (invalidate) all line-indexes after it
 	# doing in reverse order avoids having to compute shifting
-	sels = reversed([editor.getSelectionN(n) for n in range(editor.selectionsCount())])
+	sels = reversed([editor.get_selection_n(n) for n in range(editor.selections_count())])
 	with editor.undo_group(True):
 		for sel in sels:
 			editor.setSelection(*sel)

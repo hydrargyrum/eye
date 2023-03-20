@@ -11,8 +11,8 @@ from .daemon import get_daemon, is_daemon_available, ServerError
 
 
 def _query(cb, editor, *args, **kwargs):
-	line = kwargs.pop('line', editor.cursorLine() + 1)
-	col = kwargs.pop('col', editor.cursorColumn() + 1)
+	line = kwargs.pop('line', editor.cursor_line() + 1)
+	col = kwargs.pop('col', editor.cursor_column() + 1)
 
 	return cb(editor.path, editor.ycm.filetype, editor.text(), line, col, *args, **kwargs)
 

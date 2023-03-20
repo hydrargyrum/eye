@@ -89,7 +89,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 
 	@override
 	def dragLeaveEvent(self, ev):
-		self.hideBand()
+		self.hide_band()
 
 	@override
 	def dropEvent(self, ev):
@@ -367,7 +367,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 	@override
 	def dragLeaveEvent(self, ev):
 		super().dragLeaveEvent(ev)
-		self.hideBand()
+		self.hide_band()
 		self._change_tab_bar_visibility()
 
 	@override

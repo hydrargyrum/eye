@@ -694,7 +694,7 @@ class BaseEditor(QsciScintilla):
 
 	"""Get the offset of the n-th selection's caret."""
 
-	selection_nAnchor = sci_prop(QsciScintilla.SCI_GETSELECTIONNANCHOR, (int,))
+	selection_n_anchor = sci_prop(QsciScintilla.SCI_GETSELECTIONNANCHOR, (int,))
 
 	"""Get the offset of the n-th selection's anchor."""
 
@@ -1340,7 +1340,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		If the user made modifications to the editor contents without saving them, calling this
 		method will will lose them. However, the replacement can be undone by the user.
 		"""
-		old_pos = self.get_cursor_position()
+		old_pos = self.cursor_position()
 
 		try:
 			data = io.read_bytes_from_file(self.path)
@@ -1426,15 +1426,15 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		                    are undone
 		:type undo_on_error: bool
 		"""
-		self.begin_undo_action()
+		self.beginUndoAction()
 		try:
 			yield
 		except Exception:
-			self.end_undo_action()
+			self.endUndoAction()
 			if undo_on_error:
 				self.undo()
 			raise
-		self.end_undo_action()
+		self.endUndoAction()
 
 	@Slot()
 	def goto1(self, line, col=None):
@@ -1445,7 +1445,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 	def cursor_line(self):
 		"""Return the line number of the cursor position (starting from 0)"""
-		return self.get_cursor_position()[0]
+		return self.cursor_position()[0]
 
 	def cursor_column(self):
 		"""Return the column number of the cursor position (starting from 0)

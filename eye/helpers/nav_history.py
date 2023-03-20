@@ -63,7 +63,7 @@ def go_back():
 	FORWARD.append(make_entry(current))
 
 	LOGGER.debug('going back')
-	editor.set_cursor_position(newline, newcol)
+	editor.setCursorPosition(newline, newcol)
 	editor.give_focus()
 	return True
 
@@ -88,7 +88,7 @@ def go_forward():
 	BACKWARD.append(make_entry(qApp().last_window.current_buffer()))
 
 	LOGGER.debug('going forward')
-	editor.set_cursor_position(newline, newcol)
+	editor.setCursorPosition(newline, newcol)
 	editor.give_focus()
 	return True
 
@@ -154,7 +154,7 @@ def push_history_on_jump(editor, line, col):
 def make_entry(editor):
 	"""Returns a tuple suitable for putting in the history stack"""
 
-	line, col = editor.get_cursor_position()
+	line, col = editor.cursor_position()
 	return (ref(editor), line, col)
 
 

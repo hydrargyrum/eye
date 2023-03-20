@@ -151,8 +151,8 @@ class SimpleBuilder(Builder):
 		self.reobj = re.compile(self.pattern, self.pattern_flags)
 
 		self.proc = LineProcess()
-		self.proc.stdoutLineRead.connect(self.gotLine)
-		self.proc.stderrLineRead.connect(self.gotLine)
+		self.proc.stdout_line_read.connect(self.gotLine)
+		self.proc.stderr_line_read.connect(self.gotLine)
 		self.proc.finished.connect(self.finished)
 		self.proc.started.connect(self.started)
 
