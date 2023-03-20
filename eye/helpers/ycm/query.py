@@ -10,6 +10,11 @@ from eye.qt import Signal, Slot
 from .daemon import get_daemon, is_daemon_available, ServerError
 
 
+class Requester(QObject):
+	def __init__(self, editor):
+		super().__init__(editor)
+
+
 def _query(cb, editor, *args, **kwargs):
 	line = kwargs.pop('line', editor.cursor_line() + 1)
 	col = kwargs.pop('col', editor.cursor_column() + 1)
@@ -27,11 +32,23 @@ def show_completion_list(editor, offset, items, replace=True):
 	editor.showUserList(1, [item['display'] for item in items])
 
 
-def do_completion(editor, replace=True):
-	if not is_daemon_available():
-		return
+class do_completion(Requester):
+	def __init__(self, editor, replace=True):
+		super().__init__(editor)
+		self.replace = replace
 
-	def handle_reply():
+		if not is_daemon_available():
+			return
+
+		reply = _query(get_daemon().query_completions, editor)
+		reply.finished.connect(self.handle_reply)
+		reply.finished.connect(reply.deleteLater)
+
+	@Slot()
+	def handle_reply(self):
+		reply = self.sender()
+		editor = self.parent()
+
 		get_daemon().check_reply(reply)
 		res = get_daemon()._json_reply(reply)
 
@@ -43,26 +60,27 @@ def do_completion(editor, replace=True):
 				'display': item.get('menu') or item['insertion_text'],
 			} for item in res['completions']]
 
-			show_completion_list(editor, offset, items, replace)
-
-	reply = _query(get_daemon().query_completions, editor)
-	reply.finished.connect(handle_reply)
-	reply.finished.connect(reply.deleteLater)
+			show_completion_list(editor, offset, items, self.replace)
 
 
-def do_go_to(editor, go_type):
-	if not is_daemon_available():
-		return
+class do_go_to(Requester):
+	def __init__(self, editor, go_type):
+		super().__init__(editor)
 
-	def handle_reply():
+		if not is_daemon_available():
+			return
+
+		reply = _query(get_daemon().query_subcommand, editor, go_type)
+		reply.finished.connect(self.handle_reply)
+		reply.finished.connect(reply.deleteLater)
+
+	@Slot()
+	def handle_reply(self):
+		reply = self.sender()
 		get_daemon().check_reply(reply)
 		res = get_daemon()._json_reply(reply)
 		from eye.helpers.buffers import open_editor
 		open_editor(res['filepath'], (res['line_num'], res['column_num']))
-
-	reply = _query(get_daemon().query_subcommand, editor, go_type)
-	reply.finished.connect(handle_reply)
-	reply.finished.connect(reply.deleteLater)
 
 
 @register_signal('editor', 'SCN_CHARADDED')
@@ -112,11 +130,9 @@ if 1:
 		res = _query(get_daemon().query_diagnostic, editor)
 		print(res)
 
-
 	def query_debug(editor):
 		res = _query(get_daemon().query_debug, editor)
 		print(res)
-
 
 	def query_sub_command(editor, *args, **kwargs):
 		def handle_reply():
@@ -212,4 +228,3 @@ class YcmGoToReferences(YcmSearch):
 	"""Plugin to find usage of a symbol"""
 
 	search_type = 'GoToReferences'
-

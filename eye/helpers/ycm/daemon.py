@@ -12,6 +12,7 @@ import socket
 import tempfile
 import time
 from urllib.parse import urlunsplit
+import uuid
 
 from PyQt5.QtCore import QObject, QTimer, QProcess, QUrl
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
@@ -79,6 +80,8 @@ class Ycm(QObject, CategoryMixin):
 		self._ready = False
 		self.secret = ''
 		self.config = {}
+
+		self._parse_params = {}
 
 		self.proc = QProcess()
 		self.proc.started.connect(self.proc_started)
@@ -177,16 +180,18 @@ class Ycm(QObject, CategoryMixin):
 		return reply
 
 	def ping(self):
-		def handle_reply():
-			self.check_reply(reply)
-			if not self._ready:
-				self._ready = True
-				self.ping_timer.start(60000)
-				self.ready.emit()
-
 		reply = self._do_get('/healthy')
-		reply.finished.connect(handle_reply)
+		reply.finished.connect(self._handle_reply_ping)
 		reply.finished.connect(reply.deleteLater)
+
+	@Slot()
+	def _handle_reply_ping(self):
+		reply = self.sender()
+		self.check_reply(reply)
+		if not self._ready:
+			self._ready = True
+			self.ping_timer.start(60000)
+			self.ready.emit()
 
 	def start(self):
 		if not self.port:
@@ -278,35 +283,48 @@ class Ycm(QObject, CategoryMixin):
 		                                _ignore_body=True)
 		reply.finished.connect(reply.deleteLater)
 
+	@Slot()
+	def _handle_send_parse_reply(self):
+		reply = self.sender()
+		filepath, filetype, contents, retry_extra = self._parse_params.pop(reply.objectName())
+
+		try:
+			self.check_reply(reply)
+		except ServerError as exc:
+			excdata = exc.args[1]
+			if (
+				isinstance(excdata, dict)
+				and 'exception' in excdata
+				and excdata['exception']['TYPE'] == 'UnknownExtraConf'
+				and retry_extra
+			):
+				confpath = excdata['exception']['extra_conf_file']
+				LOGGER.info('ycmd encountered %r and wonders if it should be loaded', confpath)
+
+				accepted = send_intent(None, 'queryExtraConf', conf=confpath)
+				if accepted:
+					LOGGER.info('extra conf %r will be loaded', confpath)
+					self.accept_extra_conf(confpath, filetype, contents)
+				else:
+					LOGGER.info('extra conf %r will be rejected', confpath)
+					self.reject_extra_conf(confpath, filetype, contents)
+
+				return self.send_parse(filepath, filetype, contents, retry_extra=False)
+
 	def send_parse(self, filepath, filetype, contents, retry_extra=True):
 		d = {
 			'event_name': 'FileReadyToParse'
 		}
 		reply = self._post_simple_request('/event_notification', filepath, filetype, contents, **d)
 
-		def handle_reply():
-			try:
-				self.check_reply(reply)
-			except ServerError as exc:
-				excdata = exc.args[1]
-				if (isinstance(excdata, dict) and 'exception' in excdata and
-					excdata['exception']['TYPE'] == 'UnknownExtraConf' and
-					retry_extra):
-					confpath = excdata['exception']['extra_conf_file']
-					LOGGER.info('ycmd encountered %r and wonders if it should be loaded', confpath)
+		# it's not possible to set extra attrs on that QObject and get them back later
+		# closures between python and qt create crashes
+		# qsignalmapper cannot handle arbitrary python objects
+		# so we have to store data elsewhere to retrieve it later
+		reply.setObjectName(str(uuid.uuid4()))
+		self._parse_params[reply.objectName()] = (filepath, filetype, contents, retry_extra)
 
-					accepted = send_intent(None, 'queryExtraConf', conf=confpath)
-					if accepted:
-						LOGGER.info('extra conf %r will be loaded', confpath)
-						self.accept_extra_conf(confpath, filetype, contents)
-					else:
-						LOGGER.info('extra conf %r will be rejected', confpath)
-						self.reject_extra_conf(confpath, filetype, contents)
-
-					return self.send_parse(filepath, filetype, contents, retry_extra=False)
-				raise
-
-		reply.finished.connect(handle_reply)
+		reply.finished.connect(self._handle_send_parse_reply)
 		reply.finished.connect(reply.deleteLater)
 
 	def query_subcommands_list(self, filepath, filetype, contents, line, col):
