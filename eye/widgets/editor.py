@@ -51,7 +51,7 @@ LOGGER = getLogger(__name__)
 
 
 class HasWeakEditorMixin:
-	def __init__(self, editor=None, **kwargs):
+	def __init__(self, editor: "Editor | None" = None, **kwargs):
 		super().__init__(**kwargs)
 		self.editor = editor
 
@@ -94,7 +94,7 @@ class Marker(HasWeakEditorMixin):
 	.. TODO max number, internal id
 	"""
 
-	def __init__(self, sym, editor=None, id=-1):
+	def __init__(self, sym: str , editor: "Editor | None" = None, id: int =-1):
 		super().__init__(editor=editor)
 		self.sym = sym
 		self.id = id
@@ -105,7 +105,7 @@ class Marker(HasWeakEditorMixin):
 		"""Return the internal Scintilla marker id in this editor instance"""
 		return 1 << self.id
 
-	def _create(self, editor=None):
+	def _create(self, editor: "Editor | None" = None):
 		if not self.editor:
 			self.editor = editor
 
@@ -904,7 +904,7 @@ class BaseEditor(QsciScintilla):
 
 	# style
 
-	def set_style_hotspot(self, style_id, b):
+	def set_style_hotspot(self, style_id: int, b: bool):
 		"""set_style_hotspot(int, bool): set whether a style is a hotspot (like a link)"""
 		self.SendScintilla(QsciScintilla.SCI_STYLESETHOTSPOT, style_id, int(b))
 
@@ -1002,14 +1002,14 @@ class BaseEditor(QsciScintilla):
 		return QsciScintilla.clearIndicatorRange(self, line_from, index_from, line_to, index_to, indic)
 
 	## markers
-	def _marker_to_id(self, marker):
+	def _marker_to_id(self, marker: str | Marker):
 		if isinstance(marker, (str, bytes)):
 			return self.markers[marker].id
 		elif isinstance(marker, Marker):
 			return marker.id
 		return marker
 
-	def markerAdd(self, line, marker):
+	def markerAdd(self, line: int, marker):
 		"""Add marker with name/id `i` at line `ln`"""
 		marker = self._marker_to_id(marker)
 		return QsciScintilla.markerAdd(self, line, marker)
@@ -1028,11 +1028,11 @@ class BaseEditor(QsciScintilla):
 		marker = self._marker_to_id(marker)
 		return QsciScintilla.setMarkerForegroundColor(self, color, marker)
 
-	def get_marker_previous(self, line, marker):
+	def get_marker_previous(self, line: int, marker):
 		marker = self._marker_to_id(marker)
 		return self._get_marker_previous(line, marker)
 
-	def get_marker_next(self, line, marker):
+	def get_marker_next(self, line: int, marker):
 		marker = self._marker_to_id(marker)
 		return self._get_marker_next(line, marker)
 
@@ -1067,13 +1067,13 @@ class BaseEditor(QsciScintilla):
 		msg, lp, wp = action
 		return self.SendScintilla(msg, lp, wp)
 
-	def search_in_target(self, s):
+	def search_in_target(self, s: str | bytes):
 		if isinstance(s, str):
 			s = s.encode('utf-8')
 		return self._search_in_target(len(s), s)
 
 	## annotations
-	def annotation_styled_text(self, line):
+	def annotation_styled_text(self, line: int):
 		"""Return styled text annotations of a line
 
 		Each line can have annotations compound of multiple pieces of text styled differently.
@@ -1112,6 +1112,7 @@ class BaseEditor(QsciScintilla):
 	def scn_modified(self, *args):
 		self.sci_modified.emit(SciModification(*args))
 
+	@override
 	def connectNotify(self, sig):
 		super().connectNotify(sig)
 		if sig.name() == b'sci_modified':
@@ -1121,6 +1122,7 @@ class BaseEditor(QsciScintilla):
 			except TypeError: # prevent duplicating connection
 				pass
 
+	@override
 	def disconnectNotify(self, sig):
 		super().disconnectNotify(sig)
 		if not sig.isValid():
@@ -1135,6 +1137,7 @@ class BaseEditor(QsciScintilla):
 	def scn_autoccancelled(self):
 		self.autoCompListId = 0
 
+	@override
 	def showUserList(self, id, items):
 		self.autoCompListId = id
 		super().showUserList(id, items)
@@ -1229,7 +1232,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.setToolTip(self.path or '<untitled>')
 
 	## file management
-	def _get_filename(self):
+	def _get_filename(self) -> str:
 		if not self.path:
 			return ''
 		return os.path.basename(self.path)
@@ -1265,7 +1268,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		return True
 
-	def close_file(self):
+	def close_file(self) -> bool:
 		"""Prepare for closing file and return `True` if modification state is clean
 
 		If editor has no unsaved modifications, returns `True`. Else, ask user if modifications should be
@@ -1285,7 +1288,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 				ret = self.save_file()
 		return ret
 
-	def _newline_string(self):
+	def _newline_string(self) -> str:
 		modes = {
 			QsciScintilla.SC_EOL_LF: '\n',
 			QsciScintilla.SC_EOL_CR: '\r',
@@ -1294,16 +1297,16 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		return modes.get(self.eolMode(), '\n')
 
-	def _read_text(self, data):
+	def _read_text(self, data: bytes) -> str:
 		text = data.decode(self.saving.encoding)
 		if self.saving.final_newline and text.endswith(self._newline_string()):
 			text = text[:-1]
 		return text
 
-	def _remove_trailing_whitespace(self, text):
+	def _remove_trailing_whitespace(self, text: str) -> str:
 		return re.sub(r'[ \t]+$', '', text, flags=re.MULTILINE)
 
-	def _write_text(self, text):
+	def _write_text(self, text: str) -> bytes:
 		if self.saving.trim_whitespace:
 			text = self._remove_trailing_whitespace(text)
 		if self.saving.final_newline:
@@ -1330,7 +1333,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.file_opened.emit(path)
 		return True
 
-	def open_document(self, other):
+	def open_document(self, other: "Editor"):
 		if not self.close_file():
 			return False
 
@@ -1365,7 +1368,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		return True
 
 	## various props
-	def set_use_final_newline(self, b):
+	def set_use_final_newline(self, b: bool):
 		"""Set whether a final newline should always be added when saving to disk
 
 		If `b` is False, the contents of the editor won't be changed when saving file to disk: the
@@ -1379,14 +1382,14 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""
 		self.saving.final_newline = b
 
-	def use_final_newline(self):
+	def use_final_newline(self) -> bool:
 		"""Return True if always adding a final newline when saving.
 
 		See :any:`set_use_final_newline`.
 		"""
 		return self.saving.final_newline
 
-	def set_remove_trailing_whitespace(self, b):
+	def set_remove_trailing_whitespace(self, b: bool):
 		"""Set whether trailing whitespace should be trimmed when saving to disk
 
 		If `b` is True, trailing whitespace will be removed from each line on the the file saved to
@@ -1396,14 +1399,14 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""
 		self.saving.trim_whitespace = b
 
-	def does_remove_trailing_whitespace(self):
+	def does_remove_trailing_whitespace(self) -> bool:
 		"""Return True if always trimming trailing whitespace when saving.
 
 		See :any:`set_remove_trailing_whitespace`.
 		"""
 		return self.saving.trim_whitespace
 
-	def set_encoding(self, s):
+	def set_encoding(self, s: str):
 		"""Set the file data encoding for loading/saving
 
 		When loading file contents from disk or saving file to disk, this encoding will be used.
@@ -1414,13 +1417,13 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		''.encode(s) # ensure it's usable
 		self.saving.encoding = s
 
-	def encoding(self):
+	def encoding(self) -> str:
 		"""Return the encoding to use for loading/saving"""
 		return self.saving.encoding
 
 	## misc
 	@contextlib.contextmanager
-	def undo_group(self, undo_on_error=False):
+	def undo_group(self, undo_on_error: bool = False):
 		"""Context-manager to run actions in an undo-group.
 
 		Operations done in this context manager are put in an undo-group: :any:`undo` and :any:`redo`
@@ -1444,17 +1447,17 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		self.endUndoAction()
 
 	@Slot()
-	def goto1(self, line, col=None):
+	def goto1(self, line: int, col: int | None = None):
 		col = col or 1
 		line, col = line - 1, col - 1
 		self.ensureLineVisible(line)
 		self.setCursorPosition(line, col)
 
-	def cursor_line(self):
+	def cursor_line(self) -> int:
 		"""Return the line number of the cursor position (starting from 0)"""
 		return self.cursor_position()[0]
 
-	def cursor_column(self):
+	def cursor_column(self) -> int:
 		"""Return the column number of the cursor position (starting from 0)
 
 		Note the column number is the number of Unicode codepoints since the start of the line.
@@ -1462,7 +1465,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""
 		return self.getCursorPosition()[1]
 
-	def cursor_visual_column(self):
+	def cursor_visual_column(self) -> int:
 		lineno, colno = self.getCursorPosition()
 		line = self.text(lineno)[:colno]
 		line = line.expandtabs(self.tabWidth())
@@ -1480,7 +1483,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			lexer = self._lexer
 		return lexer
 
-	def cursor_position(self):
+	def cursor_position(self) -> tuple[int, int]:
 		"""Return the cursor line-index starting from 0
 
 		.. note:: This function is misnamed in QsciScintilla and the naming is kept here to avoid more
@@ -1490,14 +1493,14 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""
 		return self.getCursorPosition()
 
-	def cursor_line_index(self):
+	def cursor_line_index(self) -> tuple[int, int]:
 		"""Return the cursor line-index starting from 0
 
 		See :ref:`positions`.
 		"""
 		return self.getCursorPosition()
 
-	def cursor_offset(self):
+	def cursor_offset(self) -> int:
 		"""Return the cursor position in byte offset
 
 		As this function returns a byte-offset, it should not be used unless necessary.
@@ -1505,11 +1508,11 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		"""
 		return self.positionFromLineIndex(*self.getCursorPosition())
 
-	def bytes_length(self):
+	def bytes_length(self) -> int:
 		"""Return the length of the text in bytes"""
 		return self.length()
 
-	def text_length(self):
+	def text_length(self) -> int:
 		"""Return the length of the text in Unicode codepoints"""
 		return len(self.text())
 
@@ -1588,7 +1591,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 		return self.word_at_line_index(*self.line_index_from_position(pos))
 
 	## annotations
-	def annotate_append(self, line, item, style=None):
+	def annotate_append(self, line: int, item, style=None):
 		"""Append a new annotation
 
 		Add an annotation for `line`. If there was an existing annotation at this line, unlike
@@ -1615,7 +1618,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		self.annotate(line, annotations + item)
 
-	def annotate_append_line(self, line, item, style=None):
+	def annotate_append_line(self, line: int, item, style=None):
 		"""Append a new annotation on a line
 
 		"""
