@@ -823,8 +823,8 @@ class BaseEditor(QsciScintilla):
 	_set_indicator_value = sci_prop(QsciScintilla.SCI_SETINDICATORVALUE, (int,))
 	_set_indicator_current = sci_prop(QsciScintilla.SCI_SETINDICATORCURRENT, (int,))
 	_fill_indicator_range = sci_prop(QsciScintilla.SCI_INDICATORFILLRANGE, (int, int))
-	setIndicatorFlags = sci_prop_2(QsciScintilla.SCI_INDICSETFLAGS)
-	indicatorFlags = sci_prop_1(QsciScintilla.SCI_INDICGETFLAGS)
+	set_indicator_flags = sci_prop_2(QsciScintilla.SCI_INDICSETFLAGS)
+	indicator_flags = sci_prop_1(QsciScintilla.SCI_INDICGETFLAGS)
 
 	IndicatorFlagValueFore = getattr(QsciScintilla, 'SC_INDICFLAG_VALUEFORE', 1)
 
@@ -905,7 +905,7 @@ class BaseEditor(QsciScintilla):
 	# style
 
 	def set_style_hotspot(self, style_id, b):
-		"""setStyleHotspot(int, bool): set whether a style is a hotspot (like a link)"""
+		"""set_style_hotspot(int, bool): set whether a style is a hotspot (like a link)"""
 		self.SendScintilla(QsciScintilla.SCI_STYLESETHOTSPOT, style_id, int(b))
 
 	get_style_hotspot = sci_prop(QsciScintilla.SCI_STYLEGETHOTSPOT, (int,))
@@ -1247,7 +1247,6 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			path, qfilter = QFileDialog.getSaveFileName(self, self.tr('Save file'), os.path.expanduser('~'))
 			if not path:
 				return False
-			path = path
 
 		data = self._write_text(self.text())
 		self.file_about_to_be_saved.emit(path)
@@ -1362,7 +1361,7 @@ class Editor(BaseEditor, CentralWidgetMixin):
 			self.clear()
 			self.insert(text)
 		self.setModified(False)
-		self.set_cursor_position(*old_pos)
+		self.setCursorPosition(*old_pos)
 		return True
 
 	## various props

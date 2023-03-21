@@ -276,7 +276,7 @@ class Ycm(QObject, CategoryMixin):
 
 	def accept_extra_conf(self, filepath, filetype, contents):
 		reply = self._post_simple_request('/load_extra_conf_file', filepath, filetype, contents)
-		reply.finished.connect(reply.delete_later)
+		reply.finished.connect(reply.deleteLater)
 
 	def reject_extra_conf(self, filepath, filetype, contents):
 		reply = self._post_simple_request('/ignore_extra_conf_file', filepath, filetype, contents,

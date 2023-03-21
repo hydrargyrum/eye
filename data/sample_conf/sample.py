@@ -63,7 +63,7 @@ if has_ycm:
 
 	@register_shortcut('editor', 'F6')
 	def go_to_definition(ed):
-		ycm.do_goto(ed, 'GoToDefinition')
+		ycm.do_go_to(ed, 'GoToDefinition')
 
 	@register_shortcut('editor', 'Ctrl+Space')
 	def auto_complete(ed):
@@ -138,7 +138,7 @@ eye.helpers.nav_history.set_enabled(True)
 
 import eye.widgets.tabs
 
-eye.widgets.tabs.autoCreateCornerSplitter.enabled = True
+eye.widgets.tabs.auto_create_corner_splitter.enabled = True
 
 
 ### have a python console when pressing F2 (which can operate on eye)

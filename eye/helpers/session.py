@@ -82,7 +82,7 @@ def serialize_tab(widget):
 		return {
 			'type': 'editor',
 			'path': widget.path,
-			'cursor': list(widget.cursorLineIndex()),
+			'cursor': list(widget.cursor_line_index()),
 			'contractedFolds': widget.contractedFolds(),
 		}
 
@@ -117,7 +117,7 @@ def resize_splitter(dsplitter, splitter):
 
 	#splitter.setSizes(list(ditem['size'] for ditem in dsplitter['items']))
 	if 'qstate' in dsplitter:
-		splitter.restore_state(json_to_bin(dsplitter['qstate']))
+		splitter.restoreState(json_to_bin(dsplitter['qstate']))
 
 	for i, ditem in enumerate(dsplitter['items']):
 		if ditem['type'] == 'splitter':
@@ -140,7 +140,7 @@ def respawn_splitter_item(ditem, parent):
 		respawn_splitter(ditem, new)
 	elif ditem['type'] == 'tabwidget':
 		new = TabWidget()
-		parent.add_widget(new)
+		parent.addWidget(new)
 		respawn_tabs(ditem, new)
 
 

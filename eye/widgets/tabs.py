@@ -36,7 +36,7 @@ def take_widget(widget):
 def drop_get_widget(ev):
 	tb = ev.source()
 	tw = tb.parent()
-	return tw.widget(tb.tabDrag)
+	return tw.widget(tb.tab_drag)
 
 
 class TabBar(QTabBar, BandMixin, CategoryMixin):
@@ -106,7 +106,7 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 			ev.acceptProposedAction()
 
 			take_widget(widget)
-			self.parent().insertWidget(idx, widget)
+			self.parent().insert_widget(idx, widget)
 			self.parent().setCurrentWidget(widget)
 		elif ev.proposedAction() == Qt.CopyAction:
 			ev.acceptProposedAction()

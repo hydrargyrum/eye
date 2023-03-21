@@ -23,7 +23,7 @@ def _query(cb, editor, *args, **kwargs):
 
 
 def show_completion_list(editor, offset, items, replace=True):
-	editor.compListItems = {
+	editor.comp_list_items = {
 		item['display']: item for item in items
 	}
 
@@ -54,7 +54,7 @@ class do_completion(Requester):
 
 		if res['completions']:
 			col = res['completion_start_column'] - 1
-			offset = editor.positionFromLineIndex(editor.cursorLine(), col)
+			offset = editor.positionFromLineIndex(editor.cursor_line(), col)
 			items = [{
 				'insert': item['insertion_text'],
 				'display': item.get('menu') or item['insertion_text'],
@@ -111,7 +111,7 @@ def on_activate(ed, listid, display):
 	with ed.undo_group():
 		ed.delete_range(start, end - start)
 		ed.insertAt(text, startl, startc)
-	ed.set_cursor_position(startl, startc + len(text))
+	ed.setCursorPosition(startl, startc + len(text))
 
 
 def query_sub_commands_list(editor):
