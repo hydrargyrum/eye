@@ -8,10 +8,6 @@ import hmac
 import json
 import logging
 import os
-try:
-	from simplejson import JSONDecodeError
-except ImportError:
-	JSONDecodeError = ValueError
 import socket
 import tempfile
 import time
@@ -125,7 +121,7 @@ class Ycm(QObject, CategoryMixin):
 			data = reply.content.decode('utf-8')
 			try:
 				data = json.loads(data)
-			except (ValueError, JSONDecodeError):
+			except json.JSONDecodeError:
 				LOGGER.info('ycmd replied non-json body: %r', data)
 
 			raise ServerError(status_code, data)
