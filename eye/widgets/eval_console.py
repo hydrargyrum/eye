@@ -242,7 +242,7 @@ def capture_output(cb, *args, **kwargs):
 	return res
 
 
-def register_console_symbol(name):
+def register_console_symbol(name=None):
 	"""Decorator to register a function on the eval console
 
 	Example::
@@ -261,6 +261,11 @@ def register_console_symbol(name):
 	"""
 
 	def decorator(cb):
-		NAMESPACE[name] = cb
+		cb_name = name
+		if cb_name is None:
+			cb_name = cb.__name__
+
+		NAMESPACE[cb_name] = cb
 		return cb
+
 	return decorator
