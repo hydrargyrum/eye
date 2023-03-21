@@ -61,7 +61,7 @@ class Splitter(QSplitter, WidgetMixin):
 				if w.geometry().contains(pos):
 					return w
 
-	def parent_manager(self):
+	def parent_manager(self) -> "SplitManager":
 		"""Returns the :any:`Split_manager` managing this splitter
 
 		:rtype: SplitManager
@@ -71,7 +71,7 @@ class Splitter(QSplitter, WidgetMixin):
 			w = w.parent()
 		return w
 
-	def widgets(self):
+	def widgets(self) -> list[QWidget]:
 		"""Return all direct children widgets
 
 		Children returned by this method may be `Splitter` widgets if there are sub-splitters.
@@ -234,7 +234,7 @@ class SplitManager(QWidget, WidgetMixin):
 		self.split_at(current_widget, direction, new_widget)
 		self.optimize_timer.start()
 
-	def remove_widget(self, widget):
+	def remove_widget(self, widget: QWidget):
 		if not self.isAncestorOf(widget):
 			LOGGER.info("cannot remove widget %r since it doesn't belong to %r", widget, self)
 			return
@@ -304,7 +304,7 @@ class SplitManager(QWidget, WidgetMixin):
 		return res
 
 	## getters
-	def all_children(self):
+	def all_children(self) -> list[QWidget]:
 		"""Get all non-splitter children widgets (recursive)
 
 		Takes all children :any:`eye.widgets.splitter.Splitter` widgets (recursively) and return
@@ -360,7 +360,7 @@ class SplitManager(QWidget, WidgetMixin):
 				return
 		ev.accept()
 
-	def can_close(self):
+	def can_close(self) -> bool:
 		"""Returns True if all sub-widgets can be closed."""
 		return all(w.can_close() for w in self.all_children())
 

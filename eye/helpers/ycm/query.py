@@ -156,7 +156,7 @@ class YcmSearch(QObject):
 	found = Signal(dict)
 	finished = Signal(int)
 
-	search_type = None
+	search_type: str
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)

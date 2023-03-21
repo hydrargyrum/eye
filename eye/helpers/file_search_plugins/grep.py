@@ -23,7 +23,8 @@ class GrepProcess(SimpleBuilder):
 
 
 class GrepLike(SearchPlugin):
-	cmd_base = None
+	id: str
+	cmd_base: list[str]
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
