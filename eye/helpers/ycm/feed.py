@@ -71,6 +71,8 @@ def feed_on_load(editor, path):
 def feed_on_save(editor, path):
 	if not is_daemon_available():
 		return
+	if not getattr(editor, "ycm", None):
+		return
 
 	get_daemon().send_parse(path, editor.ycm.filetype, editor.text())
 
