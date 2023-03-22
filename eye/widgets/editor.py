@@ -916,6 +916,14 @@ class BaseEditor(QsciScintilla):
 
 	"""get_style_at(int): get style number at given byte position"""
 
+	get_position_from_point = sci_prop_2(QsciScintilla.SCI_POSITIONFROMPOINT)
+
+	"""get_position_from_point(int): """
+
+	get_position_from_point_close = sci_prop_2(QsciScintilla.SCI_POSITIONFROMPOINTCLOSE)
+
+	"""get_position_from_point_close(int, int): """
+
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
 
