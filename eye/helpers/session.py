@@ -75,6 +75,9 @@ def serialize_tabs(tabwidget):
 
 
 def serialize_tab(widget):
+	if hasattr(widget, "editor"):
+		widget = widget.editor
+
 	if isinstance(widget, Editor):
 		return {
 			'type': 'editor',
