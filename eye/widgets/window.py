@@ -15,6 +15,7 @@ from eye.widgets.editor import Editor
 from eye.widgets.helpers import CategoryMixin, accept_if, parent_tab_widget
 from eye.widgets.splitter import SplitManager
 from eye.widgets.tabs import TabWidget
+from eye.widgets.menus import create_menu
 
 __all__ = ('Window', 'title_on_focus')
 
@@ -87,7 +88,7 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		self.add_category('window')
 
 	def create_default_menu_bar(self):
-		menu = self.menubar.addMenu('File')
+		menu = create_menu(self.menubar, ['&File'])
 		action = menu.addAction(QIcon.fromTheme('document-new'), 'New')
 		action.triggered.connect(self.buffer_new)
 
