@@ -41,7 +41,7 @@ def Slot(*args, **kwargs):
 	return decorator
 
 
-class SignalDoc(object):
+class SignalDoc:
 	def __init__(self, *types):
 		self.types = types
 

@@ -18,14 +18,14 @@ __all__ = ('ETagsSearch',)
 LOGGER = logging.getLogger(__name__)
 
 
-class ETagsParser(object):
+class ETagsParser:
 	START = 0
 	SECTION_HEADER = 1
 	SECTION_DATA = 2
 	END = 3
 
 	def __init__(self, path):
-		super(ETagsParser, self).__init__()
+		super().__init__()
 		self.path = path
 
 		self.state = None
@@ -85,9 +85,9 @@ class ETagsParser(object):
 			}
 
 
-class TagDb(object):
+class TagDb:
 	def __init__(self):
-		super(TagDb, self).__init__()
+		super().__init__()
 		self.db = {}
 
 	def add_tag(self, d):
@@ -125,7 +125,7 @@ class ETagsSearch(SearchPlugin):
 	id = 'etags'
 
 	def __init__(self, **kwargs):
-		super(ETagsSearch, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.db = None
 		self.parser = None
 		self.parsing = None

@@ -22,7 +22,7 @@ class App(QApplication):
 	"""Application"""
 
 	def __init__(self, argv):
-		super(App, self).__init__(argv)
+		super().__init__(argv)
 		self.setApplicationName('eye')
 		self.setApplicationDisplayName('eye')
 

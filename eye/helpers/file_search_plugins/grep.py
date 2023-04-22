@@ -15,10 +15,10 @@ LOGGER = getLogger(__name__)
 
 
 class GrepProcess(SimpleBuilder):
-	pattern = '^(?P<path>.+):(?P<line>\d+):(?P<snippet>.*)$'
+	pattern = r'^(?P<path>.+):(?P<line>\d+):(?P<snippet>.*)$'
 
 	def __init__(self, **kwargs):
-		super(GrepProcess, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.removeCategory('builder')
 
 
@@ -26,7 +26,7 @@ class GrepLike(SearchPlugin):
 	cmd_base = None
 
 	def __init__(self, **kwargs):
-		super(GrepLike, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.runner = GrepProcess()
 		self.runner.started.connect(self.started)
 		self.runner.warningPrinted.connect(self._got_result)

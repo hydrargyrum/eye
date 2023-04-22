@@ -78,7 +78,7 @@ def to_stringlist(obj):
 		return obj
 
 
-class ListenerMixin(object):
+class ListenerMixin:
 	def unregister(self):
 		objects = CONNECTOR.objects_matching(self.categories)
 		for obj in objects:
@@ -87,7 +87,7 @@ class ListenerMixin(object):
 
 class SignalListener(QObject, ListenerMixin):
 	def __init__(self, cb, categories, signal, parent=None):
-		super(SignalListener, self).__init__(parent)
+		super().__init__(parent)
 		self.cb = cb
 		self.categories = categories
 		self.signal = signal
@@ -123,7 +123,7 @@ class SignalListener(QObject, ListenerMixin):
 
 class ConnectListener(ListenerMixin):
 	def __init__(self, cb, categories, parent=None):
-		super(ConnectListener, self).__init__()
+		super().__init__()
 		self.cb = cb
 		self.categories = categories
 		self.caller = None
@@ -152,7 +152,7 @@ class TearListener(ConnectListener):
 
 class EventFilter(QObject, ListenerMixin):
 	def __init__(self, cb, categories, event_types, parent=None):
-		super(EventFilter, self).__init__(parent)
+		super().__init__(parent)
 		self.cb = cb
 		self.categories = categories
 		self.event_types = event_types
@@ -178,7 +178,7 @@ class EventConnector(QObject):
 	category_removed = Signal(object, str)
 
 	def __init__(self):
-		super(EventConnector, self).__init__()
+		super().__init__()
 		self.all_objects = weakref.WeakSet()
 		self.all_listeners = []
 
@@ -243,14 +243,14 @@ class EventConnector(QObject):
 		self.all_listeners = new_listeners
 
 
-class CategoryMixin(object):
+class CategoryMixin:
 	"""Mixin class to support object categories.
 
 	This class should be inherited by classes of objects which should have categories.
 	"""
 
 	def __init__(self, **kwargs):
-		super(CategoryMixin, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self._categories = set()
 		CONNECTOR.add_object(self)
 

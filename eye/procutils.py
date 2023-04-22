@@ -36,7 +36,7 @@ class LineProcess(QProcess):
 	"""Signal stderr_line_read(str)"""
 
 	def __init__(self, **kwargs):
-		super(LineProcess, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.bufs = [b'', b'']
 		self.encoding = 'utf-8'
 		self.linesep = b'\n'
@@ -94,7 +94,7 @@ class LineProcess(QProcess):
 
 class ReadingProcess(QProcess):
 	def __init__(self, **kwargs):
-		super(ReadingProcess, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 		self.stdin = b''
 		self.buf = []
 
