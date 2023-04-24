@@ -98,6 +98,7 @@ Module contents
 
 """
 
+from abc import ABC, abstractmethod
 from configparser import SafeConfigParser
 from logging import getLogger
 
@@ -155,11 +156,23 @@ class UnsupportedModification(Exception):
 	pass
 
 
-class Modificator:
+class Modificator(ABC):
 	def __init__(self, editor, key, strvalue):
 		self.editor = editor
 		self.key = key
 		self.strvalue = strvalue
+
+	@abstractmethod
+	def set_font(self, attr, value, *args):
+		...
+
+	@abstractmethod
+	def set_color(self, value, *args):
+		...
+
+	@abstractmethod
+	def set_paper(self, value, *args):
+		...
 
 	def apply_generic(self, attr, *args):
 		if attr == 'font':
@@ -356,7 +369,7 @@ def apply_scheme_dict_to_editor(dct, editor):
 		try:
 			mod.apply()
 		except UnsupportedModification as exc:
-			LOGGER.warning('%s is not supported: %s', key, exc.message)
+			LOGGER.warning('%s is not supported: %s', key, exc)
 			continue
 
 		LOGGER.debug('applied %r=%r to %r', key, value, editor)
