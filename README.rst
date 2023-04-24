@@ -36,7 +36,7 @@ What plugins are available?
 * syntax coloring based on file extension
 * theming
 * macro recording/replay
-* "project"-wide indentation style (with support for `.editorconfig <http://editorconfig.org/>`_)
+* "project"-wide indentation style (with support for `.editorconfig <https://editorconfig.org/>`_)
 * file-line bookmarks (not saved on quit though)
 * autocompletion with YouCompleteMe
 
@@ -57,5 +57,5 @@ It is also a work-in-progress.
 Version
 -------
 
-EYE is currently in alpha state, say 0.0.1. When it's stable, it will use `semantic versioning <http://semver.org/>`_, for better plugins compatibility.
+EYE is currently in alpha state, say 0.0.1. When it's stable, it will use `semantic versioning <https://semver.org/>`_, for better plugins compatibility.
 

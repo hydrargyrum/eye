@@ -2,7 +2,7 @@
 
 """Plugin to support EditorConfig format
 
-`EditorConfig <http://editorconfig.org/>`_ is a file format for configuring text editors for a project, like indent
+`EditorConfig <https://editorconfig.org/>`_ is a file format for configuring text editors for a project, like indent
 style, encoding, etc. The format isn't tied to a particular text editor and is supported by many.
 
 This sample should be enough for using editorconfig::
@@ -34,7 +34,7 @@ __all__ = (
 	'on_pre_open', 'on_open_save',
 )
 
-# uses .editorconfig format http://editorconfig.org/
+# uses .editorconfig format https://editorconfig.org/
 
 # TODO: use inotify/whatever to monitor changes to project file
 # TODO: add a signal so plugins know when to apply options
