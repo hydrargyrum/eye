@@ -32,6 +32,7 @@ bind keyboard shortcuts to it and let user configuration do it.
 """
 
 from collections import OrderedDict
+from functools import wraps
 import logging
 
 from PyQt5.Qsci import QsciCommand, QsciScintilla
@@ -342,6 +343,7 @@ def register_action(categories, action_name):
 	categories = set(to_stringlist(categories))
 
 	def decorator(cb):
+		@wraps(cb)
 		def newcb():
 			return cb(SHORTCUTS.sender().parent())
 
@@ -408,6 +410,7 @@ def register_shortcut(categories, keyseq, context=Qt.WidgetShortcut, action_name
 	def decorator(cb):
 		name = action_name
 
+		@wraps(cb)
 		def newcb():
 			return cb(SHORTCUTS.sender().parent())
 
