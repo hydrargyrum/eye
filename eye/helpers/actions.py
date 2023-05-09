@@ -342,7 +342,9 @@ def register_action(categories, action_name):
 	categories = set(to_stringlist(categories))
 
 	def decorator(cb):
-		newcb = lambda: cb(SHORTCUTS.sender().parent())
+		def newcb():
+			return cb(SHORTCUTS.sender().parent())
+
 		ACTIONS.register_action_func(categories, newcb, name=action_name)
 		return cb
 
@@ -405,7 +407,10 @@ def register_shortcut(categories, keyseq, context=Qt.WidgetShortcut, action_name
 
 	def decorator(cb):
 		name = action_name
-		newcb = lambda: cb(SHORTCUTS.sender().parent())
+
+		def newcb():
+			return cb(SHORTCUTS.sender().parent())
+
 		name = ACTIONS.register_action_func(categories, newcb, name=name)
 		SHORTCUTS.register_shortcut(categories, key, name)
 		return cb

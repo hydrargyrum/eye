@@ -10,12 +10,14 @@ import sys
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
-qApp = lambda: QApplication.instance()
-
 from eye import pathutils, connector
 from eye.qt import Slot
 
 __all__ = ('App', 'qApp', 'main')
+
+
+def qApp():
+	return QApplication.instance()
 
 
 class App(QApplication):
