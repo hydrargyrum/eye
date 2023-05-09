@@ -332,7 +332,7 @@ class ActionStore(CategoryStore):
 		return action_name in self.by_cat.get(category, {})
 
 
-def register_action(categories, action_name):
+def register_action(categories, action_name=None):
 	"""Decorate a function to be registered as an action
 
 	The decorated function will be registered as action `action_name` for objects matching the `categories`
@@ -343,11 +343,13 @@ def register_action(categories, action_name):
 	categories = set(to_stringlist(categories))
 
 	def decorator(cb):
+		final_name = action_name or cb.__name__
+
 		@wraps(cb)
 		def newcb():
 			return cb(SHORTCUTS.sender().parent())
 
-		ACTIONS.register_action_func(categories, newcb, name=action_name)
+		ACTIONS.register_action_func(categories, newcb, name=final_name)
 		return cb
 
 	return decorator
