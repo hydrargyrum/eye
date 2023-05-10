@@ -81,8 +81,6 @@ class Ycm(QObject, CategoryMixin):
 		self.secret = ''
 		self.config = {}
 
-		self._parse_params = {}
-
 		self.proc = QProcess()
 		self.proc.started.connect(self.proc_started)
 		self.proc.errorOccurred.connect(self.proc_error)
@@ -286,7 +284,7 @@ class Ycm(QObject, CategoryMixin):
 	@Slot()
 	def _handle_send_parse_reply(self):
 		reply = self.sender()
-		filepath, filetype, contents, retry_extra = self._parse_params.pop(reply.objectName())
+		filepath, filetype, contents, retry_extra = reply.property("parse_params")
 
 		try:
 			self.check_reply(reply)
@@ -317,12 +315,7 @@ class Ycm(QObject, CategoryMixin):
 		}
 		reply = self._post_simple_request('/event_notification', filepath, filetype, contents, **d)
 
-		# it's not possible to set extra attrs on that QObject and get them back later
-		# closures between python and qt create crashes
-		# qsignalmapper cannot handle arbitrary python objects
-		# so we have to store data elsewhere to retrieve it later
-		reply.setObjectName(str(uuid.uuid4()))
-		self._parse_params[reply.objectName()] = (filepath, filetype, contents, retry_extra)
+		reply.setProperty("parse_params", [filepath, filetype, contents, retry_extra])
 
 		reply.finished.connect(self._handle_send_parse_reply)
 		reply.finished.connect(reply.deleteLater)
