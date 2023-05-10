@@ -52,7 +52,7 @@ import inspect
 from logging import getLogger
 import weakref
 
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, QPoint
 from PyQt5.QtWidgets import QWidget
 
 from eye import BUILDING_DOCS, _add_doc
@@ -105,6 +105,7 @@ class SignalListener(QObject, ListenerMixin):
 	@Slot(str, int)
 	@Slot(str, object)
 	@Slot(object, object)
+	@Slot(QPoint)
 	@Slot()
 	def map(self, *args, **kwargs):
 		if not getattr(self.cb, 'enabled', True):
