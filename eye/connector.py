@@ -341,7 +341,7 @@ def register_signal(categories, signal, stackoffset=0):
 		return lambda x: _add_doc(x, doctext)
 
 	def deco(func):
-		caller = inspect.stack()[1 + stackoffset][1]
+		caller = inspect.stack()[1 + stackoffset].filename
 
 		lis = SignalListener(func, categories, signal, CONNECTOR)
 		lis.caller = caller
@@ -380,7 +380,7 @@ def register_setup(categories, stackoffset=0):
 		return lambda x: _add_doc(x, doctext)
 
 	def deco(func):
-		caller = inspect.stack()[1 + stackoffset][1]
+		caller = inspect.stack()[1 + stackoffset].filename
 
 		lis = SetupListener(func, categories)
 		lis.caller = caller
@@ -401,7 +401,7 @@ def register_teardown(categories, stackoffset=0):
 		return lambda x: _add_doc(x, doctext)
 
 	def deco(func):
-		caller = inspect.stack()[1 + stackoffset][1]
+		caller = inspect.stack()[1 + stackoffset].filename
 
 		lis = TearListener(func, categories)
 		lis.caller = caller
@@ -412,7 +412,6 @@ def register_teardown(categories, stackoffset=0):
 		return func
 
 	return deco
-
 
 
 def register_event_filter(categories, event_types, stackoffset=0):
@@ -456,7 +455,7 @@ def register_event_filter(categories, event_types, stackoffset=0):
 		return lambda x: _add_doc(x, doctext)
 
 	def deco(func):
-		caller = inspect.stack()[1 + stackoffset][1]
+		caller = inspect.stack()[1 + stackoffset].filename
 
 		lis = EventFilter(func, categories, event_types, CONNECTOR)
 		lis.caller = caller
