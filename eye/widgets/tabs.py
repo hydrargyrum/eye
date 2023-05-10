@@ -241,6 +241,18 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 				self.setCurrentIndex(idx)
 				return
 
+	@Slot()
+	def swap_next_tab(self):
+		idx = self.currentIndex()
+		if idx + 1 < self.count():
+			self.tabBar().moveTab(idx, idx + 1)
+
+	@Slot()
+	def swap_prev_tab(self):
+		idx = self.currentIndex()
+		if idx >= 1:
+			self.tabBar().moveTab(idx, idx - 1)
+
 	## close management
 	@override
 	def closeEvent(self, ev):
