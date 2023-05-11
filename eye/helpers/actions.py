@@ -32,7 +32,10 @@ bind keyboard shortcuts to it and let user configuration do it.
 """
 
 from collections import OrderedDict
+from dataclasses import dataclass
 from functools import wraps
+from typing import Callable
+import inspect
 import logging
 
 from PyQt5.Qsci import QsciCommand, QsciScintilla
@@ -167,6 +170,20 @@ def to_stringlist(obj):
 		return obj
 
 
+@dataclass
+class CallbackAction:
+	func: Callable
+	caller: str
+
+
+class PlaceholderAction:
+	pass
+
+
+class SlotAction:
+	pass
+
+
 class CategoryStore(QObject):
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
@@ -282,7 +299,7 @@ class ActionStore(CategoryStore):
 		return callable(getattr(obj, slot_name, None))
 
 	def register_object(self, obj, key, value):
-		LOGGER.debug('registering %s action %r for object %r', value[0], key, obj)
+		LOGGER.debug('registering %s action %r for object %r', value, key, obj)
 
 		old = get_action(obj, key)
 		if old is not None:
@@ -294,11 +311,11 @@ class ActionStore(CategoryStore):
 			obj.removeAction(old)
 			old.setParent(None)
 
-		if value[0] == 'slot' or self.has_slot(obj, key):
+		if isinstance(value, SlotAction) or self.has_slot(obj, key):
 			setup_action_slot(obj, key)
-		elif value[0] == 'func':
-			build_action(obj, key, value[1])
-		elif value[0] == 'placeholder':
+		elif isinstance(value, CallbackAction):
+			build_action(obj, key, value.func)
+		elif isinstance(value, PlaceholderAction):
 			build_action(obj, key, self.placeholder)
 		elif value[0] == 'scicommand':
 			build_action(obj, key, self.sci)
@@ -309,30 +326,30 @@ class ActionStore(CategoryStore):
 
 	def register_action_placeholder(self, categories, action_name):
 		LOGGER.debug('creating registering placeholder action %r for categories %r', action_name, categories)
-		self.register_categories(categories, action_name, ('placeholder',))
+		self.register_categories(categories, action_name, PlaceholderAction())
 
 	def register_action_slot(self, categories, slot_name):
 		LOGGER.info('registering slot action %r for categories %r', slot_name, categories)
-		self.register_categories(categories, slot_name, ('slot',))
+		self.register_categories(categories, slot_name, SlotAction())
 
 	def register_action_sci(self, categories, name):
 		self.register_categories(categories, name, ('scicommand', name))
 
-	def register_action_func(self, categories, cb, name=None):
+	def register_action_func(self, categories, cb, name=None, caller=None):
 		if name is None:
 			self.func_counter += 1
 			name = '%s_%d' % (cb.__name__, self.func_counter)
 
 		LOGGER.info('registering function action %r (name=%r) for categories %r', cb, name, categories)
 		cb.action_name = name
-		self.register_categories(categories, name, ('func', cb))
+		self.register_categories(categories, name, CallbackAction(cb, caller=caller))
 		return name
 
 	def has_action(self, category, action_name):
 		return action_name in self.by_cat.get(category, {})
 
 
-def register_action(categories, action_name=None):
+def register_action(categories, action_name=None, stackoffset=0):
 	"""Decorate a function to be registered as an action
 
 	The decorated function will be registered as action `action_name` for objects matching the `categories`
@@ -344,12 +361,13 @@ def register_action(categories, action_name=None):
 
 	def decorator(cb):
 		final_name = action_name or cb.__name__
+		caller = inspect.stack()[1 + stackoffset].filename
 
 		@wraps(cb)
 		def newcb():
 			return cb(SHORTCUTS.sender().parent())
 
-		ACTIONS.register_action_func(categories, newcb, name=final_name)
+		ACTIONS.register_action_func(categories, newcb, name=final_name, caller=caller)
 		return cb
 
 	return decorator
