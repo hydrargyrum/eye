@@ -319,8 +319,6 @@ class ActionStore(CategoryStore):
 			build_action(obj, key, value.func)
 		elif isinstance(value, PlaceholderAction):
 			build_action(obj, key, self.placeholder)
-		elif value[0] == 'scicommand':
-			build_action(obj, key, self.sci)
 
 	def unregister_object(self, obj, key):
 		LOGGER.debug('unregistering action %r for object %r', key, obj)
@@ -333,9 +331,6 @@ class ActionStore(CategoryStore):
 	def register_action_slot(self, categories, slot_name):
 		LOGGER.info('registering slot action %r for categories %r', slot_name, categories)
 		self.register_categories(categories, slot_name, SlotAction())
-
-	def register_action_sci(self, categories, name):
-		self.register_categories(categories, name, ('scicommand', name))
 
 	def register_action_func(self, categories, cb, name=None, caller=None):
 		if name is None:
