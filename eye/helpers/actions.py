@@ -144,9 +144,11 @@ def get_action(obj, action_name):
 
 def disable_action(obj, action_name):
 	"""Remove children QAction named"""
-	action = get_action(action_name)
+	action = get_action(obj, action_name)
 	if action:
 		obj.removeAction(action)
+		# unparent action so it's not found as child anymore
+		action.setParent(None)
 
 
 def register_action_slot(categories, slot_name):
