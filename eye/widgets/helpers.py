@@ -1,5 +1,7 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
+from weakref import WeakValueDictionary
+
 from PyQt5.QtCore import Qt, QEvent
 
 from eye.connector import CategoryMixin
@@ -64,6 +66,47 @@ class CentralWidgetMixin(WidgetMixin):
 
 		if ev.type() == QEvent.ModifiedChange:
 			self.windowModifiedChanged.emit(self.isWindowModified())
+
+
+class WeakHistoryList:
+	"""History of objects (from least recent to most recent) with weak references
+
+	This can be typically used for keeping the focus history between widgets.
+	"""
+
+	def __init__(self):
+		self.objects = WeakValueDictionary()
+
+	def push(self, obj):
+		"""Push an object at the front of history
+
+		It does not matter if the object was already in the list.
+		"""
+		objid = id(obj)
+		try:
+			del self.objects[objid]
+		except KeyError:
+			pass
+
+		self.objects[objid] = obj
+
+	def remove(self, obj):
+		"""Remove an object of the history
+
+		If the object is garbage-collected, it is automatically removed from the history.
+		Does not raise if the object is not (or never was) present in the history.
+		"""
+		self.objects.pop(id(obj), None)
+
+	def __iter__(self):
+		"""Iter over objects, most recent first"""
+		return reversed(list(self.objects.values()))
+
+	def __contains__(self, obj):
+		return id(obj) in self.objects
+
+	def __len__(self):
+		return len(self.objects)
 
 
 def parent_tab_widget(widget):
