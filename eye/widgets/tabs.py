@@ -12,7 +12,7 @@ from eye.connector import CategoryMixin, disabled, register_setup
 from eye.helpers import buffers
 from eye.qt import Signal, Slot, override
 from eye.widgets.droparea import DropAreaMixin, BandMixin
-from eye.widgets.helpers import WidgetMixin, parent_tab_widget
+from eye.widgets.helpers import WidgetMixin, WeakHistoryList, parent_tab_widget
 
 __all__ = (
 	'TabWidget', 'TabBar', 'SplitButton',
@@ -138,6 +138,8 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 		self.tabCloseRequested.connect(self._tab_close_requested)
 		self.currentChanged.connect(self._current_changed)
 
+		self.history = WeakHistoryList()
+
 		bar = TabBar()
 		self.setTabBar(bar)
 
@@ -170,7 +172,11 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 
 		idx = self._idx_container_of(ed)
 
+		if self.currentIndex() == idx and len(self.history) > 1:
+			self.setCurrentWidget(list(self.history)[1])
+
 		self.removeTab(idx)
+
 		return True
 
 	def add_widget(self, widget):
@@ -279,6 +285,9 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 
 	@Slot(int)
 	def _current_changed(self, idx):
+		if idx >= 0:
+			self.history.push(self.widget(idx))
+
 		hadFocus = self.hasFocus()
 		self.setFocusProxy(self.widget(idx))
 		self.tabBar().setFocusProxy(self.widget(idx))
