@@ -431,9 +431,9 @@ class SplitButton(QToolButton, WidgetMixin):
 		self.setText('\u25ea')
 
 		menu = QMenu()
-		action = menu.addAction('Split &horizontally')
+		action = menu.addAction('Split &horizontally ―')
 		action.triggered.connect(self.split_horizontal)
-		action = menu.addAction('Split &vertically')
+		action = menu.addAction('Split &vertically |')
 		action.triggered.connect(self.split_vertical)
 		self.setMenu(menu)
 		self.setPopupMode(self.InstantPopup)

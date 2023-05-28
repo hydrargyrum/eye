@@ -183,8 +183,8 @@ class Window(QMainWindow, CategoryMixin, DropAreaMixin):
 		tabs.add_widget(ed)
 
 		DIRS = {
-			Qt.Vertical: consts.DOWN,
-			Qt.Horizontal: consts.RIGHT
+			Qt.Vertical: consts.RIGHT,
+			Qt.Horizontal: consts.DOWN,
 		}
 		self.splitter.split_at(parent, DIRS[orientation], tabs)
 
