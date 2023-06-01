@@ -118,7 +118,11 @@ class SignalListener(QObject, ListenerMixin):
 		getattr(obj, self.signal).connect(self.map)
 
 	def do_disconnect(self, obj):
-		getattr(obj, self.signal).disconnect(self.map)
+		sig = getattr(obj, self.signal)
+		try:
+			sig.disconnect(self.map)
+		except TypeError:
+			pass
 
 
 class ConnectListener(ListenerMixin):
