@@ -357,7 +357,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 	def _show_band(self, pos):
 		quad = widget_quadrant(self.rect(), pos)
 		r = widget_half(self.rect(), quad)
-		self.show_band(r)
+		self.showBand(r)
 
 	@override
 	def dragEnterEvent(self, ev):
@@ -386,7 +386,7 @@ class TabWidget(DropAreaMixin, QTabWidget, WidgetMixin, BandMixin):
 	def dropEvent(self, ev):
 		if is_tab_drop_event(ev):
 			self.hide_band()
-			splitmanager = self.parent().parentManager()
+			splitmanager = self.parent().parent_manager()
 
 			quad = widget_quadrant(self.rect(), ev.pos())
 
@@ -480,11 +480,11 @@ def widget_quadrant(rect, point):
 
 def widget_half(rect, quadrant):
 	if quadrant in (consts.UP, consts.DOWN):
-		rect.setHeight(rect.height() / 2)
+		rect.setHeight(rect.height() // 2)
 		if quadrant == consts.DOWN:
 			rect.translate(0, rect.height())
 	elif quadrant in (consts.LEFT, consts.RIGHT):
-		rect.setWidth(rect.width() / 2)
+		rect.setWidth(rect.width() // 2)
 		if quadrant == consts.RIGHT:
 			rect.translate(rect.width(), 0)
 	return rect
