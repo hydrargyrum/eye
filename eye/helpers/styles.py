@@ -47,7 +47,7 @@ class Styles:
 	def __setitem__(self, name, style):
 		if name in self.styles:
 			if self.styles[name].style() != style.style():
-				del self.style[name]
+				del self.styles[name]
 		self.styles[name] = style
 
 	def __delitem__(self, name):
