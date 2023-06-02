@@ -17,6 +17,8 @@ And a user configuration file could contain::
 	eye.helpers.style.STYLES['hello'].set_paper(QColor('#ff0000'))
 """
 
+from typing import Iterable
+
 from PyQt5.Qsci import QsciStyle
 
 __all__ = ('STYLES',)
@@ -25,16 +27,16 @@ __all__ = ('STYLES',)
 class Styles:
 	def __init__(self):
 		super().__init__()
-		self.styles = {}
-		self.reuse = set()
+		self.styles: dict[str, QsciStyle] = {}
+		self.reuse: set[int] = set()
 
-	def __iter__(self):
+	def __iter__(self) -> Iterable[str]:
 		return iter(self.styles)
 
-	def __contains__(self, name):
+	def __contains__(self, name: str) -> bool:
 		return name in self.styles
 
-	def __getitem__(self, name):
+	def __getitem__(self, name: str) -> QsciStyle:
 		if name not in self.styles:
 			if self.reuse:
 				id = self.reuse.pop()
@@ -44,13 +46,13 @@ class Styles:
 
 		return self.styles[name]
 
-	def __setitem__(self, name, style):
+	def __setitem__(self, name: str, style: QsciStyle) -> None:
 		if name in self.styles:
 			if self.styles[name].style() != style.style():
 				del self.styles[name]
 		self.styles[name] = style
 
-	def __delitem__(self, name):
+	def __delitem__(self, name: str) -> None:
 		id = self.styles[name].style()
 		self.reuse.add(id)
 		del self.styles[name]

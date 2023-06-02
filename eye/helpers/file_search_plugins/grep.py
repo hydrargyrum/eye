@@ -7,6 +7,7 @@ from eye.helpers.build import SimpleBuilder
 from eye.helpers.file_search_plugins.base import register_plugin, SearchPlugin
 from eye.procutils import find_command
 from eye.qt import Slot
+from eye.typing import Filepath
 
 __all__ = ('AckGrep', 'AgGrep', 'BasicGrep')
 
@@ -37,11 +38,11 @@ class GrepLike(SearchPlugin):
 		self.interrupt()
 
 	@classmethod
-	def is_available(cls, path):
+	def is_available(cls, path: Filepath):
 		return find_command(cls.cmd_base[0]) is not None
 
 	@classmethod
-	def search_root_path(cls, path):
+	def search_root_path(cls, path: Filepath):
 		path = path or '.'
 		if os.path.isfile(path):
 			path = os.path.dirname(path)
@@ -54,7 +55,7 @@ class GrepLike(SearchPlugin):
 	def interrupt(self):
 		self.runner.interrupt()
 
-	def search(self, path, pattern, case_sensitive=True):
+	def search(self, path: Filepath, pattern: str, case_sensitive: bool = True):
 		path = path or '.'
 		cmd = list(self.cmd_base)
 		if not case_sensitive:

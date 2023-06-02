@@ -18,7 +18,7 @@ __all__ = (
 _VIM_JUMP = re.compile(r"\+\d+")
 
 
-def vim_filename_arg(args):
+def vim_filename_arg(args: list[str]) -> tuple[str, int | None]:
 	"""Parse `+line filename` args
 
 	Vim and other editors are sometimes called with a filename and a line argument.
@@ -36,7 +36,7 @@ def vim_filename_arg(args):
 	return path, row
 
 
-def parse_filename(filepath):
+def parse_filename(filepath: str) -> tuple[str, int | None, int | None]:
 	"""Parse a `filename:line:col` string
 
 	Parse a string containing a file path, a line number and column number, in
@@ -150,7 +150,7 @@ def get_relative_path_in(a, b):
 	return '/'.join(aparts[n + 1:])
 
 
-def get_config_path(*args):
+def get_config_path(*args: tuple[str, ...]) -> str:
 	try:
 		import xdg.BaseDirectory
 		return xdg.BaseDirectory.save_config_path('eyeditor', *args)
@@ -161,14 +161,14 @@ def get_config_path(*args):
 		return path
 
 
-def get_config_file_path(*args):
+def get_config_file_path(*args: tuple[str, ...]) -> str:
 	subpath = os.path.join(*args)
 	dir = get_config_path(os.path.dirname(subpath))
 	file = os.path.basename(subpath)
 	return os.path.join(dir, file)
 
 
-def data_path(*args):
+def data_path(*args: tuple[str, ...]) -> str:
 	dest = os.path.join(os.path.dirname(__file__), '..', 'data', *args)
 	if os.path.exists(dest):
 		return os.path.abspath(dest)

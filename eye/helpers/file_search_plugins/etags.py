@@ -181,12 +181,12 @@ class ETagsSearch(SearchPlugin):
 			LOGGER.debug('db %r has finished loading', self.parser.path)
 			self._search_in_db(self.request)
 
-	def _search_in_db(self, pattern):
+	def _search_in_db(self, pattern: str):
 		for match in self.db.find_tag(pattern):
 			self.found.emit(match)
 		self.finished.emit(0)
 
-	def search(self, root, pattern, **options):
+	def search(self, root, pattern: str, **options):
 		self.request = pattern
 		self.started.emit()
 

@@ -2,7 +2,9 @@
 
 from eye import connector
 from eye.app import qApp
+from eye.typing import Location
 from eye.widgets.helpers import parent_tab_widget
+from eye.widgets.window import Window
 
 __all__ = (
 	'find_editor', 'open_editor', 'list_editors',
@@ -10,7 +12,7 @@ __all__ = (
 )
 
 
-def find_editor(path):
+def find_editor(path: str):
 	"""Get an editor widget which has `path` opened
 
 	Searches in existing `Editor` widgets if one has `path` opened and return it, or `None` if `path` isn't open
@@ -24,7 +26,7 @@ def find_editor(path):
 			return ed
 
 
-def _get_window():
+def _get_window() -> Window:
 	win = qApp().last_window
 	if win is None:
 		for win in connector.category_objects('window'):
@@ -49,7 +51,7 @@ def _create_editor(path):
 	return ed
 
 
-def open_editor(path, loc=None):
+def open_editor(path: str, loc: Location | None = None):
 	"""Open a file in a new editor or focus an existing one.
 
 	If an editor widget already has `path` open, give it focus. Else, create a new editor (in a new
@@ -58,7 +60,6 @@ def open_editor(path, loc=None):
 	:param path: path of the file to open in an editor widget
 	:type path: str
 	:param loc: optional line and column where to focus
-	:type loc: tuple[int, int]
 	:returns: an editor widget open to the file
 	:rtype: :any:`eye.widgets.editor.Editor`
 	"""
@@ -96,7 +97,7 @@ def _default_tabs():
 	return parent_tab_widget(cur)
 
 
-def _do_new(ed, loc, parent_tab_bar):
+def _do_new(ed, loc: Location | None, parent_tab_bar):
 	if parent_tab_bar is None:
 		parent_tab_bar = _default_tabs()
 	if loc:
@@ -104,7 +105,7 @@ def _do_new(ed, loc, parent_tab_bar):
 	parent_tab_bar.add_widget(ed)
 
 
-def new_editor_open(path, loc=None, parent_tab_bar=None):
+def new_editor_open(path, loc: Location = None, parent_tab_bar=None):
 	"""Create a new editor with file `path` open
 
 	An Editor widget is created, with the contents of file at `path`.
@@ -119,10 +120,9 @@ def new_editor_open(path, loc=None, parent_tab_bar=None):
 	:param path: path of the file to open
 	:type path: str
 	:param parent_tab_bar: the parent tab widget where to append the editor.
-	                     If None, the currently focused tab widget will be used.
+	                       If None, the currently focused tab widget will be used.
 	:type parent_tab_bar: :any:`eye.widgets.tabs.TabWidget`
 	:param loc: if not None, the editor shall be opened with this line/column shown (starting at 1)
-	:type loc: tuple[int, int]
 	:returns: the new editor
 	:rtype: eye.widgets.editor.Editor
 	"""
@@ -132,7 +132,7 @@ def new_editor_open(path, loc=None, parent_tab_bar=None):
 	return ed
 
 
-def new_editor_share(ed, loc=None, parent_tab_bar=None):
+def new_editor_share(ed, loc: Location | None = None, parent_tab_bar=None):
 	"""Create a new editor with same document as `ed` open
 
 	An editor widget is created, with the same document as existing editor `ed`.
@@ -147,9 +147,8 @@ def new_editor_share(ed, loc=None, parent_tab_bar=None):
 	:param ed: the editor with which the new editor should share the document
 	:type ed: eye.widgets.editor.Editor
 	:param loc: if not None, the editor shall be opened with this line/column shown (starting at 1)
-	:type loc: tuple[int, int]
 	:param parent_tab_bar: the parent tab widget where to append the editor.
-	                     If None, the currently focused tab widget will be used.
+	                       If None, the currently focused tab widget will be used.
 	:type parent_tab_bar: :any:`eye.widgets.tabs.TabWidget`
 	:returns: the new editor
 	:rtype: eye.widgets.editor.Editor
@@ -171,7 +170,7 @@ def new_editor_try_share(path, loc=None, parent_tab_bar=None):
 	:param loc: if not None, the editor shall be opened with this line/column shown (starting at 1)
 	:type loc: tuple[int, int]
 	:param parent_tab_bar: the parent tab widget where to append the editor.
-	                     If None, the currently focused tab widget will be used.
+	                       If None, the currently focused tab widget will be used.
 	:type parent_tab_bar: :any:`eye.widgets.tabs.TabWidget`
 	:rtype: eye.widgets.editor.Editor
 	"""

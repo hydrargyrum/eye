@@ -52,7 +52,7 @@ import inspect
 from logging import getLogger
 import weakref
 
-from PyQt5.QtCore import QObject, QPoint
+from PyQt5.QtCore import QObject, QPoint, QEvent
 from PyQt5.QtWidgets import QWidget
 
 from eye import BUILDING_DOCS, _add_doc
@@ -71,8 +71,8 @@ __all__ = (
 LOGGER = getLogger(__name__)
 
 
-def to_stringlist(obj):
-	if isinstance(obj, (str, bytes)):
+def to_stringlist(obj: str | list[str]) -> list[str]:
+	if isinstance(obj, str):
 		return [obj]
 	else:
 		return obj
@@ -86,7 +86,7 @@ class ListenerMixin:
 
 
 class SignalListener(QObject, ListenerMixin):
-	def __init__(self, cb, categories, signal, parent=None):
+	def __init__(self, cb, categories, signal: str, parent: QObject = None):
 		super().__init__(parent)
 		self.cb = cb
 		self.categories = categories
@@ -107,7 +107,7 @@ class SignalListener(QObject, ListenerMixin):
 	@Slot(object, object)
 	@Slot(QPoint)
 	@Slot()
-	def map(self, *args, **kwargs):
+	def map(self, *args, **kwargs) -> None:
 		if not getattr(self.cb, 'enabled', True):
 			return
 
@@ -115,10 +115,10 @@ class SignalListener(QObject, ListenerMixin):
 			sender = kwargs.get('sender', self.sender())
 			self.cb(sender, *args)
 
-	def do_connect(self, obj):
+	def do_connect(self, obj: QObject) -> None:
 		getattr(obj, self.signal).connect(self.map)
 
-	def do_disconnect(self, obj):
+	def do_disconnect(self, obj: QObject) -> None:
 		sig = getattr(obj, self.signal)
 		try:
 			sig.disconnect(self.map)
@@ -127,36 +127,36 @@ class SignalListener(QObject, ListenerMixin):
 
 
 class ConnectListener(ListenerMixin):
-	def __init__(self, cb, categories, parent=None):
+	def __init__(self, cb, categories, parent: QObject = None):
 		super().__init__()
 		self.cb = cb
 		self.categories = categories
 		self.caller = None
 
-	def map(self, obj):
+	def map(self, obj) -> None:
 		if getattr(self.cb, 'enabled', True):
 			with exception_logging(reraise=False, logger=LOGGER):
 				self.cb(obj)
 
 
 class SetupListener(ConnectListener):
-	def do_connect(self, obj):
+	def do_connect(self, obj: QObject):
 		self.map(obj)
 
-	def do_disconnect(self, obj):
+	def do_disconnect(self, obj: QObject):
 		pass
 
 
 class TearListener(ConnectListener):
-	def do_connect(self, obj):
+	def do_connect(self, obj: QObject):
 		pass
 
-	def do_disconnect(self, obj):
+	def do_disconnect(self, obj: QObject):
 		self.map(obj)
 
 
 class EventFilter(QObject, ListenerMixin):
-	def __init__(self, cb, categories, event_types, parent=None):
+	def __init__(self, cb, categories, event_types, parent: QObject = None):
 		super().__init__(parent)
 		self.cb = cb
 		self.categories = categories
@@ -164,17 +164,17 @@ class EventFilter(QObject, ListenerMixin):
 		self.caller = None
 
 	@override
-	def eventFilter(self, obj, ev):
+	def eventFilter(self, obj: QObject, ev: QEvent):
 		ret = False
 		if getattr(self.cb, 'enabled', True) and ev.type() in self.event_types:
 			with exception_logging(reraise=False, logger=LOGGER):
 				ret = bool(self.cb(obj, ev))
 		return ret
 
-	def do_connect(self, obj):
+	def do_connect(self, obj: QObject):
 		obj.installEventFilter(self)
 
-	def do_disconnect(self, obj):
+	def do_disconnect(self, obj: QObject):
 		obj.removeEventFilter(self)
 
 
@@ -187,12 +187,12 @@ class EventConnector(QObject):
 		self.all_objects = weakref.WeakSet()
 		self.all_listeners = []
 
-	def do_connect(self, obj, lis, cats=None):
+	def do_connect(self, obj: QObject, lis, cats=None):
 		LOGGER.debug('connecting %r to %r (from file %r) in %r categories', obj, lis.cb, inspect.getfile(lis.cb), cats)
 		with exception_logging(reraise=False, logger=LOGGER):
 			lis.do_connect(obj)
 
-	def do_disconnect(self, obj, lis, cats=None):
+	def do_disconnect(self, obj: QObject, lis, cats=None):
 		LOGGER.debug('disconnecting %r to %r (from file %r) in %r categories', obj, lis.cb, inspect.getfile(lis.cb), cats)
 		with exception_logging(reraise=False, logger=LOGGER):
 			lis.do_disconnect(obj)
@@ -205,7 +205,7 @@ class EventConnector(QObject):
 			if categories <= obj.categories():
 				self.do_connect(obj, lis, categories)
 
-	def add_object(self, obj):
+	def add_object(self, obj: QObject):
 		self.all_objects.add(obj)
 
 		oc = obj.categories()
@@ -216,7 +216,7 @@ class EventConnector(QObject):
 			if lis.categories <= oc:
 				self.do_connect(obj, lis, lis.categories)
 
-	def add_category(self, obj, cat):
+	def add_category(self, obj: QObject, cat: str):
 		oc = obj.categories()
 
 		for lis in self.all_listeners:
@@ -227,17 +227,17 @@ class EventConnector(QObject):
 				self.do_connect(obj, lis, cat)
 		self.category_added.emit(obj, cat)
 
-	def remove_category(self, obj, cat):
+	def remove_category(self, obj: QObject, cat: str):
 		for lis in self.all_listeners:
 			if cat in lis.categories:
 				self.do_disconnect(obj, lis, cat)
 		self.category_removed.emit(obj, cat)
 
-	def objects_matching(self, categories):
+	def objects_matching(self, categories) -> list[QObject]:
 		categories = frozenset(to_stringlist(categories))
 		return [obj for obj in self.all_objects if categories <= obj.categories()]
 
-	def delete_created_by(self, caller):
+	def delete_created_by(self, caller: str) -> None:
 		"""Unregister listeners registered in file `caller`."""
 		new_listeners = []
 		for lis in self.all_listeners:
@@ -259,18 +259,18 @@ class CategoryMixin:
 		self._categories = set()
 		CONNECTOR.add_object(self)
 
-	def categories(self):
+	def categories(self) -> set[str]:
 		"""Return categories of the object."""
 		return self._categories
 
-	def add_category(self, c):
+	def add_category(self, c: str):
 		"""Add a category to the object."""
 		if c in self._categories:
 			return
 		self._categories.add(c)
 		CONNECTOR.add_category(self, c)
 
-	def remove_category(self, c):
+	def remove_category(self, c: str):
 		"""Remove a category from an object."""
 		if c not in self._categories:
 			return
@@ -282,7 +282,7 @@ def peek_set(s):
 	return next(iter(s))
 
 
-def is_ancestor_of(ancestor, child):
+def is_ancestor_of(ancestor: QObject, child: QObject) -> bool:
 	"""Return True if `ancestor` is an ancestor of `child`, QObject-tree-wise."""
 	while child is not None:
 		if child is ancestor:
@@ -291,7 +291,7 @@ def is_ancestor_of(ancestor, child):
 	return False
 
 
-def category_objects(categories, ancestor=None):
+def category_objects(categories, ancestor=None) -> list[QObject]:
 	"""Return objects matching all specified categories.
 
 	:param categories: matching object should match _all_ these categories
@@ -304,7 +304,7 @@ def category_objects(categories, ancestor=None):
 		return [obj for obj in CONNECTOR.objects_matching(categories) if is_ancestor_of(ancestor, obj)]
 
 
-def delete_created_by(caller):
+def delete_created_by(caller: str):
 	"""Unregister listeners registered by script `caller`.
 
 	If `caller` script file had registered any listeners (as with :any:`register_signal`), this method
@@ -319,7 +319,7 @@ def delete_created_by(caller):
 	CONNECTOR.delete_created_by(caller)
 
 
-def register_signal(categories, signal, stackoffset=0):
+def register_signal(categories, signal: str, stackoffset: int = 0):
 	"""Decorate a function that should be run when a signal is emitted.
 
 	When the `signal` of all existing and future objects matching all specified `categories`
@@ -359,7 +359,7 @@ def register_signal(categories, signal, stackoffset=0):
 	return deco
 
 
-def register_setup(categories, stackoffset=0):
+def register_setup(categories, stackoffset: int = 0):
 	"""Decorate a function that should be run for all objects matching categories.
 
 	When an object is created that matches `categories` or an object is being added new categories and they match
@@ -398,7 +398,7 @@ def register_setup(categories, stackoffset=0):
 	return deco
 
 
-def register_teardown(categories, stackoffset=0):
+def register_teardown(categories, stackoffset: int = 0):
 	categories = frozenset(to_stringlist(categories))
 	doctext = 'This handler is registered as teardown for categories ``%s``.' % (list(categories),)
 
@@ -419,7 +419,7 @@ def register_teardown(categories, stackoffset=0):
 	return deco
 
 
-def register_event_filter(categories, event_types, stackoffset=0):
+def register_event_filter(categories, event_types, stackoffset: int = 0):
 	"""Decorate a function that should be run when an event is sent to an object.
 
 	When a :any:`PyQt5.QtCore.QEvent` object of a type in `event_types` is sent to an object

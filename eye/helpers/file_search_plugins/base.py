@@ -3,21 +3,9 @@
 from PyQt5.QtCore import QObject
 
 from eye.qt import Signal, Slot
+from eye.typing import Filepath
 
 __all__ = ('register_plugin', 'SearchPlugin', 'enabled_plugins', 'get_plugin')
-
-
-PLUGINS = {}
-
-
-def register_plugin(cls):
-	"""Decorator to register a file_search plugin class
-
-	The plugin class should inherit :any:`SearchPlugin`.
-	The plugin class can then be retrieved with :any:`get_plugin`.
-	"""
-	PLUGINS[cls.id] = cls
-	return cls
 
 
 class SearchPlugin(QObject):
@@ -61,24 +49,24 @@ class SearchPlugin(QObject):
 	:type res: int
 	"""
 
-	id = None
+	id: str = None
 
 	"""Class attribute, identifier of the plugin
 
 	The identifier should be unique across plugin classes since this identifier is used for :any:`get_plugin`.
 	"""
 
-	enabled = True
+	enabled: bool = True
 
 	"""Whether the plugin is enabled"""
 
 	@classmethod
-	def name(cls):
+	def name(cls) -> str:
 		"""Get the name of the plugin"""
 		return cls.id
 
 	@classmethod
-	def is_available(cls, path):
+	def is_available(cls, path: Filepath) -> bool:
 		"""Return whether the plugin can search inside a particular path
 
 		Some plugins use an index (like git or etags) and can only search in certain paths.
@@ -86,20 +74,33 @@ class SearchPlugin(QObject):
 		raise NotImplementedError()
 
 	@classmethod
-	def search_root_path(cls, path):
+	def search_root_path(cls, path: Filepath):
 		raise NotImplementedError()
 
 	@Slot()
-	def interrupt(self):
+	def interrupt(self) -> None:
 		"""Interrupt a running search"""
 		pass
 
 	@Slot(str, str)
-	def search(self, path, pattern, **options):
+	def search(self, path: Filepath, pattern: str, **options):
 		raise NotImplementedError()
 
 
-def get_plugin(plugin_id):
+PLUGINS: dict[str, type[SearchPlugin]] = {}
+
+
+def register_plugin(cls: type[SearchPlugin]) -> type[SearchPlugin]:
+	"""Decorator to register a file_search plugin class
+
+	The plugin class should inherit :any:`SearchPlugin`.
+	The plugin class can then be retrieved with :any:`get_plugin`.
+	"""
+	PLUGINS[cls.id] = cls
+	return cls
+
+
+def get_plugin(plugin_id: str) -> type[SearchPlugin] | None:
 	"""Get a registered plugin by its identifier
 
 	:rtype: SearchPlugin
