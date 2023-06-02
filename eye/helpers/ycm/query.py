@@ -1,7 +1,5 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from __future__ import print_function
-
 from PyQt5.QtCore import QObject
 
 from eye.connector import register_signal, disabled

@@ -2,8 +2,6 @@
 
 """Utils for colors"""
 
-from __future__ import unicode_literals
-
 import unittest
 
 from PyQt5.QtCore import Qt

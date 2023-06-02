@@ -1,7 +1,5 @@
 # this project is licensed under the WTFPLv2, see COPYING.txt for details
 
-from __future__ import print_function
-
 import os
 
 from PyQt5.QtWidgets import QMessageBox

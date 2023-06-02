@@ -3,8 +3,6 @@
 """Interactive Python evaluator console
 """
 
-from __future__ import print_function
-
 import code
 import codecs
 from importlib import reload
