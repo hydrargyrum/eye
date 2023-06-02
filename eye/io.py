@@ -11,23 +11,23 @@ __all__ = ('write_bytes_to_file', 'read_bytes_from_file')
 LOGGER = getLogger(__name__)
 
 
-def write_bytes_to_file_direct(filepath, data):
+def write_bytes_to_file_direct(filepath: str, data: bytes) -> bool:
 	with exception_logging(logger=LOGGER):
 		with open(filepath, 'wb') as f:
 			f.write(data)
 			return True
 
 
-def get_perm(path):
+def get_perm(path: str) -> tuple[int, int, int] | None:
 	try:
 		stat = os.stat(path)
 	except OSError:
 		LOGGER.warning('could not stat file %r', path, exc_info=True)
-		return
+		return None
 	return stat.st_mode, stat.st_uid, stat.st_gid
 
 
-def set_perm(path, perm):
+def set_perm(path: str, perm: tuple[int, int, int] | None):
 	if perm is None:
 		return
 
@@ -35,7 +35,7 @@ def set_perm(path, perm):
 	os.chown(path, perm[1], perm[2])
 
 
-def write_bytes_to_file(filepath, data):
+def write_bytes_to_file(filepath: str, data: bytes) -> bool:
 	if os.name == 'nt':
 		return write_bytes_to_file_direct(filepath, data)
 
@@ -57,7 +57,7 @@ def write_bytes_to_file(filepath, data):
 		return True
 
 
-def read_bytes_from_file(filepath):
+def read_bytes_from_file(filepath: str) -> bytes:
 	with exception_logging(logger=LOGGER):
 		with open(filepath, 'rb') as f:
 			return f.read()

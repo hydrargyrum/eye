@@ -75,7 +75,7 @@ DEFAULT_KEYS_FILE = 'keyboard.ini'
 """Default filename used by `loadKeysConfig`."""
 
 
-def load_keys_config(path=None):
+def load_keys_config(path: str | None = None) -> None:
 	"""Load keys config file.
 
 	If path is ``None``, a file named :any:`DEFAULT_KEYS_FILE` will be looked for in the config

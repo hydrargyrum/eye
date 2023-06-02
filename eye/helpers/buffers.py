@@ -10,7 +10,7 @@ __all__ = (
 )
 
 
-def find_editor(path):
+def find_editor(path: str):
 	"""Get an editor widget which has `path` opened
 
 	Searches in existing `Editor` widgets if one has `path` opened and return it, or `None` if `path` isn't open
@@ -49,7 +49,7 @@ def _create_editor(path):
 	return ed
 
 
-def open_editor(path, loc=None):
+def open_editor(path: str, loc: tuple[int, int | None] | None =None):
 	"""Open a file in a new editor or focus an existing one.
 
 	If an editor widget already has `path` open, give it focus. Else, create a new editor (in a new
