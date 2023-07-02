@@ -37,10 +37,10 @@ def toggle_bookmark(ed):
 	ln = ed.getCursorPosition()[0]
 
 	marker = ed.markers['bookmark']
-	if marker.isAt(ln):
-		marker.removeAt(ln)
+	if marker.is_at(ln):
+		marker.remove_at(ln)
 	else:
-		marker.putAt(ln)
+		marker.put_at(ln)
 
 
 def next_bookmark(ed):
