@@ -1358,8 +1358,8 @@ class Editor(BaseEditor, CentralWidgetMixin):
 
 		with self.undo_group():
 			# XXX setText would clear the history
-			self.clear()
-			self.insert(text)
+			self.selectAll()
+			self.replaceSelectedText(text)
 		self.setModified(False)
 		self.setCursorPosition(*old_pos)
 		return True
