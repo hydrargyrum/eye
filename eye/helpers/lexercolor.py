@@ -99,7 +99,7 @@ Module contents
 """
 
 from abc import ABC, abstractmethod
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 from logging import getLogger
 
 from eye.colorutils import QColorAlpha
@@ -125,7 +125,7 @@ SCHEME = None
 
 
 def new_scheme():
-	parser = SafeConfigParser()
+	parser = ConfigParser()
 	parser.optionxform = str
 	return parser
 
