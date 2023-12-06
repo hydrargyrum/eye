@@ -22,13 +22,13 @@ __all__ = (
 
 
 BASE_SURROUND_MAPPING = {
-	"'": "'%s'",
-	'"': '"%s"',
-	'`': '`%s`',
-	'{': '{%s}',
-	'(': '(%s)',
-	'[': '[%s]',
-	'<': '<%s>',
+	"'": "'",
+	'"': '"',
+	'`': '`',
+	'{': '}',
+	'(': ')',
+	'[': ']',
+	'<': '>',
 }
 
 """Default surround mapping.
@@ -92,10 +92,11 @@ def try_surround_selection(editor, char, map_table):
 	# doing in reverse order avoids having to compute shifting
 	sels = reversed([editor.get_selection_n(n) for n in range(editor.selections_count())])
 	with editor.undo_group(True):
-		for sel in sels:
-			editor.setSelection(*sel)
-			s = editor.selectedText()
-			editor.replaceSelectedText(map_table[char] % s)
+		for lfrom, ifrom, lto, ito in sels:
+			if (lfrom, ifrom) > (lto, ito):
+				lfrom, ifrom, lto, ito = lto, ito, lfrom, ifrom
+			editor.insertAt(map_table[char], lto, ito)
+			editor.insertAt(char, lfrom, ifrom)
 
 	return True
 
