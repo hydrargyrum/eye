@@ -1114,7 +1114,7 @@ class BaseEditor(QsciScintilla):
 
 	def connectNotify(self, sig):
 		super().connectNotify(sig)
-		if sig.name() == b'sciModified':
+		if sig.name() == b'sci_modified':
 			self._counter_sci_modified += 1
 			try:
 				self.SCN_MODIFIED.connect(self.scn_modified, Qt.UniqueConnection)
@@ -1125,7 +1125,7 @@ class BaseEditor(QsciScintilla):
 		super().disconnectNotify(sig)
 		if not sig.isValid():
 			return
-		if sig.name() == b'sciModified':
+		if sig.name() == b'sci_modified':
 			self._counter_sci_modified -= 1
 			assert self._counter_sci_modified >= 0
 			if not self._counter_sci_modified:
