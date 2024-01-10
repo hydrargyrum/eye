@@ -48,6 +48,7 @@ class LocationList(QTreeView, WidgetMixin):
 		self.dataModel = QStandardItemModel()
 		self.setModel(self.dataModel)
 
+		self.setSortingEnabled(True)
 		self.setAlternatingRowColors(True)
 		self.setAllColumnsShowFocus(True)
 		self.setRootIsDecorated(False)
