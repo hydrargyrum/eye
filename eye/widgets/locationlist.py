@@ -9,7 +9,7 @@ attributes, like a message or a search snippet.
 
 from PyQt5.QtCore import Qt, QModelIndex
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QTreeView
+from PyQt5.QtWidgets import QHeaderView, QTreeView
 
 from eye import consts
 from eye.connector import register_signal, disabled
@@ -51,6 +51,7 @@ class LocationList(QTreeView, WidgetMixin):
 		self.setSortingEnabled(True)
 		self.setAlternatingRowColors(True)
 		self.setAllColumnsShowFocus(True)
+		self.header().setSectionResizeMode(QHeaderView.ResizeToContents)
 		self.setRootIsDecorated(False)
 		self.setSelectionBehavior(self.SelectRows)
 		self.setWindowTitle(self.tr('Location list'))
