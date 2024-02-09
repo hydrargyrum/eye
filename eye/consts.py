@@ -6,7 +6,7 @@ import os
 
 from PyQt5.QtCore import Qt
 
-__all__ = ('registerRole',
+__all__ = ('register_role',
            'UP', 'DOWN', 'LEFT', 'RIGHT')
 
 
@@ -16,7 +16,7 @@ else:
 	LAST_ROLE = Qt.UserRole
 
 
-def registerRole():
+def register_role():
 	"""Register and return a new Qt data role
 
 	The value starts at `Qt.UserRole` and is incremented at each call.
@@ -59,7 +59,7 @@ MOVES = {
 }
 
 
-AbsolutePathRole = registerRole()
+AbsolutePathRole = register_role()
 
 """Role for absolute path data.
 

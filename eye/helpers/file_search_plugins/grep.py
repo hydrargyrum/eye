@@ -19,7 +19,7 @@ class GrepProcess(SimpleBuilder):
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
-		self.removeCategory('builder')
+		self.remove_category('builder')
 
 
 class GrepLike(SearchPlugin):
@@ -29,7 +29,7 @@ class GrepLike(SearchPlugin):
 		super().__init__(**kwargs)
 		self.runner = GrepProcess()
 		self.runner.started.connect(self.started)
-		self.runner.warningPrinted.connect(self._got_result)
+		self.runner.warning_printed.connect(self._got_result)
 		self.runner.finished.connect(self.finished)
 
 	def __del__(self):
@@ -62,7 +62,7 @@ class GrepLike(SearchPlugin):
 		cmd.append(pattern)
 		cmd.append(path)
 		self.runner.rootpath = path
-		self.runner.setWorkingDirectory(path)
+		self.runner.set_working_directory(path)
 		self.runner.run(cmd)
 
 

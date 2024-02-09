@@ -8,17 +8,17 @@ import unittest
 
 from PyQt5.QtCore import Qt
 
-__all__ = ('csToQtEnum', 'qtEnumToCs', 'qreToPattern', 'glob2re')
+__all__ = ('cs_to_qt_enum', 'qt_enum_to_cs', 'qre_to_pattern', 'glob2re')
 
 
-def csToQtEnum(cs):
+def cs_to_qt_enum(cs):
 	"""Return a `Qt.CaseSensitivity` flag for bool `cs`"""
 	if cs:
 		return Qt.CaseSensitive
 	else:
 		return Qt.CaseInsensitive
 
-def qtEnumToCs(enum):
+def qt_enum_to_cs(enum):
 	"""Return True if `enum` value equals `Qt.CaseSensitive`"""
 	return enum == Qt.CaseSensitive
 
@@ -111,7 +111,7 @@ def glob2re(globstr, can_escape=False, dotslash=DOTSLASH_NO_SLASH_AND_HIDDEN,
 	return r
 
 
-def qreToPattern(qre):
+def qre_to_pattern(qre):
 	s = qre.pattern()
 
 	if qre.patternSyntax() == qre.FixedString:

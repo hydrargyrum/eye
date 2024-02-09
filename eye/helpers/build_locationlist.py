@@ -19,7 +19,7 @@ def on_build_start(builder):
 		return
 
 	loclist.clear()
-	loclist.setColumns(builder.columns())
+	loclist.set_columns(builder.columns())
 
 
 @register_signal('builder', 'warning_printed')
@@ -49,7 +49,7 @@ def add_location_list(win, show=True):
 
 def add_item(builder, info, msg_type):
 	loclist = add_location_list(qApp().last_window)
-	loclist.addItem(info)
+	loclist.add_item(info)
 
 
 @register_signal('window', 'focused_buffer')
