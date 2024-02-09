@@ -4,13 +4,13 @@ from PyQt5.QtCore import QObject
 
 from eye.qt import Signal, Slot
 
-__all__ = ('registerPlugin', 'SearchPlugin', 'enabled_plugins', 'get_plugin')
+__all__ = ('register_plugin', 'SearchPlugin', 'enabled_plugins', 'get_plugin')
 
 
 PLUGINS = {}
 
 
-def registerPlugin(cls):
+def register_plugin(cls):
 	"""Decorator to register a file_search plugin class
 
 	The plugin class should inherit :any:`SearchPlugin`.

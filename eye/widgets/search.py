@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QPushButton, QMenu, QWidget, QActionGroup, QGridLayo
 
 from eye.helpers import file_search, buffers
 from eye.qt import Signal, Slot
-from eye.reutils import csToQtEnum
+from eye.reutils import cs_to_qt_enum
 from eye.widgets.helpers import WidgetMixin
 from eye.widgets.locationlist import LocationList
 
@@ -64,48 +64,48 @@ class SearchWidget(QWidget, WidgetMixin):
 		layout = QGridLayout()
 		self.setLayout(layout)
 
-		self.exprEdit = QLineEdit()
-		self.exprEdit.returnPressed.connect(self.returnPressed)
-		self.setFocusProxy(self.exprEdit)
+		self.expr_edit = QLineEdit()
+		self.expr_edit.returnPressed.connect(self.returnPressed)
+		self.setFocusProxy(self.expr_edit)
 
-		self.optionsButton = SearchOptionsButton()
+		self.options_button = SearchOptionsButton()
 
-		self.pluginChoice = QComboBox()
+		self.plugin_choice = QComboBox()
 		plugins = sorted(file_search.enabled_plugins(), key=lambda p: p.name())
 		for plugin in plugins:
-			self.pluginChoice.addItem(plugin.name(), plugin.id)
+			self.plugin_choice.addItem(plugin.name(), plugin.id)
 
 		self.results = LocationList()
-		self.results.setColumns(['path', 'line', 'snippet'])
+		self.results.set_columns(['path', 'line', 'snippet'])
 
 		self.searcher = None
 
-		layout.addWidget(self.exprEdit, 0, 0)
-		layout.addWidget(self.optionsButton, 0, 1)
-		layout.addWidget(self.pluginChoice, 0, 2)
+		layout.addWidget(self.expr_edit, 0, 0)
+		layout.addWidget(self.options_button, 0, 1)
+		layout.addWidget(self.plugin_choice, 0, 2)
 		layout.addWidget(self.results, 1, 0, 1, -1)
 
 		self.add_category('file_search_widget')
 
 	def setPlugin(self, id):
-		index = self.pluginChoice.findData(id)
+		index = self.plugin_choice.findData(id)
 		if index >= 0:
-			self.pluginChoice.setCurrentIndex(index)
+			self.plugin_choice.setCurrentIndex(index)
 
 	def setText(self, text):
-		self.exprEdit.setText(text)
+		self.expr_edit.setText(text)
 
 	def selected_plugin(self):
-		return self.pluginChoice.itemData(self.pluginChoice.currentIndex())
+		return self.plugin_choice.itemData(self.plugin_choice.currentIndex())
 
 	def regexp(self):
-		re = QRegExp(self.exprEdit.text())
-		re.setCaseSensitivity(csToQtEnum(self.optionsButton.caseSensitive()))
-		re.setPatternSyntax(self.optionsButton.re_format())
+		re = QRegExp(self.expr_edit.text())
+		re.setCaseSensitivity(cs_to_qt_enum(self.options_button.case_sensitive()))
+		re.setPatternSyntax(self.options_button.re_format())
 		return re
 
 	def should_find_root(self):
-		return self.optionsButton.should_find_root()
+		return self.options_button.should_find_root()
 
 	def make_args(self, plugin):
 		ed = buffers.current_buffer()
@@ -114,8 +114,8 @@ class SearchWidget(QWidget, WidgetMixin):
 			path = plugin.search_root_path(ed.path)
 		else:
 			path = os.path.dirname(ed.path)
-		pattern = self.exprEdit.text()
-		ci = self.optionsButton.caseSensitive()
+		pattern = self.expr_edit.text()
+		ci = self.options_button.case_sensitive()
 		return (path, pattern, ci)
 
 	@Slot()
@@ -123,7 +123,7 @@ class SearchWidget(QWidget, WidgetMixin):
 		self.results.clear()
 		plugin_type = file_search.get_plugin(self.selected_plugin())
 		self.searcher = plugin_type()
-		file_search.setupLocationList(self.searcher, self.results)
+		file_search.setup_location_list(self.searcher, self.results)
 		args = self.make_args(self.searcher)
 		self.searcher.search(*args)
 

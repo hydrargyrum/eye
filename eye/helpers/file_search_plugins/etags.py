@@ -8,7 +8,7 @@ import os
 from PyQt5.QtCore import QTimer, QElapsedTimer
 
 from eye.helpers.confcache import ConfCache
-from eye.helpers.file_search_plugins.base import registerPlugin, SearchPlugin
+from eye.helpers.file_search_plugins.base import register_plugin, SearchPlugin
 from eye.pathutils import find_ancestor_containing, find_in_ancestors
 from eye.qt import Slot
 
@@ -120,7 +120,7 @@ class DbCache(ConfCache):
 CACHE = DbCache(weak=False)
 
 
-@registerPlugin
+@register_plugin
 class ETagsSearch(SearchPlugin):
 	id = 'etags'
 

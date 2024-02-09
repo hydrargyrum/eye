@@ -4,7 +4,7 @@ from logging import getLogger
 import os
 
 from eye.helpers.build import SimpleBuilder
-from eye.helpers.file_search_plugins.base import registerPlugin, SearchPlugin
+from eye.helpers.file_search_plugins.base import register_plugin, SearchPlugin
 from eye.procutils import find_command
 from eye.qt import Slot
 
@@ -19,7 +19,7 @@ class GrepProcess(SimpleBuilder):
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
-		self.removeCategory('builder')
+		self.remove_category('builder')
 
 
 class GrepLike(SearchPlugin):
@@ -29,7 +29,7 @@ class GrepLike(SearchPlugin):
 		super().__init__(**kwargs)
 		self.runner = GrepProcess()
 		self.runner.started.connect(self.started)
-		self.runner.warningPrinted.connect(self._got_result)
+		self.runner.warning_printed.connect(self._got_result)
 		self.runner.finished.connect(self.finished)
 
 	def __del__(self):
@@ -62,30 +62,30 @@ class GrepLike(SearchPlugin):
 		cmd.append(pattern)
 		cmd.append(path)
 		self.runner.rootpath = path
-		self.runner.setWorkingDirectory(path)
+		self.runner.set_working_directory(path)
 		self.runner.run(cmd)
 
 
-@registerPlugin
+@register_plugin
 class AckGrep(GrepLike):
 	id = 'ack'
 	# ack insists on using stdin despite being given filepaths
 	cmd_base = ['ack-grep', '--nofilter']
 
 
-@registerPlugin
+@register_plugin
 class AgGrep(GrepLike):
 	id = 'ag'
 	cmd_base = ['ag']
 
 
-@registerPlugin
+@register_plugin
 class BasicGrep(GrepLike):
 	id = 'rgrep'
 	cmd_base = ['grep', '-n', '-R']
 
 
-@registerPlugin
+@register_plugin
 class RipGrep(GrepLike):
 	id = 'rg'
 	cmd_base = ['rg', '-n']

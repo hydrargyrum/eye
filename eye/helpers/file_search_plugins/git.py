@@ -5,7 +5,7 @@ from logging import getLogger
 import os
 import subprocess
 
-from eye.helpers.file_search_plugins.base import registerPlugin
+from eye.helpers.file_search_plugins.base import register_plugin
 from eye.helpers.file_search_plugins.grep import GrepLike
 
 __all__ = ('GitGrep',)
@@ -13,7 +13,8 @@ __all__ = ('GitGrep',)
 
 LOGGER = getLogger(__name__)
 
-@registerPlugin
+
+@register_plugin
 class GitGrep(GrepLike):
 	id = "git-grep"
 	cmd_base = ['git', 'grep', '-n', '-I']

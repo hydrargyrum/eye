@@ -99,7 +99,7 @@ class Builder(QObject, CategoryMixin):
 	def columns(self):
 		"""Return the list of columns supported by this builder type
 
-		The columns are the keys of the dict emitted in :any:`warningPrinted` and :any:`errorPrinted`.
+		The columns are the keys of the dict emitted in :any:`warning_printed` and :any:`error_printed`.
 
 		This method should be reimplemented in `Builder` subclasses.
 		"""
@@ -151,8 +151,8 @@ class SimpleBuilder(Builder):
 		self.reobj = re.compile(self.pattern, self.pattern_flags)
 
 		self.proc = LineProcess()
-		self.proc.stdout_line_read.connect(self.gotLine)
-		self.proc.stderr_line_read.connect(self.gotLine)
+		self.proc.stdout_line_read.connect(self.got_line)
+		self.proc.stderr_line_read.connect(self.got_line)
 		self.proc.finished.connect(self.finished)
 		self.proc.started.connect(self.started)
 
@@ -160,7 +160,7 @@ class SimpleBuilder(Builder):
 		return ('path', 'line', 'message')
 
 	@Slot(str)
-	def gotLine(self, line):
+	def got_line(self, line):
 		DATA_LOGGER.info('%r', line)
 
 		mtc = self.reobj.match(line)

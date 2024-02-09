@@ -18,10 +18,10 @@ from eye.helpers.intent import send_intent
 from eye.qt import Signal, Slot
 from eye.widgets.helpers import WidgetMixin
 
-__all__ = ('lineRole', 'columnRole', 'LocationList')
+__all__ = ('line_role', 'column_role', 'LocationList')
 
-lineRole = consts.registerRole()
-columnRole = consts.registerRole()
+line_role = consts.register_role()
+column_role = consts.register_role()
 
 
 class LocationList(QTreeView, WidgetMixin):
@@ -31,10 +31,10 @@ class LocationList(QTreeView, WidgetMixin):
 	A location list widgets displays clickable locations coming from a search, or a compilation.
 	"""
 
-	locationActivated = Signal(str, object)
+	location_activated = Signal(str, object)
 
 	"""
-	Signal locationActivated(path, line)
+	Signal location_activated(path, line)
 
 	:param path: the path of the activated location
 	:type path: str
@@ -62,7 +62,7 @@ class LocationList(QTreeView, WidgetMixin):
 
 		self.add_category('location_list')
 
-	def setColumns(self, cols):
+	def set_columns(self, cols):
 		names = {
 			'path': self.tr('Path'),
 			'line': self.tr('Line'),
@@ -80,7 +80,7 @@ class LocationList(QTreeView, WidgetMixin):
 		self.dataModel.clear()
 
 	@Slot(dict)
-	def addItem(self, d):
+	def add_item(self, d):
 		path = d.get('shortpath', d['path'])
 		line = int(d.get('line', 0))
 		cols = []
@@ -93,7 +93,7 @@ class LocationList(QTreeView, WidgetMixin):
 		items = [QStandardItem(col) for col in cols]
 		items[0].setData(d['path'], AbsolutePathRole)
 		if line:
-			items[0].setData(line, lineRole)
+			items[0].setData(line, line_role)
 
 		for item in items:
 			item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
@@ -101,7 +101,7 @@ class LocationList(QTreeView, WidgetMixin):
 		self.dataModel.appendRow(items)
 
 	@Slot()
-	def resizeAllColumns(self):
+	def resize_all_columns(self):
 		for i in range(self.model().columnCount()):
 			self.resizeColumnToContents(i)
 
@@ -113,11 +113,11 @@ class LocationList(QTreeView, WidgetMixin):
 		qidx = qidx.sibling(qidx.row(), 0)
 		path = self.model().data(qidx, AbsolutePathRole)
 		# TODO use roles to have shortname vs longname
-		line = self.model().data(qidx, lineRole) or None
-		self.locationActivated.emit(path, (line,))
+		line = self.model().data(qidx, line_role) or None
+		self.location_activated.emit(path, (line,))
 
 	@Slot()
-	def activatePrevious(self):
+	def activate_previous(self):
 		"""Select and activate previous item
 
 		If an item is selected in this LocationList, selects the previous item and activates it. If no item
@@ -139,7 +139,7 @@ class LocationList(QTreeView, WidgetMixin):
 		self.activated.emit(current)
 
 	@Slot()
-	def activateNext(self):
+	def activate_next(self):
 		"""Select and activate next item
 
 		If an item is selected in this LocationList, selects the next item and activates it. If no item
@@ -161,8 +161,8 @@ class LocationList(QTreeView, WidgetMixin):
 		self.activated.emit(current)
 
 
-@register_signal('location_list', 'locationActivated')
+@register_signal('location_list', 'location_activated')
 @disabled
-def locationListOpen(widget, path, loc):
+def location_list_open(widget, path, loc):
 	send_intent(widget, 'open_editor', path=path, loc=loc, reason='locationlist')
 
