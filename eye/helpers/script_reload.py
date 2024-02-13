@@ -63,5 +63,5 @@ def set_enabled(enabled):
 			MONITOR = ScriptMonitor()
 		register_startup_files()
 	else:
-		MONITOR.deleteLater()
+		MONITOR.removePaths(MONITOR.directories() + MONITOR.files())
 		MONITOR = None
