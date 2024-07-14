@@ -68,7 +68,7 @@ class Project(QObject):
 
 		cfg = RawConfigParser()
 		try:
-			cfg.readfp(fp, cfgpath)
+			cfg.read_file(fp, cfgpath)
 		except Error:
 			LOGGER.error('cannot parse %r', cfgpath, exc_info=True)
 			return None
