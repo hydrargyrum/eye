@@ -146,9 +146,10 @@ class SimpleBuilder(Builder):
 
 	id = 'command'
 
-	def __init__(self, **kwargs):
+	def __init__(self, *, builder_name=None, **kwargs):
 		super().__init__(**kwargs)
 		self.reobj = re.compile(self.pattern, self.pattern_flags)
+		self.builder_name = builder_name
 
 		self.proc = LineProcess()
 		self.proc.stdout_line_read.connect(self.got_line)
@@ -194,6 +195,7 @@ class SimpleBuilder(Builder):
 		# make path absolute and shortpath relative
 		obj['path'] = os.path.join(rootpath, obj['path'])
 		obj['shortpath'] = get_relative_path_in(obj['path'], rootpath) or obj['path']
+		obj['builder'] = self.builder_name
 
 		signal.emit(obj)
 
@@ -213,6 +215,8 @@ class SimpleBuilder(Builder):
 
 		This method should be called by subclasses in :any:`run`.
 		"""
+		if not self.builder_name:
+			self.builder_name = cmd[0].rpartition("/")[2]
 		self.proc.start(cmd[0], cmd[1:])
 
 	def run_conf(self, command, dir, file):
