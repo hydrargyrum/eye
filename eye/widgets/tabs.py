@@ -96,6 +96,11 @@ class TabBar(QTabBar, BandMixin, CategoryMixin):
 		if not is_tab_drop_event(ev):
 			return super().dropEvent(ev)
 
+		tw = parent_tab_widget(widget)
+		if tw is self.parent():
+			self.moveTab(tw.indexOf(widget), idx)
+			return
+
 		self.hide_band()
 
 		idx = self.tabAt(ev.pos())
